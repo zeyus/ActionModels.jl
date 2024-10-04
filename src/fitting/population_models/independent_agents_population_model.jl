@@ -2,7 +2,7 @@
 #######################################################################################################
 ### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
 #######################################################################################################
-@model function simple_statistical_model(
+@model function independent_agents_population_model(
     prior::Dict{T,D},
     n_agents::I,
     agent_parameters::Vector{Dict{Any,Real}} = [Dict{Any,Real}() for _ = 1:n_agents],
@@ -40,7 +40,7 @@ function create_model(
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
     grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
-    track_states::Bool = false,
+    kwargs...,
 ) where {
     T<:Union{String,Tuple,Any},
     D<:Distribution,
@@ -53,17 +53,17 @@ function create_model(
     n_agents = length(groupby(data, grouping_cols))
 
     #Create a statistical model where the agents are independent and sampled from the same prior
-    statistical_model = simple_statistical_model(prior, n_agents)
+    population_model = independent_agents_population_model(prior, n_agents)
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
         agent,
-        statistical_model,
+        population_model,
         data;
         input_cols = input_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
-        track_states = track_states,
+        kwargs...,
     )
 end
 
@@ -72,12 +72,16 @@ end
 ####### FUNCTION FOR RENAMING CHAINS FOR A SIMPLE STATISTICAL MODEL ######
 ##########################################################################
 function rename_chains(
-    fitted_model::Chains,
-    prior::Dict{T,D},
+    chains::Chains,
     data::DataFrame,
     grouping_cols::Union{Vector{C},C},
-) where {T<:Union{String,Tuple,Any},D<:Distribution,C<:Union{String,Symbol}}
+    #Arguments from statistical model
+    prior::Dict{T,D},
+    n_agents::I,
+    agent_parameters::Vector{Dict{Any,Real}},
+) where {T<:Union{String,Tuple,Any},D<:Distribution,C<:Union{String,Symbol},I<:Int}
 
+    #Make sure grouping columns are a vector
     if !(grouping_cols isa Vector{C})
         grouping_cols = C[grouping_cols]
     end
@@ -131,5 +135,33 @@ function rename_chains(
     end
 
     #Replace names in the fitted model and return it
-    fitted_model = replacenames(fitted_model, replacement_names)
+    replacenames(chains, replacement_names)
+end
+
+
+#################################################################
+####### CHECKS TO BE MADE FOR THE SIMPLE STATISTICAL MODEL ######
+#################################################################
+function check_population_model(
+    #Arguments from statistical model
+    prior::Dict{T,D},
+    n_agents::I,
+    agent_parameters::Vector{Dict{Any,Real}};
+    #Arguments from check_model
+    verbose::Bool = true,
+    agent::Agent,
+) where {T<:Union{String,Tuple,Any},D<:Distribution,I<:Int}
+    #Unless warnings are hidden
+    if verbose
+        #If there are any of the agent's parameters which have not been set in the fixed or sampled parameters
+        if any(key -> !(key in keys(prior)), keys(agent.parameters))
+            @warn "the agent has parameters which are not estimated. The agent's current parameter values are used as fixed parameters"
+        end
+    end
+
+    #If there are no parameters to sample
+    if length(prior) == 0
+        #Throw an error
+        throw(ArgumentError("No parameters where specified in the prior."))
+    end
 end

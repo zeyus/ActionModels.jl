@@ -41,6 +41,8 @@ using ActionModels, DataFrames
         #Fit model
         fitted_model =
             sample(model, sampler, n_iterations; n_chains = n_chains, sampling_kwargs...)
+
+        renamed_model = rename_chains(fitted_model, model, data, :ID)
     end
 
     @testset "simple statistical model" begin
@@ -60,26 +62,41 @@ using ActionModels, DataFrames
             sample(model, sampler, n_iterations; n_chains = n_chains, sampling_kwargs...)
 
         #Rename chains
-        renamed_model = rename_chains(fitted_model, prior, data, :ID)
+        renamed_model = rename_chains(fitted_model, model, data, :ID)
 
         #Create model with tracking states
-        model_tracked = create_model(
+        # model_tracked = create_model(
+        #     agent,
+        #     prior,
+        #     data,
+        #     input_cols = :inputs,
+        #     action_cols = :actions,
+        #     grouping_cols = :ID,
+        # )
+
+        #Extract quantities
+        # agent_parameters, agent_states, statistical_values =
+        #     extract_quantities(fitted_model, model_tracked)
+    end
+
+    @testset "custom statistical model" begin
+
+    end
+
+    @testset "no grouping cols" begin
+        #Create model
+        model = create_model(
             agent,
             prior,
             data,
             input_cols = :inputs,
             action_cols = :actions,
-            grouping_cols = :ID,
-            track_states = true,
+            grouping_cols = Symbol[]
         )
 
-        #Extract quantities
-        agent_parameters, agent_states, statistical_values =
-            extract_quantities(fitted_model, model_tracked)
-    end
-
-    @testset "no grouping cols" begin
-
+        #Fit model
+        fitted_model =
+            sample(model, sampler, n_iterations; n_chains = n_chains, sampling_kwargs...)
     end
 
     @testset "multiple grouping cols" begin
@@ -99,22 +116,21 @@ using ActionModels, DataFrames
             sample(model, sampler, n_iterations; n_chains = n_chains, sampling_kwargs...)
 
         #Rename chains
-        renamed_model = rename_chains(fitted_model, prior, data, [:ID, :category])
+        renamed_model = rename_chains(fitted_model, model, data, [:ID, :category])
 
-        #Create model with tracking states
-        model_tracked = create_model(
-            agent,
-            prior,
-            data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = [:ID, :category],
-            track_states = true,
-        )
+        # #Create model with tracking states
+        # model_tracked = create_model(
+        #     agent,
+        #     prior,
+        #     data,
+        #     input_cols = :inputs,
+        #     action_cols = :actions,
+        #     grouping_cols = [:ID, :category],
+        # )
 
-        #Extract quantities
-        agent_parameters, agent_states, statistical_values =
-            extract_quantities(fitted_model, model_tracked)
+        # #Extract quantities
+        # agent_parameters, agent_states, statistical_values =
+        #     extract_quantities(fitted_model, model_tracked)
     end
 
     @testset "missing actions" begin
@@ -138,26 +154,21 @@ using ActionModels, DataFrames
             sample(model, sampler, n_iterations; n_chains = n_chains, sampling_kwargs...)
 
         #Rename chains
-        renamed_model = rename_chains(fitted_model, prior, data, :ID)
+        renamed_model = rename_chains(fitted_model, model, data, :ID)
 
-        #Create model with tracking states
-        model_tracked = create_model(
-            agent,
-            prior,
-            data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = :ID,
-            track_states = true,
-        )
+        # #Create model with tracking states
+        # model_tracked = create_model(
+        #     agent,
+        #     prior,
+        #     data,
+        #     input_cols = :inputs,
+        #     action_cols = :actions,
+        #     grouping_cols = :ID,
+        # )
 
-        #Extract quantities
-        agent_parameters, agent_states, statistical_values =
-            extract_quantities(fitted_model, model_tracked)
-    end
-
-    @testset "custom statistical model" begin
-
+        # #Extract quantities
+        # agent_parameters, agent_states, statistical_values =
+        #     extract_quantities(fitted_model, model_tracked)
     end
 
     @testset "multiple actions" begin
@@ -190,6 +201,11 @@ using ActionModels, DataFrames
         #Fit model
         fitted_model =
             sample(model, sampler, n_iterations; n_chains = n_chains, sampling_kwargs...)
+
+    end
+
+    @testset "multiple actions, missing actions" begin
+        
 
     end
 

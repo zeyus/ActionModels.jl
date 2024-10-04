@@ -30,8 +30,6 @@ function single_recovery(
     #Fit the model to the simulated data
     result = fit_model(model; sampler_settings..., progress = false)
 
-    string(describe(result.chains)[2].nt.parameters[1])
-
     #Extract the posterior medians
     posterior_medians = get_posteriors(result.chains)
 
@@ -87,7 +85,7 @@ Function for performing parameter recovery
 function parameter_recovery(
     agent::Agent,
     parameter_ranges::Dict,
-    input_sequences::Vector{V},
+    input_sequences::Array{V},
     priors::Union{P,Vector{P}},
     n_simulations::Int;
     sampler_settings::NamedTuple = (),
@@ -102,7 +100,7 @@ function parameter_recovery(
     end
 
     # If input_sequences is a single vector, convert it to a vector of vectors
-    if !(V <: Vector)
+    if !(V <: Array)
         input_sequences = [input_sequences]
     end
 
