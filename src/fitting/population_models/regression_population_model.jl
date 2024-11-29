@@ -30,6 +30,11 @@
 #       - TODO: check for whether the vector of priors is the correct amount
 # TODO: (1.0) Example / usecase / tutorials)
 #      - TODO: Fit a real dataset
+# TODO: (1.0) Fix broken autodiff problems.
+#      - One idea: re-program pvl-delta to not use mutating arrays (also make actionmodels scaffolding avoid it)
+#      - Another idea: Zygote or Mooncake
+#      - Re-program pvl-delta in turing (without actionmodels)
+#      - double-check the the premade rescorla wager also doesn't blow up on a big dataset (to confirm that vector parameters in the agent model is the problem)
 # TODO: add to documentation that there shoulnd't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
 
