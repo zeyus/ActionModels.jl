@@ -285,8 +285,28 @@ end
 
 
 
-function rename_chains()
-    #TODO
+function rename_chains(
+    chains::Chains,
+    model::DynamicPPL.Model,
+    #Arguments from population model
+    linear_submodels::Vector{T},
+    parameter_names::Vector,
+    n_agents::Int,
+) where {T<:DynamicPPL.Model}
+
+
+    # Extract needed information
+
+    # For each regression
+
+    # Fixed effect names
+
+    # Random effect names
+
+
+
+
+
 
     # replacement_names = Dict()
     # for (param_name, _, __) in statistical_submodels
