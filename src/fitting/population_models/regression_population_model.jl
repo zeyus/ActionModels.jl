@@ -21,7 +21,7 @@
 # TODO: Adapt so it can split a parameter into a tuple (until we get rid of tuple parameter names for good)
 # WONTFIX: Improve default priors by adding normalization of predictors
 # DONE: (1.0) rename link_funcions to inv_inv_link
-# TODO: (1.0) models withut random effects: make sure there is an intercept
+# DONE: (1.0) models withut random effects: make sure there is an intercept
 # TODO: (1.0) implement rename_chains for linear regressions (also for ordering of the random effects 
 #             - MAYBE some code uses the data order, maybe some uses the formula order)
 # TODO: (1.0) implement Regression type
@@ -254,7 +254,7 @@ function prepare_regression_data(
         X = MixedModel(formula, population_data).feterm.x
         Z = Matrix.(MixedModel(formula, population_data).reterms)
     else
-        X = StatsModels.modelmatrix(formula, population_data)
+        X = StatsModels.ModelMatrix(StatsModels.ModelFrame(formula, population_data)).m
         Z = nothing
     end
 
