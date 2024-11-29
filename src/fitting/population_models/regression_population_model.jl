@@ -19,8 +19,8 @@
 # DONE: Make sure the centering of the random slopes is good (γ, τ, σ)
 # DONE: Clean tests up
 # TODO: Adapt so it can split a parameter into a tuple (until we get rid of tuple parameter names for good)
-# TODO: Add normalization of predictors
-# TODO: (1.0) rename link_function to inv_link_function
+# WONTFIX: Improve default priors by adding normalization of predictors
+# DONE: (1.0) rename link_funcions to inv_inv_link
 # TODO: (1.0) models withut random effects: make sure there is an intercept
 # TODO: (1.0) implement rename_chains for linear regressions (also for ordering of the random effects 
 #             - MAYBE some code uses the data order, maybe some uses the formula order)
@@ -42,7 +42,7 @@ function create_model(
     regression_formulas::Union{F,Vector{F}},
     data::DataFrame;
     priors::Union{R,Vector{R}} = RegressionPrior(),
-    link_functions::Union{Function,Vector{Function}} = identity,
+    inv_links::Union{Function,Vector{Function}} = identity,
     input_cols::Vector{C},
     action_cols::Vector{C},
     grouping_cols::Vector{C},
@@ -64,13 +64,13 @@ function create_model(
     end
 
     #If there is only one link function specified
-    if link_functions isa Function
+    if inv_links isa Function
         #Put it in a vector
-        link_functions = Function[link_functions for _ = 1:length(regression_formulas)]
+        inv_links = Function[inv_links for _ = 1:length(regression_formulas)]
     end
 
     #Check that lengths are all the same
-    if !(length(regression_formulas) == length(priors) == length(link_functions))
+    if !(length(regression_formulas) == length(priors) == length(inv_links))
         throw(
             ArgumentError(
                 "The number of regression formulas, priors, and link functions must be the same",
@@ -90,8 +90,8 @@ function create_model(
     parameter_names = Vector{String}(undef, length(regression_formulas))
 
     #For each formula in the regression formulas, and its corresponding prior and link function
-    for (model_idx, (formula, prior, link_function)) in
-        enumerate(zip(regression_formulas, priors, link_functions))
+    for (model_idx, (formula, prior, inv_link)) in
+        enumerate(zip(regression_formulas, priors, inv_links))
 
         #Prepare the data for the regression model
         X, Z = prepare_regression_data(formula, population_data)
@@ -124,7 +124,7 @@ function create_model(
             X,
             Z,
             n_ranef_categories,
-            link_function = link_function,
+            inv_link = inv_link,
             prior = internal_prior,
         )
 
@@ -192,7 +192,7 @@ link function: link(η)
     X::Matrix{R1}, # model matrix for fixed effects
     Z::Union{Nothing,Vector{MR}}, # vector of model matrices for each random effect
     n_ranef_categories::Union{Nothing,Vector{Int}}; # number of random effect parameters, per group
-    link_function::Function,
+    inv_link::Function,
     prior::RegPrior,
     size_r::Union{Nothing,Vector{Int}} = if isnothing(Z)
         nothing
@@ -236,7 +236,7 @@ link function: link(η)
     end
 
     #Apply the link function, and return the resulting parameter for each participant
-    return link_function.(η)
+    return inv_link.(η)
 end
 
 

@@ -164,7 +164,7 @@ using Turing
                 @formula(action_noise ~ age + (1 | id)),
             ],
             data;
-            link_functions = [identity, LogExpFunctions.exp],
+            inv_links = [identity, LogExpFunctions.exp],
             action_cols = [:actions],
             input_cols = [:input],
             grouping_cols = [:id, :treatment],
@@ -181,7 +181,7 @@ using Turing
                 @formula(action_noise ~ age + (1 | id)),
             ],
             data;
-            link_functions = [logistic, LogExpFunctions.exp],
+            inv_links = [logistic, LogExpFunctions.exp],
             priors = [
                 RegressionPrior(
                     β = [Normal(0, 1), Normal(0, 1)],
