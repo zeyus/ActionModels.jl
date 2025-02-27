@@ -1,130 +1,170 @@
+### THINGS TO CHECK: ###
 
+#-- ActionModels --#
+#- reset! -> create copies of agents
+#- make set_parameters! use two tuples
+
+#-- PVL-DELTA --#
+#- matrix modification or 
+#- if statement 
+
+docs_path = joinpath(@__DIR__, "..", "..", "docs")
 using Pkg
-Pkg.activate("../../docs")
+Pkg.activate(docs_path)
 
 using Test
 using LogExpFunctions
 
 using ActionModels
 using Distributions
-using DataFrames
+using DataFrames, CSV
 using MixedModels
 using Turing
-using CSV
 
 
-@testset "pvl-delta on igt" begin
+@testset "IGT example" begin
     # Example analysis using data from ahn et al 2014
     # Iowa Gambling Task on healthy controls and participants with heroin or amphetamine addictions
     # More details in docs/example_data/ahn_et_al_2014/ReadMe.txt
 
     # Import data
-    data_healthy = CSV.read("../../docs/example_data/ahn_et_al_2014/IGTdata_healthy_control.txt", DataFrame)
+    data_healthy = CSV.read(joinpath(docs_path, "example_data/ahn_et_al_2014/IGTdata_healthy_control.txt"), DataFrame)
     data_healthy[!, :clinical_group] .= "healthy"
-    data_heroin = CSV.read("../../docs/example_data/ahn_et_al_2014/IGTdata_heroin.txt", DataFrame)
+    data_heroin = CSV.read(joinpath(docs_path, "example_data/ahn_et_al_2014/IGTdata_heroin.txt"), DataFrame)
     data_heroin[!, :clinical_group] .= "heroin"
-    data_amphetamine = CSV.read("../../docs/example_data/ahn_et_al_2014/IGTdata_amphetamine.txt", DataFrame)
+    data_amphetamine = CSV.read(joinpath(docs_path, "example_data/ahn_et_al_2014/IGTdata_amphetamine.txt"), DataFrame)
     data_amphetamine[!, :clinical_group] .= "amphetamine"
 
+    #Combine into one dataframe
     ahn_data = vcat(data_healthy, data_heroin, data_amphetamine)
     ahn_data[!, :subjID] = string.(ahn_data[!, :subjID])
 
-    # model total reward
-    ahn_data[!, :reward] = ahn_data[!, :gain] + ahn_data[!, :loss]
+    # Make clumn wit total reward
+    ahn_data[!, :reward] = ahn_data[!, :gain] + ahn_data[!, :loss];
 
-    # create pvl-delta agent
-    function pvl_delta(agent::Agent, input::Tuple{Int64, Int64})
-        deck, reward = input
-
-        learning_rate = agent.parameters["learning_rate"]
-        reward_sensitivity = agent.parameters["reward_sensitivity"]
-        loss_aversion = agent.parameters["loss_aversion"]
-        temperature = agent.parameters["temperature"]
-
-        expected_value = agent.states["expected_value"]
-
-        weighted_action_probabilities = ActionModels.ad_val(temperature) .* expected_value
-        action_probabilities = exp.(weighted_action_probabilities) ./ sum(exp.(weighted_action_probabilities))
-
-        if reward >= 0
-            prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
-        else
-            prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
-        end
-
-        expected_value[deck] = expected_value[deck] + learning_rate * prediction_error
-        update_states!(agent, "expected_value", expected_value)
-
-        return Categorical(ActionModels.ad_val.(action_probabilities))
+    if false
+        #subset the ahndata to have two subjID in each clinical_group
+        ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
     end
 
-    agent = init_agent(pvl_delta,
-                       parameters = Dict("learning_rate" => 0.05,
-                                         "reward_sensitivity" => 0.4,
-                                         "temperature" => 1.3,
-                                         "loss_aversion" => 0.5),
-                       states = Dict("expected_value" => tzeros(Real, 4)))
+    @testset "pvl-delta on igt" begin
+
+        # create pvl-delta agent
+        function pvl_delta(agent::Agent, input::Tuple{Int64, Int64})
+            deck, reward = input
+
+            learning_rate = agent.parameters["learning_rate"]
+            reward_sensitivity = agent.parameters["reward_sensitivity"]
+            loss_aversion = agent.parameters["loss_aversion"]
+            temperature = agent.parameters["temperature"]
+
+            expected_value = agent.states["expected_value"]
+
+            weighted_action_probabilities = ActionModels.ad_val(temperature) .* expected_value
+            action_probabilities = exp.(weighted_action_probabilities) ./ sum(exp.(weighted_action_probabilities))
+
+            # if reward >= 0
+            #     prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
+            # else
+            #     prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+            # end
+            prediction_error = (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+
+            expected_value[deck] = expected_value[deck] + learning_rate * prediction_error
+            update_states!(agent, "expected_value", expected_value)
+
+            return Categorical(ActionModels.ad_val.(action_probabilities))
+        end
+
+        agent = init_agent(pvl_delta,
+                        parameters = Dict("learning_rate" => 0.05,
+                                            "reward_sensitivity" => 0.4,
+                                            "temperature" => 1.3,
+                                            "loss_aversion" => 0.5),
+                        states = Dict("expected_value" => tzeros(Real, 4)))                
 
 
-    model = create_model(agent,
-                         @formula(learning_rate ~ 1),
-                         # @formula(temperature ~ 1),
-                         ahn_data,
-                         # priors = RegressionPrior(β = [Normal(0, 0.1)]),
-                         inv_links = logistic,
-                         action_cols = [:deck],
-                         input_cols = [:deck, :reward],
-                         grouping_cols = [:subjID])
+        #Create model
+        model = create_model(agent,
+                            @formula(learning_rate ~ clinical_group),
+                            # @formula(temperature ~ 1),
+                            ahn_data,
+                            # priors = RegressionPrior(β = [Normal(0, 0.1)]),
+                            inv_links = logistic,
+                            action_cols = [:deck],
+                            input_cols = [:deck, :reward],
+                            grouping_cols = [:subjID])
 
-    #Set samplings settings
-    sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true)) # blows up memory
-    # sampler = NUTS(-1, 0.65; adtype = AutoForwardDiff())
-    n_iterations = 10
-    sampling_kwargs = (; progress = false)
+        # AD = AutoForwardDiff()
+        # AD = AutoReverseDiff(; compile = false)
+        AD = AutoReverseDiff(; compile = true) #Explodes memory
+        # AD = AutoMooncake(; config = nothing); import Mooncake #Makes error when adding random effects
+        # AD = AutoZygote()
 
-    samples = sample(model, sampler, n_iterations; sampling_kwargs...)
-    # samples = sample(model.args.population_model, sampler, n_iterations; sampling_kwargs...)
+        #Set samplings settings
+        sampler = NUTS(-1, 0.65; adtype = AD) 
+        n_iterations = 1000
+        sampling_kwargs = (; progress = true)
 
+        samples = sample(model, sampler, n_iterations; sampling_kwargs...)
 
+        agent_parameters = extract_quantities(model, samples)
+        estimates_df = get_estimates(agent_parameters, DataFrame)
+        
+        using StatsPlots
+        plot(samples)
 
-    # @testset "test another thing" begin
+        # samples = sample(model.args.population_model, sampler, n_iterations; sampling_kwargs...)
 
-    #     # cateorical
-    #     function simple(agent::Agent, input::Tuple{Int64, Int64})
-    #         deck, reward = input
+    end
 
-    #         temperature = agent.parameters["temperature"]
-    #         value = agent.states["value"]
+    @testset "simple model on IGT" begin
 
-    #         weighted_action_probabilities = ActionModels.ad_val(temperature) .* value # Float64[10, 15, 2, 5]
-    #         action_probabilities = exp.(weighted_action_probabilities) ./ sum(exp.(weighted_action_probabilities))
+        function categorical_random(agent::Agent, input::Tuple{Int64, Int64})
 
-    #         update_states!(agent, "value", value .+ 1)
-    #         return Categorical(ActionModels.ad_val.(action_probabilities))
-    #     end
+            deck, reward = input
 
-    #     agent = init_agent(simple,
-    #                        parameters = Dict("temperature" => 1.3),
-    #                        states = Dict("value" => Real[10, 15, 2, 5]))
+            temperature = agent.parameters["temperature"]
 
+            #Avoid overflow
+            temperature = min(temperature, 1e10)
+            temperature = max(temperature, 1e-10)
+            
+            if reward >= 0
+                temperature = 1/temperature
+            end
 
-    #     model = create_model(agent,
-    #                          @formula(temperature ~ clinical_group),
-    #                          ahn_data,
-    #                          priors = RegressionPrior(β = [Normal(0, 0.1), Normal(0, 0.1), Normal(0, 0.1)]),
-    #                          inv_links = exp,
-    #                          action_cols = [:deck],
-    #                          input_cols = [:deck, :reward],
-    #                          grouping_cols = [:subjID])
+            #Do a softmax of the values
+            action_probabilities = softmax([0.7, 0.1, 0.1, 0.1] * temperature)
+    
+            return Categorical(action_probabilities)
+        end
+        agent = init_agent(categorical_random,
+                                parameters = Dict("temperature" => 1))  
 
-    #     #Set samplings settings
-    #     sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
-    #     n_iterations = 10
-    #     sampling_kwargs = (; progress = false)
+        #Create model
+        model = create_model(agent,
+                            @formula(temperature ~ clinical_group + (1|subjID)),
+                            # @formula(temperature ~ 1),
+                            ahn_data,
+                            # priors = RegressionPrior(β = [Normal(0, 0.1)]),
+                            inv_links = exp,
+                            action_cols = [:deck],
+                            input_cols = [:deck, :reward],
+                            grouping_cols = [:subjID])
+                        
+        # AD = AutoForwardDiff()
+        # AD = AutoReverseDiff(; compile = false)
+        AD = AutoReverseDiff(; compile = true) #Seems to work! 
+        # import Mooncake; AD = AutoMooncake(; config = nothing) #Works with only main effects
+        # AD = AutoZygote()
 
-    #     samples = sample(model, sampler, n_iterations; sampling_kwargs...)
-    #     # samples = sample(model.args.population_model, sampler, n_iterations; sampling_kwargs...)
+        #Set samplings settings
+        sampler = NUTS(-1, 0.65; adtype = AD) 
+        n_iterations = 1000
+        sampling_kwargs = (; progress = true)
 
-
-    # end
+        samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+    
+    end
 end

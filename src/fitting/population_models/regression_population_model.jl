@@ -31,10 +31,8 @@
 # TODO: (1.0) Example / usecase / tutorials)
 #      - TODO: Fit a real dataset
 # TODO: (1.0) Fix broken autodiff problems.
-#      - One idea: re-program pvl-delta to not use mutating arrays (also make actionmodels scaffolding avoid it)
-#      - Another idea: Zygote or Mooncake
-#      - Re-program pvl-delta in turing (without actionmodels)
-#      - double-check the the premade rescorla wager also doesn't blow up on a big dataset (to confirm that vector parameters in the agent model is the problem)
+#      - Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
+#      - Reversediff with compile is broken by either the if statement or the matrix modification. Test which one.
 # TODO: add to documentation that there shoulnd't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
 
@@ -55,7 +53,6 @@ function create_model(
 ) where {F<:MixedModels.FormulaTerm,C<:Union{String,Symbol}, R<:RegressionPrior}
 
     ## Setup ##
-
     #If there is only one formula
     if regression_formulas isa F
         #Put it in a vector
@@ -215,7 +212,6 @@ link function: link(η)
 
     #If there are random effects
     if has_ranef
-
         #Initialize vector of random effect parameters
         σ = Vector{Vector{Real}}(undef, length(Z))
         r = Vector{Matrix{Real}}(undef, length(Z))
