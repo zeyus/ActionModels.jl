@@ -42,7 +42,7 @@ using Turing
     # Make clumn wit total reward
     ahn_data[!, :reward] = ahn_data[!, :gain] + ahn_data[!, :loss];
 
-    if false
+    if true
         #subset the ahndata to have two subjID in each clinical_group
         ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
     end
@@ -155,8 +155,8 @@ using Turing
                         
         # AD = AutoForwardDiff()
         # AD = AutoReverseDiff(; compile = false)
-        AD = AutoReverseDiff(; compile = true) #Seems to work! 
-        # import Mooncake; AD = AutoMooncake(; config = nothing) #Works with only main effects
+        # AD = AutoReverseDiff(; compile = true) #Seems to work! 
+        import Mooncake; AD = AutoMooncake(; config = nothing) #Works with only main effects
         # AD = AutoZygote()
 
         #Set samplings settings

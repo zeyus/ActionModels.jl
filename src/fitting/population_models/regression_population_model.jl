@@ -99,6 +99,7 @@ function create_model(
         X, Z = prepare_regression_data(formula, population_data)
 
         if has_ranef(formula)
+            
             #Extract each function term (random effect part of formula)
             ranef_groups =
                 [term for term in formula.rhs if term isa MixedModels.FunctionTerm]
@@ -107,13 +108,23 @@ function create_model(
                 nrow(unique(population_data, Symbol(term.args[2]))) for term in ranef_groups
             ]
 
+            #Number of random effects
+            size_r = size.(Z, 2)
+            #For each random effect, extract the number of parameters
+            n_ranef_params = [
+                Int(size_rⱼ / n_ranef_categories[ranefⱼ]) for (ranefⱼ, size_rⱼ) in enumerate(size_r)
+            ]
+
+            #Full info for the random effect
+            ranef_info = (Z = Z, n_ranef_categories = n_ranef_categories, n_ranef_params = n_ranef_params)
+
             #Set priors
             internal_prior = RegPrior(
                 β = if prior.β isa Vector arraydist(prior.β) else filldist(prior.β, size(X, 2)) end,
                 σ = if prior.σ isa Vector arraydist.(prior.σ) else [filldist(prior.σ, Int(size(Zⱼ, 2) / n_ranef_categories[ranefⱼ])) for (ranefⱼ, Zⱼ) in enumerate(Z)] end )
         else
 
-            n_ranef_categories = nothing
+            ranef_info = nothing
 
             #Set priors, and no random effects
             internal_prior = RegPrior(
@@ -124,8 +135,7 @@ function create_model(
         #Condition the linear model
         regression_models[model_idx] = linear_model(
             X,
-            Z,
-            n_ranef_categories,
+            ranef_info,
             inv_link = inv_link,
             prior = internal_prior,
         )
@@ -192,17 +202,11 @@ link function: link(η)
 """
 @model function linear_model(
     X::Matrix{R1}, # model matrix for fixed effects
-    Z::Union{Nothing,Vector{MR}}, # vector of model matrices for each random effect
-    n_ranef_categories::Union{Nothing,Vector{Int}}; # number of random effect parameters, per group
+    ranef_info::Union{Nothing, T}; # model matrix for random effects
     inv_link::Function,
     prior::RegPrior,
-    size_r::Union{Nothing,Vector{Int}} = if isnothing(Z)
-        nothing
-    else
-        size.(Z, 2)
-    end, # number of random effect parameters, per group
-    has_ranef::Bool = !isnothing(Z),
-) where {R1<:Real,R2<:Real,MR<:Matrix{R2}}
+    has_ranef::Bool = !isnothing(ranef_info),
+) where {R1<:Real, T<:NamedTuple}
 
     #Sample beta / effect size parameters (including intercept)
     β ~ prior.β
@@ -212,23 +216,24 @@ link function: link(η)
 
     #If there are random effects
     if has_ranef
+        
+        #Extract random effect information
+        Z, n_ranef_categories, n_ranef_params = ranef_info
+        
         #Initialize vector of random effect parameters
         σ = Vector{Vector{Real}}(undef, length(Z))
         r = Vector{Matrix{Real}}(undef, length(Z))
 
         #For each random effect group j, and its corresponding model matrix Zⱼ
-        for (ranefⱼ, (Zⱼ, size_rⱼ)) in enumerate(zip(Z, size_r))
-
-            #Calculate number of random effect parameters in the group
-            n_ranef_params = Int(size_rⱼ / n_ranef_categories[ranefⱼ])
+        for (ranefⱼ, (Zⱼ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)) in enumerate(zip(Z, n_ranef_categories, n_ranef_params))
 
             #Sample the standard deviation of the random effect
             σ[ranefⱼ] ~ prior.σ[ranefⱼ]
 
             #Expand the standard deviation to the number of parameters
             r[ranefⱼ] ~ arraydist([
-                Normal(0, σ[ranefⱼ][idx]) for idx = 1:n_ranef_params for
-                _ = 1:n_ranef_categories[ranefⱼ]
+                Normal(0, σ[ranefⱼ][param_idx]) for param_idx = 1:n_ranef_paramsⱼ for
+                _ = 1:n_ranef_categoriesⱼ
             ])
 
             #Add the random effect to the linear model

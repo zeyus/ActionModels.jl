@@ -1,6 +1,7 @@
 
+docs_path = joinpath(@__DIR__, "..", "..", "docs")
 using Pkg
-Pkg.activate("../../docs")
+Pkg.activate(docs_path)
 
 using Test
 using LogExpFunctions
