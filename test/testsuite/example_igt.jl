@@ -63,11 +63,11 @@ using Turing
             weighted_action_probabilities = ActionModels.ad_val(temperature) .* expected_value
             action_probabilities = exp.(weighted_action_probabilities) ./ sum(exp.(weighted_action_probabilities))
 
-            # if reward >= 0
-            #     prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
-            # else
-            #     prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
-            # end
+            if reward >= 0
+                prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
+            else
+                prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+            end
             prediction_error = (abs(reward) ^ reward_sensitivity) - expected_value[deck]
 
             expected_value[deck] = expected_value[deck] + learning_rate * prediction_error

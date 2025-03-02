@@ -33,7 +33,7 @@
 # TODO: (1.0) Fix broken autodiff problems.
 #      - DONE: Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
 #      - TODO: Mooncake is broken by the indexing when sampling random effects
-#      - Reversediff with compile is broken by either the if statement or the matrix modification. Test which one.
+#      - TODO: Reversediff with compile is broken (excessiv memory usage) by either the matrix modification. Maybe it causes many allocations? Try with non-matrix modification PVL-delta.
 # TODO: add to documentation that there shoulnd't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
 
