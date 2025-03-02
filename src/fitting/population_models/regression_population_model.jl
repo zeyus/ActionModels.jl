@@ -31,7 +31,8 @@
 # TODO: (1.0) Example / usecase / tutorials)
 #      - TODO: Fit a real dataset
 # TODO: (1.0) Fix broken autodiff problems.
-#      - Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
+#      - DONE: Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
+#      - TODO: Mooncake is broken by the indexing when sampling random effects
 #      - Reversediff with compile is broken by either the if statement or the matrix modification. Test which one.
 # TODO: add to documentation that there shoulnd't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
@@ -229,6 +230,7 @@ link function: link(η)
 
             #Sample the standard deviation of the random effect
             σ[ranefⱼ] ~ prior.σ[ranefⱼ]
+            #σ[1] ~ prior.σ[ranefⱼ] #this doesnt break mooncake
 
             #Expand the standard deviation to the number of parameters
             r[ranefⱼ] ~ arraydist([
