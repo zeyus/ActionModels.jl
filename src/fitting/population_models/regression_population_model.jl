@@ -33,7 +33,11 @@
 # TODO: (1.0) Fix broken autodiff problems.
 #      - DONE: Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
 #      - TODO: Mooncake is broken by the indexing when sampling random effects
-#      - TODO: Reversediff with compile is broken (excessiv memory usage) by either the matrix modification. Maybe it causes many allocations? Try with non-matrix modification PVL-delta.
+#      - TODO: Reversediff with compile is broken (excessiv memory usage) by one of the following:
+#                   - matrix modification
+#                   - ad_val
+#                   - dependence on prev state
+#              Perhaps its due to many allocations..? Maybe it's because of reset!() ?
 # TODO: add to documentation that there shoulnd't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
 
@@ -222,30 +226,45 @@ link function: link(η)
         Z, n_ranef_categories, n_ranef_params = ranef_info
         
         #Initialize vector of random effect parameters
-        σ = Vector{Vector{Real}}(undef, length(Z))
-        r = Vector{Matrix{Real}}(undef, length(Z))
+        σ = Vector(undef, length(Z))
+        r = Vector(undef, length(Z))
 
         #For each random effect group j, and its corresponding model matrix Zⱼ
         for (ranefⱼ, (Zⱼ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)) in enumerate(zip(Z, n_ranef_categories, n_ranef_params))
 
-            #Sample the standard deviation of the random effect
-            σ[ranefⱼ] ~ prior.σ[ranefⱼ]
-            #σ[1] ~ prior.σ[ranefⱼ] #this doesnt break mooncake
-
-            #Expand the standard deviation to the number of parameters
-            r[ranefⱼ] ~ arraydist([
-                Normal(0, σ[ranefⱼ][param_idx]) for param_idx = 1:n_ranef_paramsⱼ for
-                _ = 1:n_ranef_categoriesⱼ
-            ])
+            @submodel prefix = string(ranefⱼ) rⱼ = sample_single_random_effect(prior.σ[ranefⱼ], n_ranef_categoriesⱼ, n_ranef_paramsⱼ)
 
             #Add the random effect to the linear model
-            η += Zⱼ * r[ranefⱼ]
+            η += Zⱼ * rⱼ
         end
     end
 
     #Apply the link function, and return the resulting parameter for each participant
     return inv_link.(η)
 end
+
+
+#################################################
+## Submodel to sample a specific random effect ##
+#################################################
+@model function sample_single_random_effect(
+    prior_σ,
+    n_ranef_categoriesⱼ,
+    n_ranef_paramsⱼ,
+    )
+
+    σ ~ prior_σ
+
+    r ~ arraydist([
+                Normal(0, σ[param_idx]) 
+                for param_idx = 1:n_ranef_paramsⱼ 
+                for _ = 1:n_ranef_categoriesⱼ
+                ])
+
+    return r
+
+end
+
 
 
 #########################################################

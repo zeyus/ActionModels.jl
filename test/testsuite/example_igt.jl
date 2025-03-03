@@ -1,13 +1,3 @@
-### THINGS TO CHECK: ###
-
-#-- ActionModels --#
-#- reset! -> create copies of agents
-#- make set_parameters! use two tuples
-
-#-- PVL-DELTA --#
-#- matrix modification or 
-#- if statement 
-
 docs_path = joinpath(@__DIR__, "..", "..", "docs")
 using Pkg
 Pkg.activate(docs_path)
@@ -42,7 +32,7 @@ using Turing
     # Make clumn wit total reward
     ahn_data[!, :reward] = ahn_data[!, :gain] + ahn_data[!, :loss];
 
-    if true
+    if false
         #subset the ahndata to have two subjID in each clinical_group
         ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
     end
@@ -86,7 +76,7 @@ using Turing
 
         #Create model
         model = create_model(agent,
-                            @formula(learning_rate ~ clinical_group),
+                            @formula(learning_rate ~ clinical_group + (1|subjID)),
                             # @formula(temperature ~ 1),
                             ahn_data,
                             # priors = RegressionPrior(β = [Normal(0, 0.1)]),
@@ -97,8 +87,8 @@ using Turing
 
         # AD = AutoForwardDiff()
         # AD = AutoReverseDiff(; compile = false)
-        AD = AutoReverseDiff(; compile = true) #Explodes memory
-        # AD = AutoMooncake(; config = nothing); import Mooncake #Makes error when adding random effects
+        # AD = AutoReverseDiff(; compile = true) #Explodes memory
+        AD = AutoMooncake(; config = nothing); import Mooncake
         # AD = AutoZygote()
 
         #Set samplings settings

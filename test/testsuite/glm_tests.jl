@@ -1,4 +1,3 @@
-
 docs_path = joinpath(@__DIR__, "..", "..", "docs")
 using Pkg
 Pkg.activate(docs_path)
@@ -11,6 +10,7 @@ using Distributions
 using DataFrames
 using MixedModels
 using Turing
+import Mooncake
 
 
 @testset "linear regression tests" begin
@@ -49,7 +49,8 @@ using Turing
     agent = premade_agent("continuous_rescorla_wagner_gaussian")
 
     #Set samplings settings
-    sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
+    # sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
+    sampler = NUTS(-1, 0.65; adtype = AutoMooncake(; config = nothing))
     n_iterations = 1000
     sampling_kwargs = (; progress = false)
 
