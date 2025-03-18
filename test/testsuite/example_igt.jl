@@ -237,7 +237,7 @@ end
 
     @testset "simple model on IGT" begin
 
-        function categorical_random(agent::Agent, input::Tuple{Int64, Int64})
+        function categorical_random(agent::Agent, input::Tuple{Int64, Float64})
 
             deck, reward = input
 
