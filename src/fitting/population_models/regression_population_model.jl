@@ -24,7 +24,7 @@
 # DONE: (1.0) models withut random effects: make sure there is an intercept
 # TODO: (1.0) implement rename_chains for linear regressions (also for ordering of the random effects 
 #             - MAYBE some code uses the data order, maybe some uses the formula order)
-# TODO: (1.0) implement Regression type
+# TODO: (1.0) implement Regression input type
 # TODO: implement check_population_model
 #       - TODO: Make check for whether there is a name collision with creating column with the parameter name
 #       - TODO: check for whether the vector of priors is the correct amount
@@ -32,14 +32,17 @@
 #      - TODO: Fit a real dataset
 # TODO: (1.0) Fix broken autodiff problems.
 #      - DONE: Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
-#      - TODO: Mooncake is broken by the indexing when sampling random effects
-#      - TODO: Reversediff with compile is broken (excessiv memory usage) by one of the following:
+#      - DONE: Mooncake is broken by the indexing when sampling random effects
+#      - TODO: Reversediff with compile is broken (excessive memory usage) by one of the following:
 #                   - matrix modification
 #                   - ad_val
 #                   - dependence on prev state
 #              Perhaps its due to many allocations..? Maybe it's because of reset!() ?
-# TODO: add to documentation that there shoulnd't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
+# TODO: add to documentation that there shouldn't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
+# TODO: Use an mvnormal to sample all the random effects, instead of a huge constructed arraydist
+# TODO: make copies of agents in agent_model
+# TODO: make ActionModels compatible with Enzyme
 
 using ActionModels, Turing, Distributions
 ##########################################################################################################
@@ -224,17 +227,14 @@ link function: link(η)
         
         #Extract random effect information
         Z, n_ranef_categories, n_ranef_params = ranef_info
-        
-        #Initialize vector of random effect parameters
-        σ = Vector(undef, length(Z))
-        r = Vector(undef, length(Z))
 
-        #For each random effect group j, and its corresponding model matrix Zⱼ
+        #For each random effect
         for (ranefⱼ, (Zⱼ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)) in enumerate(zip(Z, n_ranef_categories, n_ranef_params))
 
+            #Sample the individual random effects
             @submodel prefix = string(ranefⱼ) rⱼ = sample_single_random_effect(prior.σ[ranefⱼ], n_ranef_categoriesⱼ, n_ranef_paramsⱼ)
 
-            #Add the random effect to the linear model
+            #Add the random effects to the linear model
             η += Zⱼ * rⱼ
         end
     end
@@ -253,8 +253,10 @@ end
     n_ranef_paramsⱼ,
     )
 
+    #Sample random effect variance
     σ ~ prior_σ
 
+    #Sample individual random effects
     r ~ arraydist([
                 Normal(0, σ[param_idx]) 
                 for param_idx = 1:n_ranef_paramsⱼ 

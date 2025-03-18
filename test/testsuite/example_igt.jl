@@ -11,6 +11,46 @@ using DataFrames, CSV
 using MixedModels
 using Turing
 
+#CHECK:
+#- Mooncake has trouble fitting the reward reward_sensitivity
+
+
+function bounded_exp(; lower = nothing, upper = 1e200)
+
+    function _bounded_exp(x::T; 
+        lower = if isnothing(lower) eps(T) else lower end, 
+        upper = upper
+        ) where {T<:Real}
+
+        return max(
+            min(
+                exp(x), upper),
+                lower
+            )
+    end
+
+    return _bounded_exp
+end
+
+
+function bounded_logistic(; lower = nothing, upper = nothing)
+
+    function _bounded_logistic(x::T; 
+        lower = if isnothing(lower) eps(T)   else lower end, 
+        upper = if isnothing(upper) 1-eps(T) else upper end 
+        ) where {T<:Real}
+
+        return max(
+            min(
+                logistic(x), upper),
+                lower
+            )
+    end
+
+    return _bounded_logistic
+end
+
+
 
 @testset "IGT example" begin
     # Example analysis using data from ahn et al 2014
@@ -30,9 +70,9 @@ using Turing
     ahn_data[!, :subjID] = string.(ahn_data[!, :subjID])
 
     # Make clumn wit total reward
-    ahn_data[!, :reward] = ahn_data[!, :gain] + ahn_data[!, :loss];
+    ahn_data[!, :reward] = Float64.(ahn_data[!, :gain] + ahn_data[!, :loss]);
 
-    if false
+    if true
         #subset the ahndata to have two subjID in each clinical_group
         ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
     end
@@ -40,47 +80,85 @@ using Turing
     @testset "pvl-delta on igt" begin
 
         # create pvl-delta agent
-        function pvl_delta(agent::Agent, input::Tuple{Int64, Int64})
+        function pvl_delta(agent::Agent, input::Tuple{Int64, Float64})
             deck, reward = input
 
             learning_rate = agent.parameters["learning_rate"]
             reward_sensitivity = agent.parameters["reward_sensitivity"]
             loss_aversion = agent.parameters["loss_aversion"]
-            temperature = agent.parameters["temperature"]
+            inv_temperature = agent.parameters["inv_temperature"]
 
             expected_value = agent.states["expected_value"]
-
-            weighted_action_probabilities = ActionModels.ad_val(temperature) .* expected_value
-            action_probabilities = exp.(weighted_action_probabilities) ./ sum(exp.(weighted_action_probabilities))
+ 
+            action_probabilities = softmax(ActionModels.ad_val.(expected_value) * ActionModels.ad_val(inv_temperature))
 
             if reward >= 0
                 prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
             else
                 prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
             end
-            prediction_error = (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+
+            if isnan(expected_value[deck] + learning_rate * prediction_error)
+
+                @show reward, reward_sensitivity, expected_value[deck], prediction_error
+                @show expected_value[deck] + learning_rate * prediction_error
+                @show expected_value
+
+                throw(Exception("Error 1"))
+
+                
+            end
 
             expected_value[deck] = expected_value[deck] + learning_rate * prediction_error
+
+            if any(isnan.(expected_value))
+                @show expected_value
+                throw(Exception("Error 2"))
+            end
+            
             update_states!(agent, "expected_value", expected_value)
 
-            return Categorical(ActionModels.ad_val.(action_probabilities))
+            #if any(action_probabilities .<= 0) || any(action_probabilities .>= 1) || any(isnan.(action_probabilities))
+            if any(isnan.(action_probabilities))
+                
+                @show ActionModels.ad_val.(expected_value) * ActionModels.ad_val(inv_temperature)
+                @show expected_value
+                @show action_probabilities
+                throw(Exception("Error 3"))
+            end
+
+            return Categorical(action_probabilities)
         end
 
         agent = init_agent(pvl_delta,
-                        parameters = Dict("learning_rate" => 0.05,
+                        parameters = Dict(  "learning_rate" => 0.05,
                                             "reward_sensitivity" => 0.4,
-                                            "temperature" => 1.3,
+                                            "inv_temperature" => 1.3,
                                             "loss_aversion" => 0.5),
-                        states = Dict("expected_value" => tzeros(Real, 4)))                
-
+                        states = Dict("expected_value" => zeros(Real, 4)
+                        ))                
 
         #Create model
         model = create_model(agent,
-                            @formula(learning_rate ~ clinical_group + (1|subjID)),
-                            # @formula(temperature ~ 1),
+                            [
+                                #@formula(learning_rate ~ clinical_group + (1|subjID)),
+                                #@formula(inv_temperature ~ clinical_group + (1|subjID)),
+                                @formula(reward_sensitivity ~ clinical_group + (1|subjID))
+                                #@formula(loss_aversion ~ clinical_group + (1|subjID))
+                                ],
                             ahn_data,
-                            # priors = RegressionPrior(β = [Normal(0, 0.1)]),
-                            inv_links = logistic,
+                            priors = [
+                                #RegressionPrior(β = Normal(0, 1), σ = Exponential(1)),
+                                #RegressionPrior(β = Normal(0, 1), σ = Exponential(1)),
+                                RegressionPrior(β = TDist(1)*100, σ = truncated(TDist(1)*100, lower = 0)), #RegressionPrior(β = Normal(0, 1), σ = Exponential(1))
+                                #RegressionPrior(β = Normal(0, 1), σ = Exponential(1)),
+                            ],
+                            inv_links = Function[
+                                #logistic,
+                                #bounded_exp(),
+                                logistic,
+                                #bounded_exp(),
+                            ],
                             action_cols = [:deck],
                             input_cols = [:deck, :reward],
                             grouping_cols = [:subjID])
@@ -88,15 +166,59 @@ using Turing
         # AD = AutoForwardDiff()
         # AD = AutoReverseDiff(; compile = false)
         # AD = AutoReverseDiff(; compile = true) #Explodes memory
-        AD = AutoMooncake(; config = nothing); import Mooncake
+        import Mooncake; AD = AutoMooncake(; config = nothing)
         # AD = AutoZygote()
+        # using ADTypes: AutoEnzyme; using Enzyme; AD = AutoEnzyme(); 
 
         #Set samplings settings
         sampler = NUTS(-1, 0.65; adtype = AD) 
-        n_iterations = 1000
+        n_iterations = 50
         sampling_kwargs = (; progress = true)
 
         samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+
+
+    
+        for i in 1:100
+            print(i)
+            map_estimate = maximum_a_posteriori(model, adtype=AD)
+        end
+
+        
+        samples = sample(model, sampler, n_iterations; initial_params=map_estimate.values.array, sampling_kwargs...)
+
+        
+
+        #### INDEPENDENT AGENTS ###
+        model = create_model(agent,
+                            Dict(
+                                "reward_sensitivity" => LogitNormal(0, 1),
+                                "learning_rate" => LogitNormal(0, 1),
+                                "inv_temperature" => LogNormal(0, 1),
+                                "loss_aversion" => LogNormal(0, 1),
+                            ),
+                            ahn_data,
+                            action_cols = [:deck],
+                            input_cols = [:deck, :reward],
+                            grouping_cols = [:subjID])
+
+
+
+        ### SINGLE AGENT ###
+        single_data = filter(row -> row[:subjID] in ["103"], ahn_data)
+        inputs = Matrix(single_data[!, [:deck, :reward]])
+        actions = single_data[!, :deck]
+
+        model = create_model(agent,
+                            Dict(
+                                "reward_sensitivity" => LogitNormal(0, 1),
+                                "learning_rate" => LogitNormal(0, 1),
+                                "inv_temperature" => LogNormal(0, 1),
+                                "loss_aversion" => LogNormal(0, 1),
+                            ),
+                            inputs,
+                            actions)
+
 
         agent_parameters = extract_quantities(model, samples)
         estimates_df = get_estimates(agent_parameters, DataFrame)
@@ -104,7 +226,12 @@ using Turing
         using StatsPlots
         plot(samples)
 
-        # samples = sample(model.args.population_model, sampler, n_iterations; sampling_kwargs...)
+
+        h5open("pvldelta_mooncake.h5", "w") do f
+            write(f, samples)
+          end
+
+        samples = sample(model.args.population_model, sampler, n_iterations; sampling_kwargs...)
 
     end
 
