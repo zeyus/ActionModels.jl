@@ -57,11 +57,31 @@ function set_parameters!(
 end
 
 
-### Function for setting multiple parameters ###
+### Function for setting multiple parameters with a dict ###
 function set_parameters!(agent::Agent, parameter_values::Dict)
 
     #For each parameter to set
     for (param_key, param_value) in parameter_values
+        #Set that parameter
+        set_parameters!(agent, param_key, param_value)
+    end
+end
+
+### Function for setting multiple parameters with two vectors ###
+function set_parameters!(agent::Agent, parameter_names::Vector, parameter_values::Vector)
+
+    #For each parameter to set
+    for (param_key, param_value) in zip(parameter_names, parameter_values)
+        #Set that parameter
+        set_parameters!(agent, param_key, param_value)
+    end
+end
+
+### Function for setting multiple parameters with a vector and a subarray ###
+function set_parameters!(agent::Agent, parameter_names::Vector, parameter_values::SubArray)
+
+    #For each parameter to set
+    for (param_key, param_value) in zip(parameter_names, parameter_values)
         #Set that parameter
         set_parameters!(agent, param_key, param_value)
     end
