@@ -210,8 +210,9 @@ model = full_model(parameter_dists, parameter_names, inputs, actions, agents);
 
 #CHECK:
 # Simple model, subset, real:
-#    - NaN's produced when using initial_params
 # Simple model, all data, real:
+#   - all supported ADs work (Zygote and Enzyme are slow), except for when using initial params from MAP
+#   - Mooncake is slow
 
 # AD = AutoForwardDiff()                                                                            # works
 # AD = AutoReverseDiff(; compile = false)                                                           # works
