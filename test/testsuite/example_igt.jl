@@ -98,34 +98,9 @@ end
                 prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
             end
 
-            if isnan(expected_value[deck] + learning_rate * prediction_error)
-
-                @show reward, reward_sensitivity, expected_value[deck], prediction_error
-                @show expected_value[deck] + learning_rate * prediction_error
-                @show expected_value
-
-                throw(Exception("Error 1"))
-
-                
-            end
-
             expected_value[deck] = expected_value[deck] + learning_rate * prediction_error
-
-            if any(isnan.(expected_value))
-                @show expected_value
-                throw(Exception("Error 2"))
-            end
             
             update_states!(agent, "expected_value", expected_value)
-
-            #if any(action_probabilities .<= 0) || any(action_probabilities .>= 1) || any(isnan.(action_probabilities))
-            if any(isnan.(action_probabilities))
-                
-                @show ActionModels.ad_val.(expected_value) * ActionModels.ad_val(inv_temperature)
-                @show expected_value
-                @show action_probabilities
-                throw(Exception("Error 3"))
-            end
 
             return Categorical(action_probabilities)
         end

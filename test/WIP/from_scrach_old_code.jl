@@ -9,10 +9,6 @@
 # The quest:
 #   - Move on to the IGT data
 #   - Deal with missing data
-#       - check if Enzyme works with the Union type in the function header 
-#   - Deal with multiple inputs
-#   - Deal with multiple actions
-#   - Check for type instability
 # Make checks:
 #   - error on NaN in action cols, regression predictor cols or grouping cols
 #   - warning on missing in action cols or regression predictor cols
@@ -44,12 +40,11 @@ using StatsPlots
 
 
 
-
+#Data from https://github.com/nacemikus/jget-schizotypy
 grouping_cols = [:ID, :session]
 input_cols = [:outcome]
 action_cols = [:response]
 
-#Data from https://github.com/nacemikus/jget-schizotypy
 #Trial-level data
 JGET_data = CSV.read(
     joinpath(docs_path, "example_data/JGET/JGET_data_trial_preprocessed.csv"),
@@ -74,12 +69,10 @@ JGET_data.session = string.(JGET_data.session)
 #Make the outcome column Float64
 JGET_data.outcome = Float64.(JGET_data.outcome)
 
-# Remove data groups with missing actions
-if true
-    grouped_data = groupby(JGET_data, grouping_cols)
-    JGET_data = combine(grouped_data, subdata -> any(ismissing, Matrix(subdata[!, action_cols])) ? DataFrame() : subdata)
-    disallowmissing!(JGET_data, action_cols)
-end
+#Remove data groups with missing actions
+grouped_data = groupby(JGET_data, grouping_cols)
+JGET_data = combine(grouped_data, subdata -> any(ismissing, Matrix(subdata[!, action_cols])) ? DataFrame() : subdata)
+disallowmissing!(JGET_data, action_cols)
 
 if false
     #subset the data
@@ -321,23 +314,6 @@ end
 
 sum(isnan.(logdensities))
 logdensities[15]
-
-
-
-
-
-
-using Random
-
-@code_warntype model.f(
-    model,
-    Turing.VarInfo(model),
-    Turing.SamplingContext(
-        Random.default_rng(), Turing.SampleFromPrior(), Turing.DefaultContext()
-    ),
-    model.args...,
-)
-
 
 
 
