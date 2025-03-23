@@ -7,7 +7,11 @@
 
 ## TO DO ##
 # The quest:
-#   - Move on to the IGT data
+#   - Move on to the IGT data (DONE!)
+#   - Move on the HGF
+#       - on the JGET data
+#       - on the Powers data
+#   - Move on to the active inference package
 #   - Deal with missing data
 #       - check if Enzyme works with the Union type in the function header 
 #   - Deal with multiple inputs
@@ -24,6 +28,13 @@
 #   - Use the new version of the full_model
 #   - make session_model and population_models modular
 #   - use different session_models for missing data or not, and for checking for ParameterRejections
+#   - don't use inv_link in regression model, just transform in action_model
+# Issues:
+#   - Maybe Turing make a warning is there are NaN logdensities? Maybe especially if data being sampled is a NaN?
+#   - Maybe Turing can make a warning if the sampler runs into a hard edge of parameter space?
+#   - Reversediff errors when using a zeros(Real) instead of Zeros(Float64) in PVL-delta
+#   - The matrix modification in the old version of PVL-delta breaks Turing
+#   - Mooncake errors when fitting reward sensitivity in PVL-delta
 
 
 
@@ -75,7 +86,7 @@ JGET_data.session = string.(JGET_data.session)
 JGET_data.outcome = Float64.(JGET_data.outcome)
 
 # Remove data groups with missing actions
-if true
+if false
     grouped_data = groupby(JGET_data, grouping_cols)
     JGET_data = combine(grouped_data, subdata -> any(ismissing, Matrix(subdata[!, action_cols])) ? DataFrame() : subdata)
     disallowmissing!(JGET_data, action_cols)

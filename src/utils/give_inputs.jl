@@ -76,7 +76,7 @@ function give_inputs!(
     return stack(actions, dims = 1)
 end
 
-function give_inputs!(agent::Agent, inputs::Array)
+function give_inputs!(agent::Agent, inputs::Matrix)
 
     #Each row in the array is a single input
     for input in Tuple.(eachrow(inputs))

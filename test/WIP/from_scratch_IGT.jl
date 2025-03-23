@@ -1,7 +1,3 @@
-
-
-
-
 docs_path = joinpath(@__DIR__, "..", "..", "docs")
 using Pkg
 Pkg.activate(docs_path)
@@ -15,10 +11,34 @@ using DataFrames, CSV
 using Turing
 using StatsPlots
 
-
 # PROBLEMS
-# - the action probs become NaN when using inital params from the MAP
 
+# Reversediff errors with PVL-delta (target!)
+# no method matching increment_deriv!(::Int64, ::Float64)
+# using an array of Real as the base_probs breaks the model!
+
+# Mooncake errors with PVL-delta if reward_sensitivy is estimated 
+# - make MWE
+# domain error (probably NaN probs)
+
+# Optim gets to -Inf params (Solved)
+# - fix: clamp + normalize the probs
+
+#Matrix modification (Solved: workaround)
+# - the matrix modification breaks the model
+# - results in a weird error with forwarddiff
+# - make an MWE
+# - workaround: create a new matrix
+
+# NaN params with hard edges, when using MAP (Solved: needs a warning)
+# - the action probs become NaN when using inital params from the MAP
+# - this is because the probability get's squashed towards the minimum value, so the graident become NaN when the value is exactly on the minimum value
+# - Inf lp's with wide priors; it's the optim that leads to weird places
+# - make a MWE
+
+#IDEAS:
+# - don't use Agent struct (necessary for MWE's too)
+# - normalize rewards
 
 
 action_cols = [:deck]
@@ -42,32 +62,41 @@ ahn_data[!, :subjID] = string.(ahn_data[!, :subjID])
 ahn_data[!, :reward] = Float64.(ahn_data[!, :gain] + ahn_data[!, :loss]);
 
 if false
+    # #subset the ahndata to have two subjID in each clinical_group
+    # ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
     #subset the ahndata to have two subjID in each clinical_group
-    ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
+    ahn_data = filter(row -> row[:subjID] in ["103",], ahn_data)
 end
 
 
 
 #CREATE AGENT
-if true
+if false
 
     #Simple model
     function categorical_random(agent::Agent, input::Tuple{Int64, Float64})
 
         deck, reward = input
 
-        inv_temperature = agent.parameters["inv_temperature"]
+        inv_temperature = exp(agent.parameters["log_inv_temperature"])
+
+        #Set the probability 
+        base_probs = [0.1, 0.1, 0.1, 0.1]
+        #base_probs = zeros(Real, 4) # - USING THIS BREAKD REVERSEDIFF
+        base_probs[1] = 0.7
 
         #Do a softmax of the values
-        action_probabilities = softmax([0.7, 0.1, 0.1, 0.1] * inv_temperature)
+        action_probabilities = softmax(base_probs * inv_temperature)
 
         return Categorical(action_probabilities)
     end
 
     agent = init_agent(categorical_random,
-                            parameters = Dict("inv_temperature" => 1))  
+                            parameters = Dict("log_inv_temperature" => 1),
+                            states = Dict("expected_value" => zeros(Float64, 4)
+                    ))  
 
-    prior = Dict("inv_temperature" => Uniform(0, 5))
+    prior = Dict("log_inv_temperature" => Normal(0,2))
 
 elseif true
 
@@ -75,14 +104,18 @@ elseif true
     function pvl_delta(agent::Agent, input::Tuple{Int64, Float64})
         deck, reward = input
 
-        learning_rate = agent.parameters["learning_rate"]
-        reward_sensitivity = agent.parameters["reward_sensitivity"]
-        loss_aversion = agent.parameters["loss_aversion"]
-        inv_temperature = agent.parameters["inv_temperature"]
+        learning_rate = logistic(agent.parameters["logit_learning_rate"])
+        reward_sensitivity = logistic(agent.parameters["logit_reward_sensitivity"])
+        loss_aversion = exp(agent.parameters["log_loss_aversion"])
+        inv_temperature = exp(agent.parameters["log_inv_temperature"])
 
         expected_value = agent.states["expected_value"]
 
-        action_probabilities = softmax(ActionModels.ad_val.(expected_value) * ActionModels.ad_val(inv_temperature))
+        action_probabilities = softmax(expected_value * inv_temperature)
+        
+        #Avoid underflow and overflow
+        action_probabilities = clamp.(action_probabilities, 0.001, 0.999)
+        action_probabilities = action_probabilities / sum(action_probabilities)
 
         if reward >= 0
             prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
@@ -90,26 +123,28 @@ elseif true
             prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
         end
 
-        expected_value[deck] = expected_value[deck] + learning_rate * prediction_error
+        new_expected_value = [
+            expected_value[deck_idx] + learning_rate * prediction_error * (deck == deck_idx) for deck_idx in 1:4 
+        ]
         
-        update_states!(agent, "expected_value", expected_value)
+        update_states!(agent, "expected_value", new_expected_value)
 
         return Categorical(action_probabilities)
     end
 
     agent = init_agent(pvl_delta,
-                    parameters = Dict(  "learning_rate" => 0.05,
-                                        "reward_sensitivity" => 0.4,
-                                        "inv_temperature" => 1.3,
-                                        "loss_aversion" => 0.5),
-                    states = Dict("expected_value" => zeros(Real, 4)
+                    parameters = Dict(  "logit_learning_rate" => -2,
+                                        "logit_reward_sensitivity" => 0,
+                                        "log_inv_temperature" => 0,
+                                        "log_loss_aversion" => 0),
+                    states = Dict("expected_value" => zeros(Float64, 4)
                     ))    
 
     prior = Dict( 
-        "learning_rate"      => LogitNormal(0,1.5),
-        "reward_sensitivity" => LogitNormal(0,1.5),
-        "inv_temperature"    => Uniform(0,5),
-        "loss_aversion"      => Uniform(0,5)
+        "logit_learning_rate"      => Normal(0,1),
+        "logit_reward_sensitivity" => Normal(0,1),
+        "log_inv_temperature"      => Normal(0,1),
+        "log_loss_aversion"        => Normal(0,1)
         )
 end
 
@@ -135,31 +170,6 @@ inputs = [Tuple.(eachrow(agent_data[!, input_cols])) for agent_data in grouped_d
 actions = [first.(eachrow(agent_data[!, first(action_cols)])) for agent_data in grouped_data]
 
 
-# #Simulate data
-# if false
-#     actions = Vector{Float64}[]
-#     learning_rate = "low"
-#     for session_input in inputs
-#         if learning_rate == "low"
-
-#             set_parameters!(agent, Dict("learning_rate" => 0.05))
-
-#             learning_rate = "high"
-
-#         elseif learning_rate == "high"
-
-#             set_parameters!(agent, Dict("learning_rate" => 0.8))
-
-#             learning_rate = "low"
-#         end
-#         reset!(agent)
-#         session_actions = give_inputs!(agent, session_input)
-#         push!(actions, session_actions)
-#     end
-
-#     plot(inputs[1]); plot!(actions[1])
-#     plot(inputs[4]); plot!(actions[4])
-# end
 
 @model function full_model(
     parameter_dists::D,
@@ -171,8 +181,6 @@ actions = [first.(eachrow(agent_data[!, first(action_cols)])) for agent_data in 
 
     #Sample parameters
     parameters ~ parameter_dists
-
-    @show parameters
 
     #For each session
     for (session_parameters, session_inputs, session_actions, agent) in
@@ -209,62 +217,91 @@ model = full_model(parameter_dists, parameter_names, inputs, actions, agents);
 ### SAMPLE ###
 
 #CHECK:
-# Simple model, subset, real:
-# Simple model, all data, real:
-#   - all supported ADs work (Zygote and Enzyme are slow), except for when using initial params from MAP
-#   - Mooncake is slow
+# Simple model, all data, real: works, but MAP leads to -Inf (solved by clamping?)
+# PVL, subset, real, all params:
+#   - forwarddiff: works
+#   - reversdiff: no method matching increment_deriv!(::Int64, ::Float64)
+#   - mooncake: can't find initial parameters. a Domainerror happens
+# PVL, all data, real, all params:
+#   - forwarddiff: works (but slow)
+#   - reversdiff: 
+#   - reversdiff(true): 
+#   - mooncake: 
+# PVL, all data, real, no reward_sensitivity:
+#   - forwarddiff: works 
+#   - reversdiff: no method matching increment_deriv!(::Int64, ::Float64)
+#   - reversdiff(true): 
+#   - mooncake: works
+# PVL, subset, simulated, all params:
+#   - forwarddiff: works
+#   - reversdiff: no method matching increment_deriv!(::Int64, ::Float64)
+#   - reversdiff(true): same
+#   - mooncake: can't find initial parameters. a Domainerror happens
+# PVL, all data, simulated, all params:
+#   - forwarddiff: can't find starting point; with initial params, logprob is -Inf, and the action probs are NaN. 
+#                  narrow priors avoids this. Expect it to be underflow with categorical dist probs
+#   - reversdiff: 
+#   - reversdiff(true): 
+#   - mooncake: 
+
 
 # AD = AutoForwardDiff()                                                                            # works
 # AD = AutoReverseDiff(; compile = false)                                                           # works
-# AD = AutoReverseDiff(; compile = true)                                                            # works
+AD = AutoReverseDiff(; compile = true)                                                            # works
 # import Mooncake; AD = AutoMooncake(; config = nothing);                                           # slow
-# import Zygote; using ADTypes: AutoZygote; AD = AutoZygote()                                       # works
-# using Enzyme; using ADTypes: AutoEnzyme; AD = AutoEnzyme(; mode=set_runtime_activity(Forward));   # slow
 
 my_sampler = NUTS(-1, 0.65; adtype = AD)
-n_iterations = 20
+n_iterations = 1500
+
+
 
 # result = sample(model, Prior(), n_iterations)
 
 if false
+
     result = sample(model, my_sampler, n_iterations)
 
+elseif false
+    
     map_estimate = maximum_a_posteriori(model, adtype=AD)
 
+    result = sample(model, my_sampler, n_iterations; initial_params=map_estimate.values.array)
+    
+    plot(result)
 end
 
-result = sample(model, my_sampler, n_iterations; initial_params=map_estimate.values.array)
-
-result = sample(model, my_sampler, n_iterations; initial_params=manual_parameters)
-
-
-plot(result)
 
 
 
 
-
-
-
+# result = sample(model, my_sampler, n_iterations; initial_params=prior_params)
+   
 
 
 ##### GET THE GRADIENTS / LOGDENSITIES TO SEE IF THEY ARE NaN ######
 #Manual parameter settings: learning_rate = 0.001 action_noise = 50
-manual_parameters = repeat([0.5], n_agents)
+manual_parameters = repeat([0, 0, 0, 0], n_agents)
 
-
-
-
+using Turing: DynamicPPL; prior_params = DynamicPPL.VarInfo(model)[:]
 
 using Turing: LogDensityProblems
 ldf = LogDensityFunction(model; adtype=AD)
-LogDensityProblems.logdensity(ldf, map_estimate.values.array)
-LogDensityProblems.logdensity(ldf, manual_parameters) #using manual parameters
-LogDensityProblems.logdensity_and_gradient(ldf, map_estimate.values.array)
+# LogDensityProblems.logdensity(ldf, map_estimate.values.array)
+#LogDensityProblems.logdensity(ldf, manual_parameters) #using manual parameters
+LogDensityProblems.logdensity(ldf, prior_params) 
+
+# LogDensityProblems.logdensity_and_gradient(ldf, map_estimate.values.array)
+#LogDensityProblems.logdensity_and_gradient(ldf, manual_parameters)
+LogDensityProblems.logdensity_and_gradient(ldf, prior_params)
 
 
 
-# #create a single 
+
+#Test many prior param settings
+many_prior_params = [ DynamicPPL.VarInfo(model)[:] for _ = 1:100]
+logdensities = [LogDensityProblems.logdensity(ldf, prior_params) for prior_params in many_prior_params]
+
+
 
 
 # ## CHECK SINGLE PARTICIPANT MODELS ##
@@ -352,10 +389,71 @@ LogDensityProblems.logdensity_and_gradient(ldf, map_estimate.values.array)
 # Enzyme.Compiler.CheckNaN = true
 
 
-###### GETTING INITIAL PARAMETERS FROM PRIOR #######
 
-# using DynamicPPL
 
-# # instantiating a VarInfo samples from the prior; the [:] turns it into a vector of parameter values
-# # it would definitely be useful to have a convenience method for this
-#        initial_params = DynamicPPL.VarInfo(condmodel)[:]
+### ENZYME AND ZYGOTE ###
+# import Zygote; using ADTypes: AutoZygote; AD = AutoZygote()                                       # works
+# using Enzyme; using ADTypes: AutoEnzyme; AD = AutoEnzyme(; mode=set_runtime_activity(Forward));   # slow
+
+
+
+
+
+
+
+##### SIMULATE DATA ######
+# #Simulate data
+# if false
+    
+#     actions = Vector{Int64}[]
+    
+    
+#     type = 1
+
+#     for session_input in inputs
+#         if type == 1
+
+#             session_params = Dict(  
+#                 "logit_learning_rate" => -2,
+#                 "logit_reward_sensitivity" => 1,
+#                 "log_inv_temperature" => -1,
+#                 "log_loss_aversion" => -1
+#                 )
+            
+
+#             type = 2
+
+#         elseif type == 2
+
+#             session_params = Dict(  
+#                 "logit_learning_rate" => 2,
+#                 "logit_reward_sensitivity" => 1,
+#                 "log_inv_temperature" => -1,
+#                 "log_loss_aversion" => -1
+#                 )
+
+#             type = 3
+
+#         elseif type == 3
+
+#             session_params = Dict(  
+#                 "logit_learning_rate" => 0,
+#                 "logit_reward_sensitivity" => -1,
+#                 "log_inv_temperature" => -1,
+#                 "log_loss_aversion" => -1
+#                 )
+
+#             type = 1
+#         end
+
+#         set_parameters!(agent, session_params)
+#         reset!(agent)
+
+#         session_actions = [single_input!(agent, input) for input in session_input]
+
+#         push!(actions, session_actions)
+#     end
+
+#     plot(inputs[1]); plot(actions[1])
+#     plot(inputs[4]); plot!(actions[2])
+# end
