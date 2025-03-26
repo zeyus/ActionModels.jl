@@ -13,13 +13,13 @@ using StatsPlots
 
 # PROBLEMS
 
-# Reversediff errors with PVL-delta (target!)
-# no method matching increment_deriv!(::Int64, ::Float64)
-# using an array of Real as the base_probs breaks the model!
-
 # Mooncake errors with PVL-delta if reward_sensitivy is estimated 
 # - make MWE
 # domain error (probably NaN probs)
+
+# Reversediff errors with PVL-delta (target!)
+# no method msatching increment_deriv!(::Int64, ::Float64)
+# using an array of Real as the base_probs breaks the model!
 
 # Optim gets to -Inf params (Solved)
 # - fix: clamp + normalize the probs
@@ -61,13 +61,12 @@ ahn_data[!, :subjID] = string.(ahn_data[!, :subjID])
 # Make clumn with total reward
 ahn_data[!, :reward] = Float64.(ahn_data[!, :gain] + ahn_data[!, :loss]);
 
-if false
+if true
     # #subset the ahndata to have two subjID in each clinical_group
     # ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344",], ahn_data)
     #subset the ahndata to have two subjID in each clinical_group
     ahn_data = filter(row -> row[:subjID] in ["103",], ahn_data)
 end
-
 
 
 #CREATE AGENT
@@ -98,6 +97,79 @@ if false
 
     prior = Dict("log_inv_temperature" => Normal(0,2))
 
+elseif false
+
+    # PVL-Delta
+    function pvl_delta(agent::Agent, input::Tuple{Int64, Float64})
+        deck, reward = input
+
+        learning_rate = logistic(agent.parameters["logit_learning_rate"])
+        reward_sensitivity = logistic(agent.parameters["logit_reward_sensitivity"])
+        loss_aversion = exp(agent.parameters["log_loss_aversion"])
+        inv_temperature = exp(agent.parameters["log_inv_temperature"])
+
+        expected_value = agent.states["expected_value"]
+
+        action_probabilities = softmax(expected_value * inv_temperature)
+        
+        #Avoid underflow and overflow
+        action_probabilities = clamp.(action_probabilities, 0.001, 0.999)
+        action_probabilities = action_probabilities / sum(action_probabilities)
+
+        update_states!(agent, "action_probabilities", action_probabilities)
+        # update_states!(agent, "reward_sensitivity", reward_sensitivity)
+        # update_states!(agent, "reward", reward)
+        # update_states!(agent, "reward^reward_sensitivity", reward ^ reward_sensitivity)
+
+        prediction_error = (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+
+        update_states!(agent, "prediction_error", prediction_error)
+
+
+        # if reward >= 0
+        #     prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
+        # else
+        #     prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+        # end
+
+        # if reward >= 0
+        #     prediction_error = reward - expected_value[deck]
+        # else
+        #     prediction_error = -loss_aversion * reward - expected_value[deck]
+        # end
+
+        new_expected_value = [
+            expected_value[deck_idx] + learning_rate * prediction_error * (deck == deck_idx) for deck_idx in 1:4 
+        ]
+        
+        update_states!(agent, "expected_value", new_expected_value)
+
+        # expected_value[deck] += learning_rate * prediction_error
+
+        # update_states!(agent, "expected_value", expected_value)
+
+        return Categorical(action_probabilities)
+    end
+
+    agent = init_agent(pvl_delta,
+                    parameters = Dict(  "logit_learning_rate" => -2,
+                                        "logit_reward_sensitivity" => 0,
+                                        "log_inv_temperature" => 0,
+                                        "log_loss_aversion" => 0),
+                    states = Dict(
+                        "expected_value" => zeros(Real, 4),
+                        "action_probabilities" => zeros(Real, 4),
+                        "prediction_error" => missing
+                    ))    
+
+    prior = Dict( 
+        #"logit_learning_rate"      => Normal(0,1),
+        "logit_reward_sensitivity" => Normal(0,1),
+        #"log_inv_temperature"      => Normal(0,1),
+        #"log_loss_aversion"        => Normal(0,1)
+        )
+
+
 elseif true
 
     # PVL-Delta
@@ -117,11 +189,14 @@ elseif true
         action_probabilities = clamp.(action_probabilities, 0.001, 0.999)
         action_probabilities = action_probabilities / sum(action_probabilities)
 
-        if reward >= 0
-            prediction_error = (reward ^ reward_sensitivity) - expected_value[deck]
-        else
-            prediction_error = -loss_aversion * (abs(reward) ^ reward_sensitivity) - expected_value[deck]
-        end
+        update_states!(agent, "action_probabilities", action_probabilities)
+        # update_states!(agent, "reward_sensitivity", reward_sensitivity)
+        # update_states!(agent, "reward", reward)
+        # update_states!(agent, "reward^reward_sensitivity", reward ^ reward_sensitivity)
+
+        prediction_error = (abs(reward) ^ reward_sensitivity) - expected_value[deck]
+
+        update_states!(agent, "prediction_error", prediction_error)
 
         new_expected_value = [
             expected_value[deck_idx] + learning_rate * prediction_error * (deck == deck_idx) for deck_idx in 1:4 
@@ -137,18 +212,18 @@ elseif true
                                         "logit_reward_sensitivity" => 0,
                                         "log_inv_temperature" => 0,
                                         "log_loss_aversion" => 0),
-                    states = Dict("expected_value" => zeros(Float64, 4)
+                    states = Dict(
+                        "expected_value" => zeros(Real, 4),
+                        "action_probabilities" => zeros(Real, 4),
+                        "prediction_error" => missing
                     ))    
 
     prior = Dict( 
-        "logit_learning_rate"      => Normal(0,1),
         "logit_reward_sensitivity" => Normal(0,1),
-        "log_inv_temperature"      => Normal(0,1),
-        "log_loss_aversion"        => Normal(0,1)
         )
 end
 
-set_save_history!(agent, false)
+# set_save_history!(agent, false)
 
 ## THINGS FOR MODEL ##
 grouped_data = groupby(ahn_data, grouping_cols)
@@ -169,7 +244,10 @@ inputs = [Tuple.(eachrow(agent_data[!, input_cols])) for agent_data in grouped_d
 
 actions = [first.(eachrow(agent_data[!, first(action_cols)])) for agent_data in grouped_data]
 
-
+if false
+    inputs[1] = inputs[1][1:6]
+    actions[1] = actions[1][1:6]
+end
 
 @model function full_model(
     parameter_dists::D,
@@ -213,47 +291,36 @@ end
 
 model = full_model(parameter_dists, parameter_names, inputs, actions, agents);
 
-
 ### SAMPLE ###
 
-#CHECK:
-# Simple model, all data, real: works, but MAP leads to -Inf (solved by clamping?)
-# PVL, subset, real, all params:
-#   - forwarddiff: works
-#   - reversdiff: no method matching increment_deriv!(::Int64, ::Float64)
-#   - mooncake: can't find initial parameters. a Domainerror happens
-# PVL, all data, real, all params:
-#   - forwarddiff: works (but slow)
-#   - reversdiff: 
-#   - reversdiff(true): 
-#   - mooncake: 
-# PVL, all data, real, no reward_sensitivity:
-#   - forwarddiff: works 
-#   - reversdiff: no method matching increment_deriv!(::Int64, ::Float64)
-#   - reversdiff(true): 
-#   - mooncake: works
-# PVL, subset, simulated, all params:
-#   - forwarddiff: works
-#   - reversdiff: no method matching increment_deriv!(::Int64, ::Float64)
-#   - reversdiff(true): same
-#   - mooncake: can't find initial parameters. a Domainerror happens
-# PVL, all data, simulated, all params:
-#   - forwarddiff: can't find starting point; with initial params, logprob is -Inf, and the action probs are NaN. 
-#                  narrow priors avoids this. Expect it to be underflow with categorical dist probs
-#   - reversdiff: 
-#   - reversdiff(true): 
-#   - mooncake: 
 
 
 # AD = AutoForwardDiff()                                                                            # works
 # AD = AutoReverseDiff(; compile = false)                                                           # works
-AD = AutoReverseDiff(; compile = true)                                                            # works
-# import Mooncake; AD = AutoMooncake(; config = nothing);                                           # slow
+# AD = AutoReverseDiff(; compile = true)                                                            # works
+import Mooncake; AD = AutoMooncake(; config = nothing);                                           # 
 
 my_sampler = NUTS(-1, 0.65; adtype = AD)
-n_iterations = 1500
+n_iterations = 10
 
 
+
+
+map_estimate = maximum_a_posteriori(model, adtype=AD)
+
+result = sample(model, my_sampler, n_iterations; initial_params=map_estimate.values.array)
+    
+
+
+
+
+m_agent = model.args.agents[1]
+
+m_agent.history["expected_value"]
+m_agent.history["action_probabilities"]
+m_agent.history["action"]
+m_agent.history["prediction_error"]
+m_agent.parameters["logit_reward_sensitivity"]
 
 # result = sample(model, Prior(), n_iterations)
 

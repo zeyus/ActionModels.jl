@@ -7,14 +7,16 @@
 
 ## TO DO ##
 # The quest:
-#   - Move on to the IGT data (DONE!)
+#   - (DONE!) Move on to the IGT data 
+#       - (DONE!) Fix reversediff error
+#       - (DONE!) Fix Mooncake error
 #   - Move on the HGF
 #       - on the JGET data
 #       - on the Powers data
-#   - Move on to the active inference package
+#   - Move on to the ActiveInference.jl
+#   - Update the package!
 #   - Deal with missing data
-#       - check if Enzyme works with the Union type in the function header 
-#   - Deal with multiple inputs
+#   - Deal with multiple inputs 
 #   - Deal with multiple actions
 #   - Check for type instability
 # Make checks:
@@ -28,13 +30,12 @@
 #   - Use the new version of the full_model
 #   - make session_model and population_models modular
 #   - use different session_models for missing data or not, and for checking for ParameterRejections
-#   - don't use inv_link in regression model, just transform in action_model
 # Issues:
-#   - Maybe Turing make a warning is there are NaN logdensities? Maybe especially if data being sampled is a NaN?
-#   - Maybe Turing can make a warning if the sampler runs into a hard edge of parameter space?
-#   - Reversediff errors when using a zeros(Real) instead of Zeros(Float64) in PVL-delta
-#   - The matrix modification in the old version of PVL-delta breaks Turing
-#   - Mooncake errors when fitting reward sensitivity in PVL-delta
+#   - (DONE) Maybe Turing make a warning is there are NaN logdensities? Maybe especially if data being sampled is a NaN? 
+#   - (WHATEVER) Maybe Turing can make a warning if the sampler runs into a hard edge of parameter space?
+#   - (DONE) Reversediff errors when using a zeros(Real) instead of Zeros(Float64) in PVL-delta
+#   - (DONE) The matrix modification in the old version of PVL-delta breaks Turing
+#   - (DONE) Mooncake errors when fitting reward sensitivity in PVL-delta
 
 
 
@@ -86,13 +87,13 @@ JGET_data.session = string.(JGET_data.session)
 JGET_data.outcome = Float64.(JGET_data.outcome)
 
 # Remove data groups with missing actions
-if false
+if true
     grouped_data = groupby(JGET_data, grouping_cols)
     JGET_data = combine(grouped_data, subdata -> any(ismissing, Matrix(subdata[!, action_cols])) ? DataFrame() : subdata)
     disallowmissing!(JGET_data, action_cols)
 end
 
-if false
+if true
     #subset the data
     JGET_data =
         filter(row -> row[:ID] in [20, 74] && row[:session] in ["1", "2", "3"], JGET_data)
