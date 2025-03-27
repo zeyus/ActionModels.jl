@@ -1,4 +1,4 @@
-# #Fitting and simulating
+# # Fitting and simulating
 
 # The actionmodels.jl package can among other features fit models and simulate actions.
 
