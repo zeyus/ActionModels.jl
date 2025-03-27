@@ -67,22 +67,22 @@ makedocs(;
     pages = [
         "Introduction to Action Models" => [
             joinpath(".", "index.md"),
-            joinpath(".", "generated", "agent_and_actionmodel.md"),
-            joinpath(".", "generated", "fitting_vs_simulating.md"),
+            # joinpath(".", "generated", "agent_and_actionmodel.md"),
+            # joinpath(".", "generated", "fitting_vs_simulating.md"),
         ]
-        "Creating Your Model" => [
-            joinpath(".", "generated", "creating_own_action_model.md"),
-            joinpath(".", "generated", "premade_agents_and_models.md"),
-        ]
-        "Agent Based Simulation" => [
-            joinpath(".", "generated", "simulation_with_an_agent.md"),
-            joinpath(".", "generated", "variations_of_util.md"),
-        ]
-        "Fitting an Agent Model" => [
-            joinpath(".", "generated", "fitting_an_agent_model_to_data.md"),
-            joinpath(".", "generated", "prior_predictive_sim.md"),
-        ]
-        "All Functions" => joinpath(".", "generated", "all_functions.md")
+        # "Creating Your Model" => [
+        #     joinpath(".", "generated", "creating_own_action_model.md"),
+        #     joinpath(".", "generated", "premade_agents_and_models.md"),
+        # ]
+        # "Agent Based Simulation" => [
+        #     joinpath(".", "generated", "simulation_with_an_agent.md"),
+        #     joinpath(".", "generated", "variations_of_util.md"),
+        # ]
+        # "Fitting an Agent Model" => [
+        #     joinpath(".", "generated", "fitting_an_agent_model_to_data.md"),
+        #     joinpath(".", "generated", "prior_predictive_sim.md"),
+        # ]
+        # "All Functions" => joinpath(".", "generated", "all_functions.md")
     ]
 )
 
