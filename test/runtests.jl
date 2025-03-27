@@ -27,7 +27,7 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
         include(test_path * "quicktests.jl")
     end
 
-    @testset "testsuite" begin
+    @testset "unit tests" begin
 
         # List the julia filenames in the testsuite
         filenames = glob("*.jl", test_path * "testsuite")
@@ -39,14 +39,16 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
         end
     end
 
-    @testset "Documentation" begin
-        documentation_path = ActionModels_path * "/docs/src/"
-        @testset "sourcefiles" begin
+    @testset "documentation tests" begin
 
-            # List the julia filenames in the documentation source files folder
-            filenames = glob("*.jl", documentation_path * "/Julia_src_files")
+        #Set up path for the documentation folder
+        documentation_path = joinpath(ActionModels_path, "docs", "julia_files")
 
-            for filename in filenames
+        # List the julia filenames in the documentation source files folder
+        filenames = [glob("*/*.jl", documentation_path); glob("*.jl", documentation_path)] 
+
+        for filename in filenames
+            @testset "$(splitpath(filename)[end])" begin
                 include(filename)
             end
         end

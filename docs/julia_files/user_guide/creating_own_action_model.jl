@@ -39,6 +39,7 @@
 # First, let us define the function name and which input it takes:
 using ActionModels
 using Distributions
+using StatsPlots
 
 # In the next section you will be introduced to premade agents and models.
 
@@ -66,10 +67,8 @@ function continuous_rescorla_wagner_softmax(agent, input)
     ##Update the states and save them to agent's history 
 
     agent.states["value"] = new_value
-    agent.states["input"] = input
 
     push!(agent.history["value"], new_value)
-    push!(agent.history["input"], input)
 
     ## return the action distribution to sample actions from
     return action_distribution
@@ -82,7 +81,7 @@ parameters = Dict("learning_rate" => 1, ("initial", "value") => 0)
 # We set the initial state parameter for "value" state because we need a starting value in the update step. 
 
 # Let us define the states in the agent:
-states = Dict("value" => missing, "input" => missing)
+states = Dict("value" => 0, "input" => missing)
 
 
 agent =
@@ -161,7 +160,7 @@ parameters = Dict("learning_rate" => 1, "action_precision" => 1, ("initial", "va
 
 # Let us define the states in the agent:
 states = Dict(
-    "value" => missing,
+    "value" => 0,
     "transformed_value" => missing,
     "action_probability" => missing,
 )
