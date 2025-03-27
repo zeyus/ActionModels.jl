@@ -67,8 +67,8 @@ makedocs(;
     pages = [
         "Introduction to Action Models" => [
             joinpath(".", "generated", "introduction.md"),
-            joinpath(".", "generated", "agent_and_actionmodel.md"),
-            joinpath(".", "generated", "fitting_vs_simulating.md"),
+            joinpath(".", "theory", "agent_and_actionmodel.md"),
+            joinpath(".", "theory", "fitting_vs_simulating.md"),
         ]
         "Creating Your Model" => [
             joinpath(".", "generated", "creating_own_action_model.md"),
