@@ -13,7 +13,7 @@
 # We will define an agent to use during demonstrations of the utility functions:
 using ActionModels #hide
 
-agent = premade_agent("premade_binary_rescorla_wagner_softmax")
+agent = premade_agent("binary_rescorla_wagner_softmax")
 
 # ## Getting States
 # The get_states() function can give you a single state, multiple states and all states of an agent. 
@@ -91,8 +91,8 @@ using Distributions
 priors = Dict("action_precision" => Normal(1, 0.5), "learning_rate" => Normal(1, 0.1))
 
 # Fit the model
-fitted_model = fit_model(agent, priors, inputs, actions)
+#fitted_model = fit_model(agent, priors, inputs, actions)
 
 
 # We can now use the get_posteriors() 
-get_posteriors(fitted_model)
+#get_posteriors(fitted_model)

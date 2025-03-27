@@ -56,7 +56,7 @@ using ActionModels
 using Distributions
 using StatsPlots
 
-agent = premade_agent("premade_binary_rescorla_wagner_softmax")
+agent = premade_agent("binary_rescorla_wagner_softmax")
 
 # Let's give the agent some input and simulate a set of actions:
 
@@ -76,13 +76,13 @@ priors = Dict("learning_rate" => Normal(1, 0.5))
 
 # We have our agent, inputs, actions and priors. This is what we need to fit.
 
-fitted_model = fit_model(agent, priors, inputs, actions)
+#fitted_model = fit_model(agent, priors, inputs, actions)
 
 # As output you are presented with the summary statistics. 
 
 # We can plot the chains and distribution of the two chains.
 
-plot(fitted_model)
+#plot(fitted_model)
 
 
 
@@ -91,11 +91,11 @@ plot(fitted_model)
 
 # The first argument in the fuction is the fitted model and the second are the priors. The plot is a vizuialisation comparing the fitted parameters compared to priors
 
-plot_parameter_distribution(fitted_model, priors)
+#plot_parameter_distribution(fitted_model, priors)
 
 
 # You can extract the posterior parameters from a Turing chain with the get_posteriors() function:
-get_posteriors(fitted_model)
+#get_posteriors(fitted_model)
 
 
 # ## Fitting multiple parameters
@@ -103,13 +103,13 @@ get_posteriors(fitted_model)
 # By adding multiple parameter priors you can autimatically fit them with fit\_model. Let's say you also want to fit softmax\_action\_precision.
 
 # Add an extra prior in the Dict
-multiple_priors =
-    Dict("learning_rate" => Normal(1, 0.5), "action_precision" => Normal(0.8, 0.2))
+#multiple_priors =
+    #Dict("learning_rate" => Normal(1, 0.5), "action_precision" => Normal(0.8, 0.2))
 
-multiple_fit = fit_model(agent, multiple_priors, inputs, actions)
+#multiple_fit = fit_model(agent, multiple_priors, inputs, actions)
 
 # Plot the parameter distribution 
-plot_parameter_distribution(multiple_fit, multiple_priors)
+#plot_parameter_distribution(multiple_fit, multiple_priors)
 
 # Extract the posteriors from the Turing chain
-get_posteriors(multiple_fit)
+#get_posteriors(multiple_fit)

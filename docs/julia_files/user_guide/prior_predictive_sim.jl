@@ -41,7 +41,7 @@
 using ActionModels
 
 #Define an agent
-agent = premade_agent("premade_binary_rescorla_wagner_softmax")
+agent = premade_agent("binary_rescorla_wagner_softmax")
 #Define input
 inputs = [1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0]
 
@@ -61,7 +61,7 @@ prior_learning_rate = Dict("learning_rate" => Normal(1.2, 0.5))
 # Insert values in the function
 using Plots
 using StatsPlots
-plot_predictive_simulation(prior_learning_rate, agent, inputs, target_state)
+#plot_predictive_simulation(prior_learning_rate, agent, inputs, target_state)
 
 
 # The red dot in the plot shows the median simulated value for action probability from each run on the inputs with different parameter samples.
@@ -74,9 +74,9 @@ plot_predictive_simulation(prior_learning_rate, agent, inputs, target_state)
 
 actions = give_inputs!(agent, inputs)
 
-fitted_model = fit_model(agent, prior_learning_rate, inputs, actions)
+#fitted_model = fit_model(agent, prior_learning_rate, inputs, actions)
 
 # The plot\_predictive\_simulation() function recognizes a fitted model, more specifically a turing chain of posteriors. We can therefore input the fitted model as our posterior.
 
 # Insert the fitted model (with a posterior for learnig rate) and plot action probability as our target state.
-plot_predictive_simulation(fitted_model, agent, inputs, target_state)
+#plot_predictive_simulation(fitted_model, agent, inputs, target_state)
