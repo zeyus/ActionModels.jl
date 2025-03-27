@@ -3,7 +3,6 @@
 
 # As a very general structue we can illustrate the relation between input and action/response as below. 
 
-# ![Image1](../images/action_input.png)
 # *We can generate actions based on inputs. How we use the input to generate actions happens according to the action model*
 
 # An action model is a *way* of assuming how an agents actions are generated from inputs. An action model can be modulated according to a specific experimental use or how we assume a specific agent operates. 

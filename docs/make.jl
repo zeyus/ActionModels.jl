@@ -66,9 +66,9 @@ makedocs(;
     doctest = true,
     pages = [
         "Introduction to Action Models" => [
-            joinpath(".", "generated", "introduction.md"),
-            joinpath(".", "theory", "agent_and_actionmodel.md"),
-            joinpath(".", "theory", "fitting_vs_simulating.md"),
+            joinpath(".", "index.md"),
+            joinpath(".", "generated", "agent_and_actionmodel.md"),
+            joinpath(".", "generated", "fitting_vs_simulating.md"),
         ]
         "Creating Your Model" => [
             joinpath(".", "generated", "creating_own_action_model.md"),
@@ -82,6 +82,7 @@ makedocs(;
             joinpath(".", "generated", "fitting_an_agent_model_to_data.md"),
             joinpath(".", "generated", "prior_predictive_sim.md"),
         ]
+        "All Functions" => joinpath(".", "generated", "all_functions.md")
     ]
 )
 

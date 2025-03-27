@@ -19,7 +19,7 @@ using ActionModels
 # Find premade agent, and define agent with default parameters
 premade_agent("help")
 
-agent = premade_agent("premade_binary_rescorla_wagner_softmax")
+agent = premade_agent("binary_rescorla_wagner_softmax")
 
 # Set inputs and give inputs to agent
 
@@ -35,14 +35,14 @@ using Distributions
 priors = Dict("learning_rate" => Normal(0.5, 0.5))
 
 # Run model
-chains = fit_model(agent, priors, inputs, actions, n_chains = 1, n_iterations = 10)
+#chains = fit_model(agent, priors, inputs, actions, n_chains = 1, n_iterations = 10)
 
 # Plot prior and posterior
-plot_parameter_distribution(chains, priors)
+#plot_parameter_distribution(chains, priors)
 
 # Get posteriors from chains
 
-get_posteriors(chains)
+#get_posteriors(chains)
 
 
 # ## Computaitonal modelling of behavior
