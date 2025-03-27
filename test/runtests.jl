@@ -42,7 +42,7 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
     @testset "documentation tests" begin
 
         #Set up path for the documentation folder
-        documentation_path = joinpath(hgf_path, "docs", "julia_files")
+        documentation_path = joinpath(ActionModels_path, "docs", "julia_files")
 
         # List the julia filenames in the documentation source files folder
         filenames = [glob("*/*.jl", documentation_path); glob("*.jl", documentation_path)] 
