@@ -3,7 +3,6 @@
 *.jl.mem
 /docs/build/
 .DS_Store
-WIP/*
 settings.json
 Manifest.toml
 
