@@ -1,13 +1,3 @@
-
-############################################################
-#### FUNCTION FOR RENAMING THE CHAINS OF A FITTED MODEL ####
-############################################################
-function rename_chains(chains::Chains, model::DynamicPPL.Model)
-    #This will multiple dispatch on the type of statistical model
-    rename_chains(chains, model, model.args.population_model.args...)
-end
-
-
 ###############################################
 #### FUNCTION FOR CHECKING A CREATED MODEL ####
 ###############################################
@@ -20,8 +10,6 @@ function check_model(
     grouping_cols::Union{Vector{T3},T3},
     verbose::Bool = true,
 ) where {T1<:Union{String,Symbol},T2<:Union{String,Symbol},T3<:Union{String,Symbol}}
-
-    #TODO： Make check for whether the agent model outputs the right amount of actions / accepts the right amoiunts of inputs
 
     #Run the check of the statistical model    
     check_population_model(population_model.args...; verbose = verbose, agent = agent)
@@ -43,6 +31,24 @@ function check_model(
         throw(
             ArgumentError(
                 "There are specified action columns that do not exist in the dataframe",
+            ),
+        )
+    end
+
+    #Check whether the action columns are of the correct type
+    if any(!((data[!, action_cols] isa Vector{<:Real})))
+        throw(
+            ArgumentError(
+                "The action columns must be of type Vector{<:Real}",
+            ),
+        )
+    end
+
+    #Check whether there are NaN values in the action columns
+    if any(isnan.(data[!, action_cols]))
+        throw(
+            ArgumentError(
+                "There are NaN values in the action columns",
             ),
         )
     end

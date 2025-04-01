@@ -20,19 +20,14 @@ end
 ######################################
 ## STRUCTS FOR CREATE AND FIT MODEL ##
 ######################################
-struct PopulationModelReturn
-    agent_parameters::Vector{Dict}
-    other_values::Union{Nothing,Any}
-end
-PopulationModelReturn(agent_parameters::Vector{D}) where {D<:Dict} =
-    PopulationModelReturn(agent_parameters, nothing)
-
-struct CheckRejections end
-struct MissingActions end
 mutable struct FitModelResults
     chains::Chains
     model::DynamicPPL.Model
 end
+
+#Structs for setting missing actions to be either skipped or inferred
+struct SkipMissingActions end
+struct InferMissingActions end
 
 """
 Custom error type which will result in rejection of a sample
@@ -81,8 +76,8 @@ end
 Input struct for setting regression priors
 """
 Base.@kwdef struct RegressionPrior{D1<:Distribution, D2<:Distribution}
-    β::Union{D1, Vector{D1}} = TDist(3)*2.5
-    σ::Union{D2, Vector{Vector{D2}}} = truncated(TDist(3)*2.5, lower = 0)
+    β::Union{D1, Vector{D1}} = TDist(3)
+    σ::Union{D2, Vector{Vector{D2}}} = truncated(TDist(3), lower = 0)
 end
 
 """
@@ -91,12 +86,12 @@ Input struct for specifying a regression
 struct Regression
     formula::MixedModels.FormulaTerm
     prior::RegPrior
-    link::Function
+    inv_link::Function
 
-    Regression(formula::MixedModels.FormulaTerm, prior::RegPrior = RegPrior(), link::Function = identity) = begin
-        new(formula, prior, link)
+    Regression(formula::MixedModels.FormulaTerm, prior::RegPrior = RegPrior(), inv_link::Function = identity) = begin
+        new(formula, prior, inv_link)
     end
-    Regression(formula::MixedModels.FormulaTerm, link::Function, prior::RegPrior = RegPrior()) = begin
-        new(formula, prior, link)
+    Regression(formula::MixedModels.FormulaTerm, inv_link::Function, prior::RegPrior = RegPrior()) = begin
+        new(formula, prior, inv_link)
     end
 end

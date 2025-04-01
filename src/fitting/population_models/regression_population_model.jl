@@ -359,6 +359,17 @@ function check_population_model(
     verbose::Bool,
     agent::Agent,
 )
-    #TODO
+    
+
+    #TODO: Make a check for whether there are NaN values in the predictors
+    # if any(isnan.(data[!, predictor_cols]))
+    #     throw(
+    #         ArgumentError(
+    #             "There are NaN values in the action columns",
+    #         ),
+    #     )
+    # end
+
+
     return nothing
 end

@@ -8,7 +8,9 @@ function create_model(
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T3},
     grouping_cols::Union{Vector{T3},T3},
-    check_parameter_rejections::Union{Nothing,CheckRejections} = nothing,
+    parameter_names::Vector{String},
+    infer_missing_actions::Bool = false,
+    check_parameter_rejections::Bool = false,
     verbose::Bool = true,
 ) where {T1<:Union{String,Symbol},T2<:Union{String,Symbol},T3<:Union{String,Symbol}}
 
@@ -35,9 +37,44 @@ function create_model(
     end
     grouping_cols = Symbol.(grouping_cols)
 
-    #Run checks for the model specifications
+    ## Check whether to skip or infer missing data ##
+    if !infer_missing_actions
+        #If there are no missing actions
+        if !any(ismissing, Matrix(data[!, action_cols]))
+            #Remove any potential Missing type
+            disallowmissing!(JGET_data, action_cols)
+            infer_missing_actions = nothing
+        else
+            if verbose
+                warn(
+                    """
+                    There are missing values in the action columns, but infer_missing_actions is set to false. 
+                    These actions will not be used for fitting, but they will still be passed to the action model. 
+                    Check that this is desired behaviour. This can especially be a problem for models which depend on their previous actions.
+                    """,
+                )
+            end
+            infer_missing_actions = SkipMissingActions()
+        end
+    else
+        #If there are no missing actions
+        if !any(ismissing, Matrix(data[!, action_cols]))
+            if verbose
+                warn(
+                    "infer_missing_actions is set to true, but there are no missing values in the action columns. Setting infer_missing_actions to false",
+                )
+            end
+            #Remove any potential Missing type
+            disallowmissing!(JGET_data, action_cols)
+            infer_missing_actions = nothing
+        else
+            infer_missing_actions = InferMissingActions()
+        end
+    end
+
+    ## Run checks for the model specifications ##
     check_model(
-        agent,
+        agent_model,
         population_model,
         data;
         input_cols = input_cols,
@@ -46,99 +83,111 @@ function create_model(
         verbose = verbose,
     )
 
+    ## EXTRACT DATA ##
+    #Group data by sessions
+    grouped_data = groupby(data, grouping_cols)
 
-    ## Extract data ##
-    #If there is only one input column
-    if length(input_cols) == 1
-        #Inputs are a vector of vectors of <:reals
-        inputs = [
-            Vector(agent_data[!, first(input_cols)]) for
-            agent_data in groupby(data, grouping_cols)
-        ]
-    else
-        #Otherwise, they are a vector of vectors of tuples
-        inputs = [
-            Tuple.(eachrow(agent_data[!, input_cols])) for
-            agent_data in groupby(data, grouping_cols)
-        ]
-    end
-
-    #If there is only one action column
-    if length(action_cols) == 1
-        #Actions are a vector of arrays (vectors if there is only one action, matrices if there are multiple)
-        actions = [
-            Vector(agent_data[!, first(action_cols)]) for
-            agent_data in groupby(data, grouping_cols)
-        ]
-    else
-        #Actions are a vector of arrays (vectors if there is only one action, matrices if there are multiple)
-        actions = [
-            Array(agent_data[!, action_cols]) for agent_data in groupby(data, grouping_cols)
-        ]
-    end
-
-    #Create agent ids from the grouping columns and their values
-    agent_ids = [
+    #Create IDs for each session
+    session_ids = [
         Symbol(
             join(
                 [
-                    string(col_name) * id_column_separator * string(row[col_name]) for
-                    col_name in grouping_cols
+                    string(col_name) *
+                    id_column_separator *
+                    string(first(subdata)[col_name]) for col_name in grouping_cols
                 ],
                 id_separator,
             ),
-        ) for row in eachrow(unique(data[!, grouping_cols]))
+        ) for subdata in grouped_data
     ]
 
-    ## Determine whether any actions are missing ##
-    if actions isa Vector{A} where {R<:Real,A<:Array{Union{Missing,R}}}
-        #If there are missing actions
-        missing_actions = MissingActions()
-    elseif actions isa Vector{A} where {R<:Real,A<:Array{R}}
-        #If there are no missing actions
-        missing_actions = nothing
+    ## Extract inputs and actions ##
+    if length(input_cols) == 1
+        #Inputs are a vector of vectors of <:Any
+        inputs = [Vector(agent_data[!, first(input_cols)]) for agent_data in grouped_data]
+    else
+        #Extract action types
+        input_types = eltype.(eachcol(data[!, input_cols]))
+        #Inputs are a vector of vectors of tuples of <:Any
+        inputs = [
+            Tuple{input_types...}.(eachrow(agent_data[!, input_cols])) for
+            agent_data in grouped_data
+        ]
+
+        #Retype actions
+        inputs = Vector{Vector{Tuple{input_types...}}}(inputs)
     end
+
+    if length(action_cols) == 1
+        #Actions are a vector of vectors of <:Real
+        actions = [Vector(agent_data[!, first(action_cols)]) for agent_data in grouped_data]
+        multiple_actions = false
+    else
+        #Extract action types
+        action_types = eltype.(eachcol(data[!, action_cols]))
+        #Actions are a vector of vectors of tuples of <:Real
+        actions = [
+            Tuple{action_types...}.(eachrow(agent_data[!, action_cols])) for
+            agent_data in grouped_data
+        ]
+
+        #Retype actions
+        actions = Vector{Vector{Tuple{action_types...}}}(actions)
+
+        multiple_actions = true
+    end
+
+    ## SELECT SESSION MODEL ##
+    session_model = create_session_model(
+        infer_missing_actions,
+        Val(multiple_actions),
+        Val(check_parameter_rejections),
+        actions,
+    )
 
     #Create a full model combining the agent model and the statistical model
     return full_model(
         agent_model,
+        parameter_names,
         population_model,
+        session_model,
+        session_ids,
         inputs,
         actions,
-        agent_ids,
-        missing_actions = missing_actions,
-        check_parameter_rejections = check_parameter_rejections,
     )
 end
+
+
 
 ####################################################################
 ### FUNCTION FOR DOING FULL AGENT AND STATISTICAL MODEL COMBINED ###
 ####################################################################
 @model function full_model(
-    agent::Agent,
+    agent_model::Agent,
+    parameter_names::Vector{String},
     population_model::DynamicPPL.Model,
-    inputs_per_agent::Vector{I},
-    actions_per_agent::Vector{A},
-    agent_ids::Vector{Symbol};
-    missing_actions::Union{Nothing,MissingActions} = MissingActions(),
-    check_parameter_rejections::Nothing = nothing,
-    actions_flattened::A2 = vcat(actions_per_agent...),
-) where {I<:Vector,R<:Real,A1<:Union{R,Union{Missing,R}},A<:Array{A1},A2<:Array}
+    session_model::Function,
+    session_ids::Vector{Symbol},
+    inputs_per_session::Vector{Vector{II}},
+    actions_per_session::Vector{Vector{AA}},
+) where {I<:Any,II<:Union{I,Tuple},A<:Real,AA<:Union{A,Tuple}}
 
-    #Generate the agent parameters from the statistical model
-    @submodel population_values = population_model
+    #Generate session parameters with the population submodel
+    parameters_per_session ~ to_submodel(population_model, false)
 
-    #Generate the agent's behavior
-    @submodel agent_models(
-        agent,
-        agent_ids,
-        population_values.agent_parameters,
-        inputs_per_agent,
-        actions_per_agent,
-        actions_flattened,
-        missing_actions,
+    #Generate behavior for each session
+    i ~ to_submodel(
+        session_model(
+            agent_model,
+            parameter_names,
+            session_ids,
+            parameters_per_session,
+            inputs_per_session,
+            actions_per_session,
+        ),
+        false, #Do not add a prefix
     )
 
-    #Return values fron the population model (agent parameters and oher values)
-    return population_values
+    #Return the session parameters
+    return session_parameters
 end
