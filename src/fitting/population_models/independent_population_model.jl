@@ -1,7 +1,6 @@
 ############################################################################################################
 ### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A SINGLE-AGENT PRIOR ###
 ############################################################################################################
-
 struct IndependentPopulationModel <: AbstractPopulationModel end
 
 function create_model(
@@ -47,6 +46,11 @@ function create_model(
 end
 
 
+
+
+#######################################################################################################
+### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
+#######################################################################################################
 @model function sample_independent_parameter(prior)
 
     session ~ prior
@@ -54,9 +58,6 @@ end
     return session
 end
 
-#######################################################################################################
-### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
-#######################################################################################################
 @model function independent_population_model(
     priors_per_parameter::T,
     parameter_names::Vector{String},

@@ -1,7 +1,62 @@
 ##########################################
 ### STATISTICAL MODEL FOR SINGLE AGENT ###
 ##########################################
-@model function single_agent_population_model(
+struct SingleSessionPopulationModel <: AbstractPopulationModel end
+
+#######################################################################################################################
+### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A INPUT/OUTPUT SEQUENCE, AND SINGLE-AGENT PRIOR ###
+#######################################################################################################################
+function create_model(
+    agent::Agent,
+    prior::Dict{String,D},
+    inputs::II,
+    actions::AA;
+    kwargs...,
+) where {
+    D<:Distribution,
+    I<:Union{<:Any, NTuple{N, <:Any} where N},
+    II<:Vector{I},
+    A<:Union{<:Real, NTuple{N, <:Real} where N},
+    AA<:Vector{A},
+}
+
+    #Check population_model
+    #TODO: Implement this
+    # check whether all tuples are same length in the vectors
+
+    #Get number of 
+    n_inputs = length(first(inputs))    
+    n_actions = length(first(actions))
+
+    #Create column names
+    input_cols = map(x -> Symbol("input_$x"), 1:n_inputs)
+    action_cols = map(x -> Symbol("action_$x"), 1:n_actions)
+
+    #Create dataframe of the inputs and actions
+    data = hcat(
+        DataFrame(NamedTuple{Tuple(input_cols)}.(inputs)),
+        DataFrame(NamedTuple{Tuple(action_cols)}.(actions)),
+    )
+
+    #Add grouping column
+    grouping_cols = "session"
+    data[!, grouping_cols] .= 1
+
+    #Create a full model combining the agent model and the statistical model
+    return create_model(
+        agent,
+        prior,
+        data;
+        input_cols = input_cols,
+        action_cols = action_cols,
+        grouping_cols = grouping_cols,
+        kwargs...,
+    )
+end
+
+
+
+@model function single_session_population_model(
     prior::Dict{T,D},
 ) where {T<:Union{String,Tuple,Any},D<:Distribution}
 
@@ -17,46 +72,7 @@
     return PopulationModelReturn([parameters])
 end
 
-#######################################################################################################################
-### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A INPUT/OUTPUT SEQUENCE, AND SINGLE-AGENT PRIOR ###
-#######################################################################################################################
-function create_model(
-    agent::Agent,
-    prior::Dict{T,D},
-    inputs::Array{T1},
-    actions::Array{T2};
-    kwargs...,
-) where {
-    T<:Union{String,Tuple,Any},
-    D<:Distribution,
-    T1<:Union{Real,Missing},
-    T2<:Union{Real,Missing},
-}
-    #Create column names
-    input_cols = map(x -> "input$x", 1:size(inputs, 2))
-    action_cols = map(x -> "action$x", 1:size(actions, 2))
 
-    #Create dataframe of the inputs and actions
-    data = DataFrame(hcat(inputs, actions), vcat(input_cols, action_cols))
-
-    #Add grouping column
-    grouping_cols = "agent"
-    data[!, grouping_cols] .= 1
-
-    #Create the single-agent statistical model
-    population_model = single_agent_population_model(prior)
-
-    #Create a full model combining the agent model and the statistical model
-    return create_model(
-        agent,
-        population_model,
-        data;
-        input_cols = input_cols,
-        action_cols = action_cols,
-        grouping_cols = grouping_cols,
-        kwargs...,
-    )
-end
 
 ################################################################################
 ####### FUNCTION FOR RENAMING CHAINS FOR A SINGLE-AGENT STATISTICAL MODEL ######
