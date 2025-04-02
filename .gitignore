@@ -10,3 +10,5 @@ Manifest.toml
 /docs/src/index.md
 /docs/build/
 /build
+
+testing_script.jl
