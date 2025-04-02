@@ -166,7 +166,7 @@ end
     session_ids::Vector{Symbol},
     inputs_per_session::Vector{Vector{II}},
     actions_per_session::Vector{Vector{AA}},
-) where {I<:Any,II<:Union{I,Tuple},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple},T<:Tuple}
+) where {I<:Any,II<:Union{I,Tuple},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple}}
 
     #Generate session parameters with the population submodel
     parameters_per_session ~ to_submodel(population_model, false)

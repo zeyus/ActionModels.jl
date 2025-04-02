@@ -1,27 +1,5 @@
 
-# DONE: random intercepts (hint: construct model matrix somehow instead of modelmatrix(MixedEffects(@formula)), which expects y
-# DONE: expand to multiple formulas / flexible names
-# - DONE: parameters inside different statistical models gets overridden by each other!
-# DONE: finish the prepare_data function
-# DONE: think about tuple parameter names (ie initial values or HGF params)
-# DONE: random slopes
-# DONE: more than one random intercept
-# DONE: intercept-only model
-# DONE better / custom priors
-# DONE: (1.0) check integration of the new functionality
-# DONE: Compare with old implementation of specifying statistical model
-# DONE: check if we can get rid of TuringGLM
-# DONE: prepare to merge
-# DONE: merge
-# DONE: support dropping intercepts (fixed and random)
-# DONE: allow for varying priors: set up a regressionprior constructor
-# DONE: Copy input data to avoid the above mutating the input
-# DONE: Make sure the centering of the random slopes is good (γ, τ, σ)
-# DONE: Clean tests up
 # TODO: Adapt so it can split a parameter into a tuple (until we get rid of tuple parameter names for good)
-# WONTFIX: Improve default priors by adding normalization of predictors
-# DONE: (1.0) rename link_funcions to inv_inv_link
-# DONE: (1.0) models withut random effects: make sure there is an intercept
 # TODO: (1.0) implement rename_chains for linear regressions (also for ordering of the random effects 
 #             - MAYBE some code uses the data order, maybe some uses the formula order)
 # TODO: (1.0) implement Regression input type
@@ -44,10 +22,11 @@
 # TODO: make copies of agents in agent_model
 # TODO: make ActionModels compatible with Enzyme
 
-using ActionModels, Turing, Distributions
-##########################################################################################################
-## User-level function for creating a æinear regression statiscial mdoel and using it with ActionModels ##
-##########################################################################################################
+###################################
+### REGRESSION POPULATION MODEL ###
+###################################
+struct RegressionPopulationModel <: AbstractPopulationModel end
+
 function create_model(
     agent::Agent,
     regression_formulas::Union{F,Vector{F}},
@@ -58,7 +37,7 @@ function create_model(
     action_cols::Vector{C},
     grouping_cols::Vector{C},
     kwargs...,
-) where {F<:MixedModels.FormulaTerm,C<:Union{String,Symbol}, R<:RegressionPrior}
+) where {F<:MixedModels.FormulaTerm,C<:Union{String,Symbol},R<:RegressionPrior}
 
     ## Setup ##
     #If there is only one formula
@@ -107,7 +86,7 @@ function create_model(
         X, Z = prepare_regression_data(formula, population_data)
 
         if has_ranef(formula)
-            
+
             #Extract each function term (random effect part of formula)
             ranef_groups =
                 [term for term in formula.rhs if term isa MixedModels.FunctionTerm]
@@ -120,33 +99,47 @@ function create_model(
             size_r = size.(Z, 2)
             #For each random effect, extract the number of parameters
             n_ranef_params = [
-                Int(size_rⱼ / n_ranef_categories[ranefⱼ]) for (ranefⱼ, size_rⱼ) in enumerate(size_r)
+                Int(size_rⱼ / n_ranef_categories[ranefⱼ]) for
+                (ranefⱼ, size_rⱼ) in enumerate(size_r)
             ]
 
             #Full info for the random effect
-            ranef_info = (Z = Z, n_ranef_categories = n_ranef_categories, n_ranef_params = n_ranef_params)
+            ranef_info = (
+                Z = Z,
+                n_ranef_categories = n_ranef_categories,
+                n_ranef_params = n_ranef_params,
+            )
 
             #Set priors
             internal_prior = RegPrior(
-                β = if prior.β isa Vector arraydist(prior.β) else filldist(prior.β, size(X, 2)) end,
-                σ = if prior.σ isa Vector arraydist.(prior.σ) else [filldist(prior.σ, Int(size(Zⱼ, 2) / n_ranef_categories[ranefⱼ])) for (ranefⱼ, Zⱼ) in enumerate(Z)] end )
+                β = if prior.β isa Vector
+                    arraydist(prior.β)
+                else
+                    filldist(prior.β, size(X, 2))
+                end,
+                σ = if prior.σ isa Vector
+                    arraydist.(prior.σ)
+                else
+                    [
+                        filldist(prior.σ, Int(size(Zⱼ, 2) / n_ranef_categories[ranefⱼ])) for (ranefⱼ, Zⱼ) in enumerate(Z)
+                    ]
+                end,
+            )
         else
 
             ranef_info = nothing
 
             #Set priors, and no random effects
-            internal_prior = RegPrior(
-                β = if prior.β isa Vector arraydist(prior.β) else filldist(prior.β, size(X, 2)) end,
-                σ = nothing)
+            internal_prior = RegPrior(β = if prior.β isa Vector
+                arraydist(prior.β)
+            else
+                filldist(prior.β, size(X, 2))
+            end, σ = nothing)
         end
 
         #Condition the linear model
-        regression_models[model_idx] = linear_model(
-            X,
-            ranef_info,
-            inv_link = inv_link,
-            prior = internal_prior,
-        )
+        regression_models[model_idx] =
+            linear_model(X, ranef_info, inv_link = inv_link, prior = internal_prior)
 
         #Store the parameter name from the formula
         parameter_names[model_idx] = string(formula.lhs)
@@ -164,6 +157,7 @@ function create_model(
         input_cols = input_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
+        parameter_names = parameter_names,
         kwargs...,
     )
 end
@@ -178,23 +172,30 @@ end
     n_agents::Int,
 ) where {T<:DynamicPPL.Model}
 
-    #Initialize vector of dicts with agent parameters
-    agent_parameters = Dict{String,Real}[Dict{String,Real}() for _ = 1:n_agents]
+    sampled_parameters = Tuple(
+        p ~ to_submodel(prefix(linear_submodel, parameter_name), false) for
+        (linear_submodel, parameter_name) in zip(linear_submodels, parameter_names)
+    )
 
-    #For each parameter and its corresponding linear regression model
-    for (linear_submodel, parameter_name) in zip(linear_submodels, parameter_names)
-        #Run the linear regression model to extract parameters for each agent
-        @submodel prefix = string(parameter_name) parameter_values = linear_submodel
 
-        ## Map the output to the agent parameters ##
-        #For each agent and the parameter value for the given parameter
-        for (agent_idx, parameter_value) in enumerate(parameter_values)
-            #Set it in the corresponding dictionary
-            agent_parameters[agent_idx][parameter_name] = parameter_value
-        end
-    end
+    # #Initialize vector of dicts with agent parameters
+    # agent_parameters = Dict{String,Real}[Dict{String,Real}() for _ = 1:n_agents]
 
-    return PopulationModelReturn(agent_parameters)
+    # #For each parameter and its corresponding linear regression model
+    # for (linear_submodel, parameter_name) in zip(linear_submodels, parameter_names)
+
+    #     #Run the linear regression model to extract parameters for each agent
+    #     parameter_values ~ to_submodel(prefix(linear_submodel, parameter_name), false)
+
+    #     ## Map the output to the agent parameters ##
+    #     #For each agent and the parameter value for the given parameter
+    #     for (agent_idx, parameter_value) in enumerate(parameter_values)
+    #         #Set it in the corresponding dictionary
+    #         agent_parameters[agent_idx][parameter_name] = parameter_value
+    #     end
+    # end
+
+    return revert(sampled_parameters)
 end
 
 
@@ -210,11 +211,11 @@ link function: link(η)
 """
 @model function linear_model(
     X::Matrix{R1}, # model matrix for fixed effects
-    ranef_info::Union{Nothing, T}; # model matrix for random effects
+    ranef_info::Union{Nothing,T}; # model matrix for random effects
     inv_link::Function,
     prior::RegPrior,
     has_ranef::Bool = !isnothing(ranef_info),
-) where {R1<:Real, T<:NamedTuple}
+) where {R1<:Real,T<:NamedTuple}
 
     #Sample beta / effect size parameters (including intercept)
     β ~ prior.β
@@ -224,15 +225,27 @@ link function: link(η)
 
     #If there are random effects
     if has_ranef
-        
+
         #Extract random effect information
         Z, n_ranef_categories, n_ranef_params = ranef_info
 
         #For each random effect
-        for (ranefⱼ, (Zⱼ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)) in enumerate(zip(Z, n_ranef_categories, n_ranef_params))
+        for (ranefⱼ, (Zⱼ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)) in
+            enumerate(zip(Z, n_ranef_categories, n_ranef_params))
 
             #Sample the individual random effects
-            @submodel prefix = string(ranefⱼ) rⱼ = sample_single_random_effect(prior.σ[ranefⱼ], n_ranef_categoriesⱼ, n_ranef_paramsⱼ)
+
+            rⱼ ~ to_submodel(
+                prefix(
+                    sample_single_random_effect(
+                        prior.σ[ranefⱼ],
+                        n_ranef_categoriesⱼ,
+                        n_ranef_paramsⱼ,
+                    ),
+                    "ranef_$ranefⱼ",
+                ),
+                false,
+            )
 
             #Add the random effects to the linear model
             η += Zⱼ * rⱼ
@@ -247,21 +260,16 @@ end
 #################################################
 ## Submodel to sample a specific random effect ##
 #################################################
-@model function sample_single_random_effect(
-    prior_σ,
-    n_ranef_categoriesⱼ,
-    n_ranef_paramsⱼ,
-    )
+@model function sample_single_random_effect(prior_σ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)
 
     #Sample random effect variance
     σ ~ prior_σ
 
     #Sample individual random effects
     r ~ arraydist([
-                Normal(0, σ[param_idx]) 
-                for param_idx = 1:n_ranef_paramsⱼ 
-                for _ = 1:n_ranef_categoriesⱼ
-                ])
+        Normal(0, σ[param_idx]) for param_idx = 1:n_ranef_paramsⱼ for
+        _ = 1:n_ranef_categoriesⱼ
+    ])
 
     return r
 
@@ -359,7 +367,7 @@ function check_population_model(
     verbose::Bool,
     agent::Agent,
 )
-    
+
 
     #TODO: Make a check for whether there are NaN values in the predictors
     # if any(isnan.(data[!, predictor_cols]))
