@@ -1,5 +1,4 @@
 using ActionModels
-using Distributions
 
 #Agent
 agent = premade_agent("binary_rescorla_wagner_softmax", verbose = false)

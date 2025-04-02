@@ -1,31 +1,40 @@
 module ActionModels
 
 #Load packages
-using Reexport
-using Turing,
-    ReverseDiff, DataFrames, AxisArrays, RecipesBase, Logging, StatsModels, MixedModels
-using ProgressMeter, Distributed #TODO: get rid of this (only needed for parameter recovery)
-using MCMCChainsStorage, HDF5
-@reexport using Distributions
-using Turing: DynamicPPL, ForwardDiff, AutoReverseDiff, AbstractMCMC
-#Export functions
-export Agent, RejectParameters, InitialStateParameter, ParameterGroup, RegressionPrior
-export init_agent, premade_agent, warn_premade_defaults, multiple_actions, check_agent
-export independent_agents_population_model,
-    create_model, fit_model, parameter_recovery, single_recovery
-export ChainSaveResume
-export plot_parameters, plot_trajectories, plot_trajectory, plot_trajectory!
-export get_history,
-    get_states,
-    get_parameters,
-    set_parameters!,
-    reset!,
-    give_inputs!,
-    single_input!,
-    set_save_history!
-export extract_quantities, rename_chains, update_states!, get_estimates, get_trajectories
+using Reexport 
+using Turing #For fitting models
+using RecipesBase #For defining plots
+using DataFrames #For the input format to create_model
+using AxisArrays #For storing session parameters and state trajectories
+using StatsModels, MixedModels, LogExpFunctions #For the GLM population Model
+using ForwardDiff, ReverseDiff, Mooncake #AD types to be compatible with
+using HDF5 #For the save_resume functionality
+using ProgressMeter, Distributed #For parameter recovery
+using Logging #For hiding sample rejections
+@reexport using Distributions #Make distributions available to the user
+using Turing: DynamicPPL, AbstractMCMC, AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
-#Load premade agents
+## For defining action models ##
+export Agent, RejectParameters, update_states!
+export InitialStateParameter, ParameterGroup
+export init_agent, premade_agent
+
+## For simulation ##
+export give_inputs!, single_input!, reset!
+export get_history, get_states, get_parameters
+export set_parameters!, set_save_history! # set_states!()
+export plot_trajectory, plot_trajectory!
+
+## For fitting models ##
+export RegressionPrior
+export create_model
+export fit_model, ChainSaveResume
+export extract_quantities, get_estimates, get_trajectories
+export parameter_recovery
+export plot_parameters, plot_trajectories
+
+
+## Load premade agents ##
 function __init__()
     # Only if not precompiling
     if ccall(:jl_generating_output, Cint, ()) == 0
@@ -36,12 +45,16 @@ function __init__()
     end
 end
 
-#Types for agents and errors
-include("structs.jl")
 
+## Constants for creating ids and names consistently ##
 const id_separator = "."
 const id_column_separator = ":"
-const tuple_separator = "__"
+const tuple_separator = "."
+
+
+
+#Types for agents and errors
+include("structs.jl")
 
 #Functions for creating agents
 include("create_agent/init_agent.jl")
@@ -54,7 +67,6 @@ include("fitting/create_session_model.jl")
 include("fitting/population_models/independent_population_model.jl")
 include("fitting/population_models/single_session_population_model.jl")
 include("fitting/population_models/regression_population_model.jl")
-include("fitting/helper_functions/check_model.jl")
 include("fitting/helper_functions/extract_quantities.jl")
 include("fitting/helper_functions/get_estimates.jl")
 include("fitting/helper_functions/get_trajectories.jl")

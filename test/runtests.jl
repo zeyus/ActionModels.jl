@@ -11,7 +11,7 @@
 # append the generated quantities to the chain (can use or reconstruct from https://github.com/farr/MCMCChainsStorage.jl)
 # make bounded log and logit functions whihc don't break at too high or low values
 
-using ActionModels, DataFrames
+using ActionModels
 using Test
 using Glob
 

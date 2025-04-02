@@ -38,7 +38,6 @@
 
 # First, let us define the function name and which input it takes:
 using ActionModels
-using Distributions
 using StatsPlots
 
 # In the next section you will be introduced to premade agents and models.

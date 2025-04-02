@@ -1,5 +1,6 @@
 using Test
-using ActionModels, DataFrames
+using ActionModels
+using ActionModels: DataFrames
 using Distributed
 
 @testset "fit model" begin

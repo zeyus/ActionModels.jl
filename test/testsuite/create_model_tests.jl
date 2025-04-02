@@ -1,9 +1,8 @@
 using Test
 using StatsPlots
-using ActionModels, DataFrames
-using AxisArrays, Turing
-using Turing: AutoReverseDiff
-
+using ActionModels
+using ActionModels: Turing, AxisArrays, DataFrames
+using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 @testset "fitting tests" begin
 
@@ -68,8 +67,7 @@ using Turing: AutoReverseDiff
     )
 
     #Set samplings settings
-    sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
-    sampler = NUTS(-1, 0.65; adtype = AutoForwardDiff())
+    sampler = NUTS(-1, 0.65)
     n_iterations = 1000
     sampling_kwargs = (; progress = false)
 

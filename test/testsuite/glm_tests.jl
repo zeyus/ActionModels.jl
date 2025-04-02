@@ -1,16 +1,8 @@
-docs_path = joinpath(@__DIR__, "..", "..", "docs")
-using Pkg
-Pkg.activate(docs_path)
-
 using Test
-using LogExpFunctions
 
 using ActionModels
-using Distributions
-using DataFrames
-using MixedModels
-using Turing
-import Mooncake
+using ActionModels: DataFrames, MixedModels, Turing, LogExpFunctions
+using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 
 @testset "linear regression tests" begin

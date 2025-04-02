@@ -53,7 +53,6 @@
 # In the first part of the tutorial we will not change the sampling and parallellization configurations or the error information / misssing actions settings. We will only work with the agent information and priors configurations. See elaborated use of fit_model() for working with more configurations
 # Let us use a premade agent:
 using ActionModels
-using Distributions
 using StatsPlots
 
 agent = premade_agent("binary_rescorla_wagner_softmax")
