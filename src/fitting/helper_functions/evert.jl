@@ -21,3 +21,17 @@ end
 function evert(v::Vector{T}) where T<:Union{<:Distribution, <:Real, <:Union{<:Real, Missing}}
     return (v,)
 end
+
+
+
+### FUNCTION FOR CONVERTING A TUPLE OF VECTORS INTO A VECTOR OF TUPLES ###
+function re_evert(t::NTuple{N,Vector{T}}) where {N, T}
+    n = length(first(t))                     # Length of the vectors
+    result = Vector{NTuple{N, T}}(undef, n)  # Preallocate result vector
+
+    @inbounds for i in 1:n
+        result[i] = ntuple(j -> t[j][i], N)  # Create a tuple for each index
+    end
+
+    return result
+end

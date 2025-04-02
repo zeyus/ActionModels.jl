@@ -64,11 +64,12 @@ using Turing: AutoReverseDiff
     prior = Dict(
         "learning_rate" => LogitNormal(0.0, 1.0),
         "action_noise" => truncated(Normal(0.0, 1.0), lower = 0),
-        ("initial", "value") => Normal(0.0, 1.0),
+        #("initial", "value") => Normal(0.0, 1.0),
     )
 
     #Set samplings settings
     sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
+    sampler = NUTS(-1, 0.65; adtype = AutoForwardDiff())
     n_iterations = 1000
     sampling_kwargs = (; progress = false)
 

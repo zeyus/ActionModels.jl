@@ -42,7 +42,7 @@ function create_model(
         #If there are no missing actions
         if !any(ismissing, Matrix(data[!, action_cols]))
             #Remove any potential Missing type
-            disallowmissing!(JGET_data, action_cols)
+            disallowmissing!(data, action_cols)
             infer_missing_actions = nothing
         else
             if verbose
@@ -65,7 +65,7 @@ function create_model(
                 )
             end
             #Remove any potential Missing type
-            disallowmissing!(JGET_data, action_cols)
+            disallowmissing!(data, action_cols)
             infer_missing_actions = nothing
         else
             infer_missing_actions = InferMissingActions()
@@ -73,15 +73,15 @@ function create_model(
     end
 
     ## Run checks for the model specifications ##
-    check_model(
-        agent_model,
-        population_model,
-        data;
-        input_cols = input_cols,
-        action_cols = action_cols,
-        grouping_cols = grouping_cols,
-        verbose = verbose,
-    )
+    # check_model(
+    #     agent_model,
+    #     population_model,
+    #     data;
+    #     input_cols = input_cols,
+    #     action_cols = action_cols,
+    #     grouping_cols = grouping_cols,
+    #     verbose = verbose,
+    # )
 
     ## EXTRACT DATA ##
     #Group data by sessions
@@ -189,5 +189,5 @@ end
     )
 
     #Return the session parameters
-    return session_parameters
+    return parameters_per_session
 end

@@ -26,7 +26,9 @@ function create_model(
     parameter_names = collect(keys(prior))
 
     #Create a filldist for each parameter
-    priors_per_parameter = Tuple([filldist(prior[parameter_name], n_sessions) for parameter_name in parameter_names])
+    priors_per_parameter = Tuple([
+        filldist(prior[parameter_name], n_sessions) for parameter_name in parameter_names
+    ])
 
     #Create a statistical model where the agents are independent and sampled from the same prior
     population_model = independent_population_model(priors_per_parameter, parameter_names)
@@ -45,7 +47,12 @@ function create_model(
 end
 
 
+@model function sample_independent_parameter(prior)
 
+    session_parameter ~ prior
+
+    return session_parameter
+end
 
 #######################################################################################################
 ### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
@@ -55,10 +62,13 @@ end
     parameter_names::Vector{String},
 ) where {T<:Tuple}
 
+    sampled_parameters = Tuple(
+        i ~ to_submodel(prefix(sample_independent_parameter(prior), parameter_name), false) for
+        (prior, parameter_name) in zip(priors_per_parameter, parameter_names)
+    )
+    #TODO: avoid type-instabulity when building the Tuple of parameters
 
-
-
-    return 
+    return re_evert(sampled_parameters)
 end
 
 
