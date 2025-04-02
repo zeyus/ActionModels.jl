@@ -241,8 +241,7 @@ using Turing: AutoReverseDiff
     end
 
     @testset "multiple actions" begin
-
-        #Action model with multiple actions    
+  
         function multi_action(agent, input::Real)
 
             noise = agent.parameters["noise"]
@@ -281,7 +280,7 @@ using Turing: AutoReverseDiff
     end
 
     @testset "multiple actions, missing actions" begin
-        #Action model with multiple actions    
+
         function multi_action(agent, input::Real)
 
             noise = agent.parameters["noise"]
@@ -326,7 +325,6 @@ using Turing: AutoReverseDiff
 
     @testset "multiple inputs" begin
 
-        #Action model with multiple inputs    
         function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
 
             noise = agent.parameters["noise"]
@@ -365,7 +363,6 @@ using Turing: AutoReverseDiff
 
     @testset "multiple inputs and multiple actions" begin
 
-        #Action model with multiple actions    
         function multi_input_action(agent, input::Tuple{R,R}) where {R<:Real}
 
             noise = agent.parameters["noise"]
@@ -404,10 +401,74 @@ using Turing: AutoReverseDiff
     end
 
     @testset "depend on previous action" begin
-        #TODO:
+        
+        function dependent_action(agent::Agent, input::R) where {R<:Real}
+
+            noise = agent.parameters["noise"]
+
+            prev_action = agent.states["action"]
+
+            if ismissing(prev_action)
+                prev_action = 0.0
+            end
+
+            actiondist = Normal(input + prev_action, noise)
+
+            return actiondist
+        end
+        #Create agent
+        new_agent = init_agent(dependent_action, parameters = Dict("noise" => 1.0))
+
+        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+        #Create model
+        model = create_model(
+            new_agent,
+            new_prior,
+            data,
+            input_cols = :inputs,
+            action_cols = :actions,
+            grouping_cols = :id,
+        )
+
+        #Fit model
+        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
+
     end
 
     @testset "depend on previous action, multiple actions" begin
-        #TODO:
+         
+        function dependent_multi_action(agent::Agent, input::R) where {R<:Real}
+
+            noise = agent.parameters["noise"]
+
+            prev_action = agent.states["action"]
+
+            if ismissing(prev_action)
+                prev_action = 0.0
+            end
+
+            actiondist1 = Normal(input + prev_action, noise)
+            actiondist2 = Normal(input - prev_action, noise)
+
+            return (actiondist1, actiondist2)
+        end
+        #Create agent
+        new_agent = init_agent(dependent_multi_action, parameters = Dict("noise" => 1.0))
+
+        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+        #Create model
+        model = create_model(
+            new_agent,
+            new_prior,
+            data,
+            input_cols = :inputs,
+            action_cols = :actions,
+            grouping_cols = :id,
+        )
+
+        #Fit model
+        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
     end
 end
