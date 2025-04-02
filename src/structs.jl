@@ -36,6 +36,9 @@ struct RejectParameters <: Exception
     errortext::Any
 end
 
+abstract type AbstractPopulationModel end
+
+"""
 
 ####################################
 ## STRUCTS FOR SETTING PARAMETERS ##

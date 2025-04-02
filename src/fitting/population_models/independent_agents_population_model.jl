@@ -1,59 +1,35 @@
-
-#######################################################################################################
-### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
-#######################################################################################################
-@model function independent_agents_population_model(
-    prior::Dict{T,D},
-    n_agents::I,
-    agent_parameters::Vector{Dict{Any,Real}} = [Dict{Any,Real}() for _ = 1:n_agents],
-) where {T<:Union{String,Tuple,Any},D<:Distribution,I<:Int}
-
-    #Make empty container for agent parameters
-    agent_parameters::Vector{Dict{Any,Real}} = [Dict{Any,Real}() for _ = 1:n_agents]
-
-    #Create array ofdistributions to sample from
-    parameter_distributions =
-        repeat([param_dist for param_dist in values(prior)], 1, n_agents)
-
-    #Sample parameter values
-    parameters ~ arraydist(parameter_distributions)
-
-    #Put parameter values into vector of dictionaries
-    for (parameter_idx, parameter_key) in enumerate(keys(prior))
-        for agent_idx = 1:n_agents
-            agent_parameters[agent_idx][parameter_key] =
-                parameters[parameter_idx, agent_idx]
-        end
-    end
-
-    return PopulationModelReturn(agent_parameters)
-end
-
-
 ############################################################################################################
 ### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A SINGLE-AGENT PRIOR ###
 ############################################################################################################
+
+struct IndependentPopulationModel <: AbstractPopulationModel end
+
 function create_model(
     agent::Agent,
-    prior::Dict{T,D},
+    prior::Dict{String,D},
     data::DataFrame;
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
     grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
     kwargs...,
 ) where {
-    T<:Union{String,Tuple,Any},
     D<:Distribution,
     T1<:Union{String,Symbol},
     T2<:Union{String,Symbol},
     T3<:Union{String,Symbol},
 }
 
-    #Get number of agents in the dataframe
-    n_agents = length(groupby(data, grouping_cols))
+    #Get number of sessions
+    n_sessions = length(groupby(data, grouping_cols))
+
+    #Get the names of the estimated parameters
+    parameter_names = collect(keys(prior))
+
+    #Create a filldist for each parameter
+    priors_per_parameter = Tuple([filldist(prior[parameter_name], n_sessions) for parameter_name in parameter_names])
 
     #Create a statistical model where the agents are independent and sampled from the same prior
-    population_model = independent_agents_population_model(prior, n_agents)
+    population_model = independent_population_model(priors_per_parameter, parameter_names)
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
@@ -63,9 +39,37 @@ function create_model(
         input_cols = input_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
+        parameter_names = parameter_names,
         kwargs...,
     )
 end
+
+
+
+
+#######################################################################################################
+### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
+#######################################################################################################
+@model function independent_population_model(
+    priors_per_parameter::T,
+    parameter_names::Vector{String},
+) where {T<:Tuple}
+
+
+
+
+    return 
+end
+
+
+
+
+
+
+
+
+
+
 
 
 ##########################################################################

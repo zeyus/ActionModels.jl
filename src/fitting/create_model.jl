@@ -7,7 +7,7 @@ function create_model(
     data::DataFrame;
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T3},
-    grouping_cols::Union{Vector{T3},T3},
+    grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
     parameter_names::Vector{String},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,

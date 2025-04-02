@@ -156,3 +156,18 @@ function create_session_model(
     throw(ArgumentError("Skipping missing actions is not yet supported"))
 
 end
+
+
+
+
+####### SKIP MISSING ACTIONS #######
+function create_session_model(
+    infer_missing_actions::Union{Nothing, SkipMissingActions, InferMissingActions},  #Any missing actions
+    multiple_actions::Val,                                                           #Single or multiple actions
+    check_parameter_rejections::Val{true},                                           #No parameter rejections
+    actions::Vector{Vector{A}},
+) where {A}
+
+    throw(ArgumentError("Checking for parameter rejections is not yet supported"))
+
+end
