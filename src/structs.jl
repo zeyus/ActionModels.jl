@@ -41,6 +41,8 @@ Population model type
 """
 abstract type AbstractPopulationModel end
 
+struct CustomPopulationModel <: AbstractPopulationModel end
+
 
 ####################################
 ## STRUCTS FOR SETTING PARAMETERS ##
