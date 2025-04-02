@@ -70,7 +70,7 @@ using Turing: AutoReverseDiff
     #Set samplings settings
     sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
     sampler = NUTS(-1, 0.65; adtype = AutoForwardDiff())
-    n_iterations = 1000
+    n_iterations = 100000
     sampling_kwargs = (; progress = false)
 
     @testset "single agent" begin

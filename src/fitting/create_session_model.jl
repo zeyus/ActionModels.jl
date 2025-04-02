@@ -15,7 +15,7 @@ function create_session_model(
     @model function single_action_idx(
         actions::Vector{R},
         distributions::Vector{D},
-    ) where {R<:Real,D<:Distribution}
+    ) where {R<:Real,D<:Any}
         actions ~ arraydist(distributions)
     end
 
@@ -31,27 +31,56 @@ function create_session_model(
     ) where {I<:Any,II<:Union{I,Tuple},A<:Real,AA<:Union{A,Tuple},FA<:Tuple,T<:Tuple}
 
         ## Run forwards to get the action distributions ##
-        action_distributions = [
-            begin
-                #Set the agent parameters
-                set_parameters!(agent, parameter_names, session_parameters)
-                reset!(agent)
-                [
-                    begin
-                        #Get the action probability (either a distribution, or a tuple of distributions) 
-                        action_distribution = agent.action_model(agent, input)
-                        #Save the action
-                        update_states!(agent, "action", action)
+        n_sessions = length(parameters_per_session)
+        action_distributions = Vector{Vector{Any}}(undef, n_sessions)
+        
+        for session_idx in 1:n_sessions
+            # Set agent parameters for this session
+            set_parameters!(agent, parameter_names, parameters_per_session[session_idx])
+            reset!(agent)
+            
+            # Pre-allocate the inner array
+            n_timesteps = length(inputs_per_session[session_idx])
+            session_distributions = Vector{Any}(undef, n_timesteps)
+            
+            for t in 1:n_timesteps
+                input = inputs_per_session[session_idx][t]
+                action = actions_per_session[session_idx][t]
+                
+                # Calculate distribution and update state
+                action_distribution = agent.action_model(agent, input)
+                update_states!(agent, "action", action)
+                
+                # Store distribution
+                session_distributions[t] = action_distribution
+            end
+            
+            action_distributions[session_idx] = session_distributions
+        end
+        
 
-                        #Return the action probability distribution
-                        action_distribution
+        ## Previous implementation ##
+        # action_distributions = [
+        #     begin
+        #         #Set the agent parameters
+        #         set_parameters!(agent, parameter_names, session_parameters)
+        #         reset!(agent)
+        #         [
+        #             begin
+        #                 #Get the action probability (either a distribution, or a tuple of distributions) 
+        #                 action_distribution = agent.action_model(agent, input)
+        #                 #Save the action
+        #                 update_states!(agent, "action", action)
 
-                    end for (input, action) in zip(session_inputs, session_actions)
-                ]
-            end for (session_parameters, session_inputs, session_actions) in
-            zip(parameters_per_session, inputs_per_session, actions_per_session)
-        ]
+        #                 #Return the action probability distribution
+        #                 action_distribution
 
+        #             end for (input, action) in zip(session_inputs, session_actions)
+        #         ]
+        #     end for (session_parameters, session_inputs, session_actions) in
+        #     zip(parameters_per_session, inputs_per_session, actions_per_session)
+        # ]
+        
         ## Reshape into a tuple of vectors with distributions ## 
         flattened_distributions = evert(collect(Iterators.flatten(action_distributions)))
 
