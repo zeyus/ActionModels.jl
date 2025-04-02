@@ -49,9 +49,9 @@ end
 
 @model function sample_independent_parameter(prior)
 
-    session_parameter ~ prior
+    session ~ prior
 
-    return session_parameter
+    return session
 end
 
 #######################################################################################################
