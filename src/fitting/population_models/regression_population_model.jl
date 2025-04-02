@@ -33,11 +33,32 @@ function create_model(
     data::DataFrame;
     priors::Union{R,Vector{R}} = RegressionPrior(),
     inv_links::Union{Function,Vector{Function}} = identity,
-    input_cols::Vector{C},
-    action_cols::Vector{C},
-    grouping_cols::Vector{C},
+    input_cols::Union{Vector{T1},T1},
+    action_cols::Union{Vector{T2},T2},
+    grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
     kwargs...,
-) where {F<:MixedModels.FormulaTerm,C<:Union{String,Symbol},R<:RegressionPrior}
+) where {
+    F<:MixedModels.FormulaTerm,
+    R<:RegressionPrior,
+    T1<:Union{String,Symbol},
+    T2<:Union{String,Symbol},
+    T3<:Union{String,Symbol},
+}
+
+    #Check population_model
+    check_population_model(
+        RegressionPopulationModel(),
+        agent,
+        regression_formulas,
+        data,
+        priors,
+        inv_links,
+        input_cols,
+        action_cols,
+        grouping_cols,
+        verbose;
+        kwargs...,
+    )
 
     ## Setup ##
     #If there is only one formula
@@ -162,46 +183,23 @@ function create_model(
     )
 end
 
-
-#############################################################
-## Turing model to do linear regression for each parameter ##
-#############################################################
+## Turing model ##
 @model function regression_population_model(
     linear_submodels::Vector{T},
     parameter_names::Vector,
     n_agents::Int,
 ) where {T<:DynamicPPL.Model}
 
+    #Sample the parameters for each regression
     sampled_parameters = Tuple(
         p ~ to_submodel(prefix(linear_submodel, parameter_name), false) for
         (linear_submodel, parameter_name) in zip(linear_submodels, parameter_names)
     )
 
-
-    # #Initialize vector of dicts with agent parameters
-    # agent_parameters = Dict{String,Real}[Dict{String,Real}() for _ = 1:n_agents]
-
-    # #For each parameter and its corresponding linear regression model
-    # for (linear_submodel, parameter_name) in zip(linear_submodels, parameter_names)
-
-    #     #Run the linear regression model to extract parameters for each agent
-    #     parameter_values ~ to_submodel(prefix(linear_submodel, parameter_name), false)
-
-    #     ## Map the output to the agent parameters ##
-    #     #For each agent and the parameter value for the given parameter
-    #     for (agent_idx, parameter_value) in enumerate(parameter_values)
-    #         #Set it in the corresponding dictionary
-    #         agent_parameters[agent_idx][parameter_name] = parameter_value
-    #     end
-    # end
-
     return revert(sampled_parameters)
 end
 
 
-#########################################
-## Linear model for a single parameter ##
-#########################################
 """
 Generalized linear regression models following the equation:
 η = X⋅β
@@ -256,10 +254,7 @@ link function: link(η)
     return inv_link.(η)
 end
 
-
-#################################################
-## Submodel to sample a specific random effect ##
-#################################################
+## Sample a single random effect ##
 @model function sample_single_random_effect(prior_σ, n_ranef_categoriesⱼ, n_ranef_paramsⱼ)
 
     #Sample random effect variance
@@ -277,9 +272,10 @@ end
 
 
 
-#########################################################
-## Function to prepare the data for a regression model ##
-#########################################################
+###############################
+####### HELPER FUNCTIONS ######
+###############################
+## Prepare the regression data structures ##
 function prepare_regression_data(
     formula::MixedModels.FormulaTerm,
     population_data::DataFrame,
@@ -299,9 +295,7 @@ function prepare_regression_data(
 end
 
 
-####################################################
-## Check if there are random effects in a formula ##
-####################################################
+## Check for random effects in a formula ##
 function has_ranef(formula::FormulaTerm)
 
     #If there is only one term
@@ -322,52 +316,29 @@ end
 
 
 
-function rename_chains(
-    chains::Chains,
-    model::DynamicPPL.Model,
-    #Arguments from population model
-    linear_submodels::Vector{T},
-    parameter_names::Vector,
-    n_agents::Int,
-) where {T<:DynamicPPL.Model}
 
-
-    # Extract needed information
-
-    # For each regression
-
-    # Fixed effect names
-
-    # Random effect names
-
-
-
-
-
-
-    # replacement_names = Dict()
-    # for (param_name, _, __) in statistical_submodels
-    #     for (idx, id) in enumerate(eachrow(population_data[!,grouping_cols]))
-    #         if length(grouping_cols) > 1
-    #             name_string = string(param_name) * "[$(Tuple(id))]"
-    #         else
-    #             name_string = string(param_name) * "[$(String(id[first(grouping_cols)]))]"
-    #         end
-    #         replacement_names[string(param_name) * ".agent_param[$idx]"] = name_string
-    #     end
-    # end
-    # return replacenames(chains, replacement_names)
-end
-
-
+##############################################
+####### CHECKS FOR THE POPULATION MODEL ######
+##############################################
 function check_population_model(
-    ::Vector{DynamicPPL.Model},
-    ::Vector{String},
-    ::Int64;
-    verbose::Bool,
+    model_type::RegressionPopulationModel,
     agent::Agent,
-)
-
+    regression_formulas::Vector{F},
+    data::DataFrame,
+    priors::Union{R,Vector{R}},
+    inv_links::Vector{Function},
+    input_cols::Union{Vector{T1},T1},
+    action_cols::Union{Vector{T2},T2},
+    grouping_cols::Union{Vector{T3},T3},
+    verbose::Bool;
+    kwargs...,
+) where {
+    F<:MixedModels.FormulaTerm,
+    R<:RegressionPrior,
+    T1<:Union{String,Symbol},
+    T2<:Union{String,Symbol},
+    T3<:Union{String,Symbol},
+}
 
     #TODO: Make a check for whether there are NaN values in the predictors
     # if any(isnan.(data[!, predictor_cols]))
@@ -378,6 +349,43 @@ function check_population_model(
     #     )
     # end
 
-
-    return nothing
 end
+
+
+
+
+
+
+
+# function rename_chains(
+#     chains::Chains,
+#     model::DynamicPPL.Model,
+#     #Arguments from population model
+#     linear_submodels::Vector{T},
+#     parameter_names::Vector,
+#     n_agents::Int,
+# ) where {T<:DynamicPPL.Model}
+
+
+#     # Extract needed information
+
+#     # For each regression
+
+#     # Fixed effect names
+
+#     # Random effect names
+
+#     # replacement_names = Dict()
+#     # for (param_name, _, __) in statistical_submodels
+#     #     for (idx, id) in enumerate(eachrow(population_data[!,grouping_cols]))
+#     #         if length(grouping_cols) > 1
+#     #             name_string = string(param_name) * "[$(Tuple(id))]"
+#     #         else
+#     #             name_string = string(param_name) * "[$(String(id[first(grouping_cols)]))]"
+#     #         end
+#     #         replacement_names[string(param_name) * ".agent_param[$idx]"] = name_string
+#     #     end
+#     # end
+#     # return replacenames(chains, replacement_names)
+# end
+

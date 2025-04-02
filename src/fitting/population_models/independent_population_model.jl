@@ -18,6 +18,19 @@ function create_model(
     T3<:Union{String,Symbol},
 }
 
+    #Check population_model
+    check_population_model(
+        IndependentPopulationModel(),
+        agent,
+        prior,
+        data,
+        input_cols,
+        action_cols,
+        grouping_cols,
+        verbose;
+        kwargs...,
+    )
+
     #Get number of sessions
     n_sessions = length(groupby(data, grouping_cols))
 
@@ -70,69 +83,25 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-##########################################################################
-####### FUNCTION FOR RENAMING CHAINS FOR A SIMPLE STATISTICAL MODEL ######
-##########################################################################
-function rename_chains(
-    chains::Chains,
-    model::DynamicPPL.Model,
-    #Arguments from statistical model
-    prior::Dict{T,D},
-    n_agents::I,
-    agent_parameters::Vector{Dict{Any,Real}},
-) where {T<:Union{String,Tuple,Any},D<:Distribution,I<:Int}
-
-    #Extract agent ids
-    agent_ids = model.args.agent_ids
-
-    ## Make dict with replacement names ##
-    replacement_names = Dict{String,String}()
-
-    for (agent_idx, agent_id) in enumerate(agent_ids)
-
-        #Go through each parameter in the prior
-        for (parameter_idx, parameter_key) in enumerate(keys(prior))
-
-            #If the parameter key is a tuple
-            if parameter_key isa Tuple
-                #Join the tuple with double underscores
-                parameter_key_right = join(parameter_key, tuple_separator)
-            else
-                #Otherwise, keep it as it is
-                parameter_key_right = parameter_key
-            end
-
-            #Set a replacement name
-            replacement_names["parameters[$parameter_idx, $agent_idx]"] = "$(agent_id).$parameter_key_right"
-        end
-    end
-
-    #Replace names in the fitted model and return it
-    replacenames(chains, replacement_names)
-end
-
-
-#################################################################
-####### CHECKS TO BE MADE FOR THE SIMPLE STATISTICAL MODEL ######
-#################################################################
+##############################################
+####### CHECKS FOR THE POPULATION MODEL ######
+##############################################
 function check_population_model(
-    #Arguments from statistical model
-    prior::Dict{T,D},
-    n_agents::I,
-    agent_parameters::Vector{Dict{Any,Real}};
-    #Arguments from check_model
-    verbose::Bool = true,
+    model_type::IndependentPopulationModel,
     agent::Agent,
-) where {T<:Union{String,Tuple,Any},D<:Distribution,I<:Int}
+    prior::Dict{String,D},
+    data::DataFrame,
+    input_cols::Union{Vector{T1},T1},
+    action_cols::Union{Vector{T2},T2},
+    grouping_cols::Union{Vector{T3},T3},
+    verbose::Bool;
+    kwargs...,
+) where {
+    D<:Distribution,
+    T1<:Union{String,Symbol},
+    T2<:Union{String,Symbol},
+    T3<:Union{String,Symbol},
+}
     #Unless warnings are hidden
     if verbose
         #If there are any of the agent's parameters which have not been set in the fixed or sampled parameters
@@ -146,4 +115,54 @@ function check_population_model(
         #Throw an error
         throw(ArgumentError("No parameters where specified in the prior."))
     end
+
+    #Check if any keys in the prior occur twice
+    if length(keys(prior)) != length(Set(keys(prior)))
+        throw(ArgumentError("The prior contains duplicate keys."))
+    end
 end
+
+
+
+
+
+# ##########################################################################
+# ####### FUNCTION FOR RENAMING CHAINS FOR A SIMPLE STATISTICAL MODEL ######
+# ##########################################################################
+# function rename_chains(
+#     chains::Chains,
+#     model::DynamicPPL.Model,
+#     #Arguments from statistical model
+#     prior::Dict{T,D},
+#     n_agents::I,
+#     agent_parameters::Vector{Dict{Any,Real}},
+# ) where {T<:Union{String,Tuple,Any},D<:Distribution,I<:Int}
+
+#     #Extract agent ids
+#     agent_ids = model.args.agent_ids
+
+#     ## Make dict with replacement names ##
+#     replacement_names = Dict{String,String}()
+
+#     for (agent_idx, agent_id) in enumerate(agent_ids)
+
+#         #Go through each parameter in the prior
+#         for (parameter_idx, parameter_key) in enumerate(keys(prior))
+
+#             #If the parameter key is a tuple
+#             if parameter_key isa Tuple
+#                 #Join the tuple with double underscores
+#                 parameter_key_right = join(parameter_key, tuple_separator)
+#             else
+#                 #Otherwise, keep it as it is
+#                 parameter_key_right = parameter_key
+#             end
+
+#             #Set a replacement name
+#             replacement_names["parameters[$parameter_idx, $agent_idx]"] = "$(agent_id).$parameter_key_right"
+#         end
+#     end
+
+#     #Replace names in the fitted model and return it
+#     replacenames(chains, replacement_names)
+# end

@@ -11,6 +11,7 @@ function create_model(
     parameter_names::Vector{String},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
+    population_model_type::AbstractPopulationModel = CustomPopulationModel(),
     verbose::Bool = true,
 ) where {T1<:Union{String,Symbol},T2<:Union{String,Symbol},T3<:Union{String,Symbol}}
 
@@ -68,16 +69,17 @@ function create_model(
         end
     end
 
-    ## Run checks for the model specifications ##
-    # check_model(
-    #     agent_model,
-    #     population_model,
-    #     data;
-    #     input_cols = input_cols,
-    #     action_cols = action_cols,
-    #     grouping_cols = grouping_cols,
-    #     verbose = verbose,
-    # )
+    # Run checks for the model specifications ##
+    check_model(
+        agent_model,
+        population_model,
+        data;
+        input_cols = input_cols,
+        action_cols = action_cols,
+        grouping_cols = grouping_cols,
+        population_model_type = population_model_type,
+        verbose = verbose,
+    )
 
     ## EXTRACT DATA ##
     #Group data by sessions
@@ -186,4 +188,63 @@ end
 
     #Return the session parameters
     return parameters_per_session
+end
+
+
+
+
+
+
+#########################################
+#### FUNCTION FOR CHECKING THE MODEL ####
+#########################################
+function check_model(
+    agent::Agent,
+    population_model::DynamicPPL.Model,
+    data::DataFrame;
+    input_cols::Union{Vector{T1},T1},
+    action_cols::Union{Vector{T2},T3},
+    grouping_cols::Union{Vector{T3},T3},
+    population_model_type::AbstractPopulationModel,
+    verbose::Bool = true,
+) where {T1<:Union{String,Symbol},T2<:Union{String,Symbol},T3<:Union{String,Symbol}}
+
+    #Check that user-specified columns exist in the dataset
+    if any(grouping_cols .∉ Ref(Symbol.(names(data))))
+        throw(
+            ArgumentError(
+                "There are specified group columns that do not exist in the dataframe",
+            ),
+        )
+    elseif any(input_cols .∉ Ref(Symbol.(names(data))))
+        throw(
+            ArgumentError(
+                "There are specified input columns that do not exist in the dataframe",
+            ),
+        )
+    elseif any(action_cols .∉ Ref(Symbol.(names(data))))
+        throw(
+            ArgumentError(
+                "There are specified action columns that do not exist in the dataframe",
+            ),
+        )
+    end
+
+    #Check whether the action columns are of the correct type
+    if any(!((data[!, action_cols] isa Vector{<:Real})))
+        throw(
+            ArgumentError(
+                "The action columns must be of type Vector{<:Real}",
+            ),
+        )
+    end
+
+    #Check whether there are NaN values in the action columns
+    if any(isnan.(data[!, action_cols]))
+        throw(
+            ArgumentError(
+                "There are NaN values in the action columns",
+            ),
+        )
+    end
 end

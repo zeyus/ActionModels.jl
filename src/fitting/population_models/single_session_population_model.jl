@@ -60,9 +60,9 @@ function create_model(
 end
 
 
-#############################################################
-### CHECKS TO MAKE FOR THE SINGLE-AGENT STATISTICAL MODEL ###
-#############################################################
+##############################################
+####### CHECKS FOR THE POPULATION MODEL ######
+##############################################
 function check_population_model(
     model_type::SingleSessionPopulationModel,
     agent::Agent,
