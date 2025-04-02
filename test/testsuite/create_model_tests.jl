@@ -226,6 +226,7 @@ using Turing: AutoReverseDiff
             input_cols = :inputs,
             action_cols = :actions,
             grouping_cols = :id,
+            infer_missing_actions = true,
         )
 
         #Fit model
@@ -249,7 +250,7 @@ using Turing: AutoReverseDiff
             actiondist1 = Normal(input, noise)
             actiondist2 = Normal(input, noise)
 
-            return [actiondist1, actiondist2]
+            return (actiondist1, actiondist2)
         end
         #Create agent
         new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
@@ -288,7 +289,7 @@ using Turing: AutoReverseDiff
             actiondist1 = Normal(input, noise)
             actiondist2 = Normal(input, noise)
 
-            return [actiondist1, actiondist2]
+            return (actiondist1, actiondist2)
         end
         #Create agent
         new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
@@ -309,6 +310,7 @@ using Turing: AutoReverseDiff
             input_cols = :inputs,
             action_cols = [:actions, :actions_2],
             grouping_cols = :id,
+            infer_missing_actions = true,
         )
 
         #Fit model
@@ -324,7 +326,7 @@ using Turing: AutoReverseDiff
 
     @testset "multiple inputs" begin
 
-        #Action model with multiple actions    
+        #Action model with multiple inputs    
         function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
 
             noise = agent.parameters["noise"]
@@ -373,7 +375,7 @@ using Turing: AutoReverseDiff
             actiondist1 = Normal(input1, noise)
             actiondist2 = Normal(input2, noise)
 
-            return [actiondist1, actiondist2]
+            return (actiondist1, actiondist2)
         end
         #Create agent
         new_agent = init_agent(multi_input_action, parameters = Dict("noise" => 1.0))
@@ -399,5 +401,13 @@ using Turing: AutoReverseDiff
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
+    end
+
+    @testset "depend on previous action" begin
+        #TODO:
+    end
+
+    @testset "depend on previous action, multiple actions" begin
+        #TODO:
     end
 end

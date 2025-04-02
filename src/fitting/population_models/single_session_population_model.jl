@@ -1,16 +1,14 @@
-##########################################
-### STATISTICAL MODEL FOR SINGLE AGENT ###
-##########################################
+#############################################
+### POPULATION MODEL FOR A SINGLE SESSION ###
+#############################################
 struct SingleSessionPopulationModel <: AbstractPopulationModel end
 
-#######################################################################################################################
-### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A INPUT/OUTPUT SEQUENCE, AND SINGLE-AGENT PRIOR ###
-#######################################################################################################################
 function create_model(
     agent::Agent,
     prior::Dict{String,D},
     inputs::II,
     actions::AA;
+    verbose = true,
     kwargs...,
 ) where {
     D<:Distribution,
@@ -19,10 +17,17 @@ function create_model(
     A<:Union{<:Real, NTuple{N, <:Real} where N},
     AA<:Vector{A},
 }
-
+    
     #Check population_model
-    #TODO: Implement this
-    # check whether all tuples are same length in the vectors
+    check_population_model(
+        SingleSessionPopulationModel(),
+        agent,
+        prior,
+        inputs,
+        actions,
+        verbose;
+        kwargs...,
+    )
 
     #Get number of 
     n_inputs = length(first(inputs))    
@@ -55,88 +60,34 @@ function create_model(
 end
 
 
-
-@model function single_session_population_model(
-    prior::Dict{T,D},
-) where {T<:Union{String,Tuple,Any},D<:Distribution}
-
-    #Create container for sampled parameters
-    parameters = Dict{T,Float64}()
-
-    #Go through each of the parameters in the prior
-    for (parameter, distribution) in prior
-        #And sample a value for each agent
-        parameters[parameter] ~ distribution
-    end
-
-    return PopulationModelReturn([parameters])
-end
-
-
-
-################################################################################
-####### FUNCTION FOR RENAMING CHAINS FOR A SINGLE-AGENT STATISTICAL MODEL ######
-################################################################################
-function rename_chains(
-    chains::Chains,
-    model::DynamicPPL.Model,
-    #Arguments from statistical model
-    prior::Dict{T,D},
-) where {T<:Union{String,Tuple,Any},D<:Distribution}
-
-    ## Make dict with replacement names ##
-    replacement_names = Dict{String,String}()
-
-    #Go through each parameter in the prior
-    for (parameter_key, _) in prior
-
-        #If the parameter name is a string
-        if parameter_key isa String
-            #Include quation marks in the name to be replaced
-            parameter_key_left = "\"$(parameter_key)\""
-        else
-            #Otherwise, keep it as it is
-            parameter_key_left = parameter_key
-        end
-
-        #If the parameter key is a tuple
-        if parameter_key isa Tuple
-            #Join the tuple with double underscores
-            parameter_key_right = join(parameter_key, tuple_separator)
-        else
-            #Otherwise, keep it as it is
-            parameter_key_right = parameter_key
-        end
-
-        #Set a replacement name
-        replacement_names["parameters[$parameter_key_left]"] = "$parameter_key_right"
-    end
-
-    #Replace names in the fitted model and return it
-    replacenames(chains, replacement_names)
-end
-
-############################################################
-### CHECKS TO MAKE FOR THE SINGLE-AGENT STAISTICAL MODEL ###
-############################################################
+#############################################################
+### CHECKS TO MAKE FOR THE SINGLE-AGENT STATISTICAL MODEL ###
+#############################################################
 function check_population_model(
-    #Arguments from statistical model
-    prior::Dict{T,D};
-    #Arguments from the agent
-    verbose::Bool,
+    model_type::SingleSessionPopulationModel,
     agent::Agent,
-) where {T<:Union{String,Tuple,Any},D<:Distribution}
-    #Unless warnings are hidden
-    if verbose
-        #If there are any of the agent's parameters which have not been set in the fixed or sampled parameters
-        if any(key -> !(key in keys(prior)), keys(agent.parameters))
-            @warn "the agent has parameters which are not estimated. The agent's current parameter values are used as fixed parameters"
-        end
+    prior::Dict{String,D},
+    inputs::II,
+    actions::AA,
+    verbose::Bool;
+    kwargs...,
+) where {
+    D<:Distribution,
+    I<:Union{<:Any, NTuple{N, <:Any} where N},
+    II<:Vector{I},
+    A<:Union{<:Real, NTuple{N, <:Real} where N},
+    AA<:Vector{A},
+}
+
+    if length(inputs) != length(actions)
+        throw(ArgumentError("The inputs and actions vectors must have the same length."))
     end
 
-    #If there are no parameters to sample
-    if length(prior) == 0
-        #Throw an error
-        throw(ArgumentError("No parameters where specified in the prior."))
+    if !all(y->y==length.(inputs)[1],length.(inputs))
+        throw(ArgumentError("All tuples in the inputs vector must have the same length."))
+    end
+
+    if !all(y->y==length.(actions)[1],length.(actions))
+        throw(ArgumentError("All tuples in the actions vector must have the same length."))
     end
 end

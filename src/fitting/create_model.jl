@@ -46,13 +46,11 @@ function create_model(
             infer_missing_actions = nothing
         else
             if verbose
-                warn(
-                    """
-                    There are missing values in the action columns, but infer_missing_actions is set to false. 
-                    These actions will not be used for fitting, but they will still be passed to the action model. 
-                    Check that this is desired behaviour. This can especially be a problem for models which depend on their previous actions.
-                    """,
-                )
+                @warn """
+                      There are missing values in the action columns, but infer_missing_actions is set to false. 
+                      These actions will not be used for fitting, but they will still be passed to the action model. 
+                      Check that this is desired behaviour. This can especially be a problem for models which depend on their previous actions.
+                      """
             end
             infer_missing_actions = SkipMissingActions()
         end
@@ -60,9 +58,7 @@ function create_model(
         #If there are no missing actions
         if !any(ismissing, Matrix(data[!, action_cols]))
             if verbose
-                warn(
-                    "infer_missing_actions is set to true, but there are no missing values in the action columns. Setting infer_missing_actions to false",
-                )
+                @warn "infer_missing_actions is set to true, but there are no missing values in the action columns. Setting infer_missing_actions to false"
             end
             #Remove any potential Missing type
             disallowmissing!(data, action_cols)
@@ -170,7 +166,7 @@ end
     session_ids::Vector{Symbol},
     inputs_per_session::Vector{Vector{II}},
     actions_per_session::Vector{Vector{AA}},
-) where {I<:Any,II<:Union{I,Tuple},A<:Real,AA<:Union{A,Tuple}}
+) where {I<:Any,II<:Union{I,Tuple},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple},T<:Tuple}
 
     #Generate session parameters with the population submodel
     parameters_per_session ~ to_submodel(population_model, false)

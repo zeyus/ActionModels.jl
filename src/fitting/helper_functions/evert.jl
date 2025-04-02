@@ -25,7 +25,7 @@ end
 
 
 ### FUNCTION FOR CONVERTING A TUPLE OF VECTORS INTO A VECTOR OF TUPLES ###
-function re_evert(t::NTuple{N,Vector{T}}) where {N, T}
+function revert(t::NTuple{N,Vector{T}}) where {N, T}
     n = length(first(t))                     # Length of the vectors
     result = Vector{NTuple{N, T}}(undef, n)  # Preallocate result vector
 

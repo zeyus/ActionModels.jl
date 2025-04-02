@@ -1,6 +1,6 @@
-############################################################################################################
-### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A SINGLE-AGENT PRIOR ###
-############################################################################################################
+#########################################################
+### SIMPLE POPULATION MODEL WITH INDEPENDENT SESSIONS ###
+#########################################################
 struct IndependentPopulationModel <: AbstractPopulationModel end
 
 function create_model(
@@ -45,31 +45,27 @@ function create_model(
     )
 end
 
-
-
-
-#######################################################################################################
-### SIMPLE STATISTICAL MODEL WHERE AGENTS ARE INDEPENDENT AND THEIR PARAMETERS HAVE THE SAME PRIORS ###
-#######################################################################################################
-@model function sample_independent_parameter(prior)
-
-    session ~ prior
-
-    return session
-end
-
+#Turing model for sampling all sessions for all parameters
 @model function independent_population_model(
     priors_per_parameter::T,
     parameter_names::Vector{String},
 ) where {T<:Tuple}
 
     sampled_parameters = Tuple(
-        i ~ to_submodel(prefix(sample_independent_parameter(prior), parameter_name), false) for
+        i ~ to_submodel(prefix(sample_parameters_all_session(prior), parameter_name), false) for
         (prior, parameter_name) in zip(priors_per_parameter, parameter_names)
     )
     #TODO: avoid type-instabulity when building the Tuple of parameters
 
-    return re_evert(sampled_parameters)
+    return revert(sampled_parameters)
+end
+
+#Turing submodel for sampling all sessions for a single parameter
+@model function sample_parameters_all_session(prior)
+
+    session ~ prior
+
+    return session
 end
 
 
