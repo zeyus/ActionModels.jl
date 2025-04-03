@@ -137,7 +137,7 @@ end
 
 
 ###########################################################################################
-###### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM AN AGENT_PARMAETERS AXISARRAY ####
+###### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM A AGENT STATES AXISARRAY ####
 ###########################################################################################
 function get_estimates(
     state_trajectories::AxisArrays.AxisArray{

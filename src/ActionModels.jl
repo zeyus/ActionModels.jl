@@ -53,47 +53,46 @@ const tuple_separator = "."
 
 
 
-#Types for agents and errors
-include("structs.jl")
 
-#Functions for creating agents
-include("create_agent/init_agent.jl")
-include("create_agent/create_premade_agent.jl")
-include("create_agent/multiple_actions.jl")
-include("create_agent/check_agent.jl")
-#Functions for fitting agents to data
-include("fitting/create_model.jl")
-include("fitting/create_session_model.jl")
-include("fitting/population_models/independent_population_model.jl")
-include("fitting/population_models/single_session_population_model.jl")
-include("fitting/population_models/regression_population_model.jl")
-include("fitting/helper_functions/extract_quantities.jl")
-include("fitting/helper_functions/get_estimates.jl")
-include("fitting/helper_functions/get_trajectories.jl")
-include("fitting/helper_functions/helper_functions.jl")
-include("fitting/helper_functions/rename_chains.jl")
-include("fitting/helper_functions/evert.jl")
-include("fitting/fit_model.jl")
-include("fitting/parameter_recovery.jl")
+### Functions for model definition ###
+include(joinpath("defining_models", "structs.jl"))
+include(joinpath("defining_models", "init_agent.jl"))
+include(joinpath("defining_models", "create_premade_model.jl"))
+include(joinpath("defining_models", "update_states.jl"))
+include(joinpath("defining_models", "pretty_print.jl"))
 
-#Plotting functions for agents
-include("plots/plot_trajectories.jl")
-include("plots/plot_parameters.jl")
-include("plots/plot_trajectory.jl")
+#Read in all premade models
+for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
+    if endswith(premade_model_file, ".jl")
+        include(joinpath("defining_models", "premade_models", premade_model_file))
+    end
+end
 
-#Utility functions for agents
-include("utils/get_history.jl")
-include("utils/get_parameters.jl")
-include("utils/get_states.jl")
-include("utils/give_inputs.jl")
-include("utils/reset.jl")
-include("utils/set_parameters.jl")
-include("utils/warn_premade_defaults.jl")
-include("utils/pretty_printing.jl")
-include("utils/update_states.jl")
-include("utils/set_save_history.jl")
+### Functions for simulation ###
+include(joinpath("simulation", "give_inputs.jl"))
+include(joinpath("simulation", "reset.jl"))
+include(joinpath("simulation", "get_and_set", "set_parameters.jl"))
+include(joinpath("simulation", "get_and_set", "set_save_history.jl"))
+include(joinpath("simulation", "get_and_set", "get_parameters.jl"))
+include(joinpath("simulation", "get_and_set", "get_states.jl"))
+include(joinpath("simulation", "get_and_set", "get_history.jl"))
+include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 
-#Premade agents
-include("premade_models/binary_rescorla_wagner_softmax.jl")
-include("premade_models/continuous_rescorla_wagner_gaussian.jl")
+### Functions for fitting models ###
+include(joinpath("fitting_models", "structs.jl"))
+include(joinpath("fitting_models", "turing_model", "create_model.jl"))
+include(joinpath("fitting_models", "turing_model", "create_session_model.jl"))
+include(joinpath("fitting_models", "turing_model", "helper_functions.jl"))
+include(joinpath("fitting_models", "turing_model", "population_models", "independent_population_model.jl"))
+include(joinpath("fitting_models", "turing_model", "population_models", "glm_population_model.jl"))
+include(joinpath("fitting_models", "turing_model", "population_models", "single_session_population_model.jl"))
+include(joinpath("fitting_models", "tools", "fit_model.jl"))
+include(joinpath("fitting_models", "tools", "save_resume.jl"))
+include(joinpath("fitting_models", "tools", "parameter_recovery.jl"))
+include(joinpath("fitting_models", "API", "get_session_parameters.jl"))
+include(joinpath("fitting_models", "API", "get_state_trajectories.jl"))
+include(joinpath("fitting_models", "API", "summarize.jl"))
+include(joinpath("fitting_models", "plots", "plot_parameters.jl"))
+include(joinpath("fitting_models", "plots", "plot_trajectories.jl"))
+
 end
