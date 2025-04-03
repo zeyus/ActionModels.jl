@@ -63,7 +63,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     prior = Dict(
         "learning_rate" => LogitNormal(0.0, 1.0),
         "action_noise" => truncated(Normal(0.0, 1.0), lower = 0),
-        #("initial", "value") => Normal(0.0, 1.0),
+        "initial_value" => Normal(0.0, 1.0),
     )
 
     #Set samplings settings
