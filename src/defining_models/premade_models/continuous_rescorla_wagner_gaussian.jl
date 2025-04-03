@@ -32,7 +32,7 @@ function premade_continuous_rescorla_wagner_gaussian(config::Dict)
 
     #Default parameters and settings
     default_config =
-        Dict("learning_rate" => 0.1, "action_noise" => 1, ("initial", "value") => 0)
+        Dict("learning_rate" => 0.1, "action_noise" => 1, "initial_value" => 0)
 
     #Warn the user about used defaults and misspecified keys
     warn_premade_defaults(default_config, config)
@@ -45,7 +45,7 @@ function premade_continuous_rescorla_wagner_gaussian(config::Dict)
     parameters = Dict(
         "learning_rate" => config["learning_rate"],
         "action_noise" => config["action_noise"],
-        InitialStateParameter("value") => config[("initial", "value")],
+        "initial_value" => InitialState("value", config["initial_value"]),
     )
     states = Dict("input" => missing, "value" => missing)
     settings = Dict()

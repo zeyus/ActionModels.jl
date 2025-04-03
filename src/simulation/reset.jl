@@ -9,12 +9,12 @@ function reset!(agent::Agent)
     for state_name in keys(agent.states)
 
         #If the state has an initial state parameter
-        if state_name in keys(agent.initial_state_parameters)
+        if state_name in keys(agent.initial_states)
             #Set it to that value
-            agent.states[state_name] = agent.initial_state_parameters[state_name]
+            agent.states[state_name] = agent.initial_states[state_name].value
         else
             #Set it to the first value in the history
-            agent.states[state_name] = agent.history[state_name][1]
+            agent.states[state_name] = first(agent.history[state_name])
         end
     end
 

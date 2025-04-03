@@ -97,6 +97,7 @@ function init_agent(
         substruct = substruct,
         parameters = Dict(),
         initial_state_parameters = Dict(),
+        initial_states = Dict89
         states = Dict(),
         settings = settings,
         save_history = save_history,
@@ -105,11 +106,13 @@ function init_agent(
 
     ##Add parameters to either initial state parameters or parameters
     for (param_key, param_value) in parameters
+        
         #If the param is an initial state parameter
-        if param_key isa InitialStateParameter
+        if param_value isa InitialState
 
-            #Add the parameter to the initial state parameters
-            agent.initial_state_parameters[param_key.state] = param_value
+            #Add the parameter using the state as key
+            agent.initial_state_parameters[param_key] = param_value
+            agent.initial_states[param_value.state] = param_value
 
         else
             #For other parameters, add to parameters
@@ -139,7 +142,7 @@ function init_agent(
     end
 
 
-    #If ther is only one parameter group, wrap it in a vector
+    #If there is only one parameter group, wrap it in a vector
     if parameter_groups isa ParameterGroup
         parameter_groups = [parameter_groups]
     end
@@ -172,7 +175,11 @@ function init_agent(
 
 
     #Initialize states
-    for (state_key, initial_value) in agent.initial_state_parameters
+    for (param_key, initial_state) in agent.initial_state_parameters
+
+        #Extract the state and value
+        state_key = initial_state.state
+        initial_value = initial_state.value
 
         #If the state exists
         if state_key in keys(agent.states)
@@ -200,44 +207,6 @@ function init_agent(
 
     return agent
 end
-
-
-function init_agent(
-    action_model::Vector{Function};
-    substruct::Any = nothing,
-    parameters::Dict = Dict(),
-    states::Dict = Dict(),
-    settings::Dict = Dict(),
-    save_history::Bool = true,
-)
-
-    #If a setting called action_models has been specified manually
-    if "action_models" in keys(settings)
-        #Throw an error
-        throw(
-            ArgumentError(
-                "Using a setting called 'action_models' with multiple action models is not supported",
-            ),
-        )
-    else
-        #Add vector of action models to settings
-        settings["action_models"] = action_model
-    end
-
-    #Create agent with the multiple actions action model
-    agent = init_agent(
-        multiple_actions,
-        substruct = substruct,
-        parameters = parameters,
-        states = states,
-        settings = settings,
-        save_history = save_history,
-    )
-
-    return agent
-end
-
-
 
 
 """

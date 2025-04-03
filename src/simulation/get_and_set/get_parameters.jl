@@ -15,24 +15,22 @@ function get_parameters end
 
 
 ### Functions for getting a single param ###
-function get_parameters(agent::Agent, target_param::Union{String,Tuple})
+function get_parameters(agent::Agent, target_param::String)
 
     #If the target parameter is in the agent's parameters
     if target_param in keys(agent.parameters)
         #Extract it
         param = agent.parameters[target_param]
 
-        #If the target parameter is in the agent's initial state parameters
-    elseif target_param isa Tuple &&
-           target_param[1] == "initial" &&
-           target_param[2] in keys(agent.initial_state_parameters)
-        #Extract it
-        param = agent.initial_state_parameters[target_param[2]]
-
-        #If the target parameter is in the agents's shared parameters
+    #If the target parameter is in the agents's grouped parameters
     elseif target_param in keys(agent.parameter_groups)
         #Extract it, take only the value
         param = agent.parameter_groups[target_param].value
+
+    #If the target parameter is in the agent's initial state parameters
+    elseif target_param in keys(agent.initial_state_parameters)
+        #Extract it
+        param = agent.initial_state_parameters[target_param].value
 
     else
         #Otherwise look in the substruct
@@ -51,7 +49,7 @@ end
 
 
 ### Functions for getting multiple parameters ###
-function get_parameters(agent::Agent, target_parameters::Vector)
+function get_parameters(agent::Agent, target_parameters::Vector{String})
     #Initialize dict
     parameters = Dict()
 
@@ -76,15 +74,14 @@ function get_parameters(agent::Agent)
     parameter_keys = collect(keys(agent.parameters))
 
     #Collect keys for initial state parameters
-    initial_state_parameter_keys =
-        map(x -> ("initial", x), collect(keys(agent.initial_state_parameters)))
+    initial_state_parameter_keys = collect(keys(agent.initial_state_parameters))
 
     #Collect keys for shared parameters
     parameter_group_keys = collect(keys(agent.parameter_groups))
 
     #Combine all parameter keys into one
     target_parameters =
-        vcat(parameter_keys, initial_state_parameter_keys, parameter_group_keys)
+        Vector{String}(vcat(parameter_keys, initial_state_parameter_keys, parameter_group_keys))
 
     #If there are shared parameters
     if length(parameter_group_keys) > 0

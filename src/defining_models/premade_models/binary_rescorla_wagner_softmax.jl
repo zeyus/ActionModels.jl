@@ -53,7 +53,7 @@ function premade_binary_rescorla_wagner_softmax(config::Dict)
 
     #Default parameters and settings
     default_config =
-        Dict("learning_rate" => 0.1, "action_precision" => 1, ("initial", "value") => 0)
+        Dict("learning_rate" => 0.1, "action_precision" => 1, "initial_value" => 0)
     #Warn the user about used defaults and misspecified keys
     warn_premade_defaults(default_config, config)
 
@@ -65,7 +65,7 @@ function premade_binary_rescorla_wagner_softmax(config::Dict)
     parameters = Dict(
         "learning_rate" => config["learning_rate"],
         "action_precision" => config["action_precision"],
-        InitialStateParameter("value") => config[("initial", "value")],
+        "intial_value" => InitialState("value", config["initial_value"]),
     )
     states = Dict(
         "value" => missing,
