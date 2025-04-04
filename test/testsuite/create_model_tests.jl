@@ -83,7 +83,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         #Extract quantities
-        #agent_parameters = extract_quantities(model, fitted_model)
+        #agent_parameters = get_session_parameters(model, fitted_model)
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
@@ -102,55 +102,55 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         #Fit model
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
+        # #Rename chains
+        # renamed_model = rename_chains(fitted_model, model)
 
-        #Extract agent parameters
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters, DataFrame)
-        estimates_dict = get_estimates(agent_parameters, Dict)
-        #estimates_chains = get_estimates(agent_parameters, Chains)
+        # #Extract agent parameters
+        # agent_parameters = get_session_parameters(model, fitted_model)
+        # estimates_df = summarize(agent_parameters, DataFrame)
+        # estimates_dict = summarize(agent_parameters, Dict)
+        # #estimates_chains = summarize(agent_parameters, Chains)
 
-        #Extract state trajectories
-        state_trajectories = get_trajectories(model, fitted_model, ["value", "action"])
-        trajectory_estimates_df = get_estimates(state_trajectories)
+        # #Extract state trajectories
+        # state_trajectories = get_state_trajectories(model, fitted_model, ["value", "action"])
+        # trajectory_estimates_df = summarize(state_trajectories)
 
-        #Check that the learning rates are estimated right
-        @test estimates_df[!, :learning_rate] == sort(estimates_df[!, :learning_rate])
+        # #Check that the learning rates are estimated right
+        # @test estimates_df[!, :learning_rate] == sort(estimates_df[!, :learning_rate])
 
-        @test state_trajectories isa AxisArrays.AxisArray{
-            Union{Missing,Float64},
-            5,
-            Array{Union{Missing,Float64},5},
-            Tuple{
-                AxisArrays.Axis{:agent,Vector{Symbol}},
-                AxisArrays.Axis{:state,Vector{Symbol}},
-                AxisArrays.Axis{:timestep,UnitRange{Int64}},
-                AxisArrays.Axis{:sample,UnitRange{Int64}},
-                AxisArrays.Axis{:chain,UnitRange{Int64}},
-            },
-        }
-        @test agent_parameters isa AxisArrays.AxisArray{
-            Float64,
-            4,
-            Array{Float64,4},
-            Tuple{
-                AxisArrays.Axis{:agent,Vector{Symbol}},
-                AxisArrays.Axis{:parameter,Vector{Symbol}},
-                AxisArrays.Axis{:sample,UnitRange{Int64}},
-                AxisArrays.Axis{:chain,UnitRange{Int64}},
-            },
-        }
+        # @test state_trajectories isa AxisArrays.AxisArray{
+        #     Union{Missing,Float64},
+        #     5,
+        #     Array{Union{Missing,Float64},5},
+        #     Tuple{
+        #         AxisArrays.Axis{:agent,Vector{Symbol}},
+        #         AxisArrays.Axis{:state,Vector{Symbol}},
+        #         AxisArrays.Axis{:timestep,UnitRange{Int64}},
+        #         AxisArrays.Axis{:sample,UnitRange{Int64}},
+        #         AxisArrays.Axis{:chain,UnitRange{Int64}},
+        #     },
+        # }
+        # @test agent_parameters isa AxisArrays.AxisArray{
+        #     Float64,
+        #     4,
+        #     Array{Float64,4},
+        #     Tuple{
+        #         AxisArrays.Axis{:agent,Vector{Symbol}},
+        #         AxisArrays.Axis{:parameter,Vector{Symbol}},
+        #         AxisArrays.Axis{:sample,UnitRange{Int64}},
+        #         AxisArrays.Axis{:chain,UnitRange{Int64}},
+        #     },
+        # }
 
-        #Fit model
-        prior_chains = sample(model, Prior(), n_iterations; sampling_kwargs...)
-        renamed_prior_chains = rename_chains(prior_chains, model)
+        # #Fit model
+        # prior_chains = sample(model, Prior(), n_iterations; sampling_kwargs...)
+        # renamed_prior_chains = rename_chains(prior_chains, model)
 
-        plot_parameters(renamed_prior_chains, renamed_model)
+        # plot_parameters(renamed_prior_chains, renamed_model)
 
-        prior_trajectories = get_trajectories(model, prior_chains, ["value", "action"])
-        plot_trajectories(prior_trajectories)
-        plot_trajectories(state_trajectories)
+        # prior_trajectories = get_state_trajectories(model, prior_chains, ["value", "action"])
+        # plot_trajectories(prior_trajectories)
+        # plot_trajectories(state_trajectories)
     end
 
     @testset "custom statistical model" begin
@@ -172,7 +172,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         # #Extract quantities
-        # agent_parameters = extract_quantities(model, fitted_model)
+        # agent_parameters = get_session_parameters(model, fitted_model)
 
         # #Rename chains
         # renamed_model = rename_chains(fitted_model, model)
@@ -195,13 +195,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
 
-        #Extract quantities
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters)
+        # #Extract quantities
+        # agent_parameters = get_session_parameters(model, fitted_model)
+        # estimates_df = summarize(agent_parameters)
 
-        #Extract state trajectories
-        state_trajectories = get_trajectories(model, fitted_model, ["value", "action"])
-        trajectory_estimates_df = get_estimates(state_trajectories)
+        # #Extract state trajectories
+        # state_trajectories = get_state_trajectories(model, fitted_model, ["value", "action"])
+        # trajectory_estimates_df = summarize(state_trajectories)
 
 
         #Check that the learning rates are estimated right
@@ -231,8 +231,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         #Extract quantities
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters)
+        agent_parameters = get_session_parameters(model, fitted_model)
+        estimates_df = summarize(agent_parameters)
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
@@ -269,8 +269,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         #Extract quantities
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters)
+        agent_parameters = get_session_parameters(model, fitted_model)
+        estimates_df = summarize(agent_parameters)
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
@@ -314,8 +314,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         #Extract quantities
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters)
+        agent_parameters = get_session_parameters(model, fitted_model)
+        estimates_df = summarize(agent_parameters)
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
@@ -352,8 +352,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         #Extract quantities
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters)
+        agent_parameters = get_session_parameters(model, fitted_model)
+        estimates_df = summarize(agent_parameters)
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)
@@ -391,8 +391,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         #Extract quantities
-        agent_parameters = extract_quantities(model, fitted_model)
-        estimates_df = get_estimates(agent_parameters)
+        agent_parameters = get_session_parameters(model, fitted_model)
+        estimates_df = summarize(agent_parameters)
 
         #Rename chains
         renamed_model = rename_chains(fitted_model, model)

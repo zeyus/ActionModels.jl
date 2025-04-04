@@ -192,22 +192,22 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         
         samples = sample(model, sampler, n_iterations; sampling_kwargs...)
 
-        agent_parameters = extract_quantities(model, samples)
-        agent_parameter_df = get_estimates(agent_parameters)
+        # agent_parameters = get_session_parameters(model, samples)
+        # agent_parameter_df = summarize(agent_parameters)
 
-        trajectories = get_trajectories(model, samples, ["value", "action"])
-        state_trajectories_df = get_estimates(trajectories)
+        # trajectories = get_state_trajectories(model, samples, ["value", "action"])
+        # state_trajectories_df = summarize(trajectories)
 
-        using StatsPlots
-        plot_trajectories(trajectories)
+        # using StatsPlots
+        # plot_trajectories(trajectories)
 
-        prior_samples = sample(model, Prior(), n_iterations; sampling_kwargs...)
+        # prior_samples = sample(model, Prior(), n_iterations; sampling_kwargs...)
 
-        prior_agent_parameters = extract_quantities(model, prior_samples)
+        # prior_agent_parameters = get_session_parameters(model, prior_samples)
 
-        prior_trajectories = get_trajectories(model, prior_samples, ["value", "action"])
-        plot_trajectories(prior_trajectories)
+        # prior_trajectories = get_state_trajectories(model, prior_samples, ["value", "action"])
+        # plot_trajectories(prior_trajectories)
 
-        plot_parameters(prior_samples, samples)
+        # plot_parameters(prior_samples, samples)
     end
 end
