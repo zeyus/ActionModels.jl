@@ -16,7 +16,7 @@ using Turing: DynamicPPL, AbstractMCMC, AutoForwardDiff, AutoReverseDiff, AutoMo
 
 ## For defining action models ##
 export Agent, RejectParameters, update_states!
-export InitialStateParameter, ParameterGroup
+export InitialState, ParameterGroup
 export init_agent, premade_agent
 
 ## For simulation ##
@@ -32,6 +32,8 @@ export fit_model, ChainSaveResume
 export get_session_parameters, get_state_trajectories, summarize
 export parameter_recovery
 export plot_parameters, plot_trajectories
+export bounded_exp, bounded_logistic
+export @formula
 
 
 ## Load premade agents ##
