@@ -48,7 +48,11 @@ if false
 end
 
 
-### CATEGORICAL RANOMD ####
+
+
+
+
+### CATEGORICAL RANDOM ####
 function categorical_random(agent::Agent, input::Tuple{Int64,Float64})
 
     deck, reward = input
