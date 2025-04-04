@@ -1,11 +1,11 @@
 #######################################################
 ### FUNCTION FOR GETTING SAMPLED STATE TRAJECTORIES ###
 #######################################################
-function get_trajectories(
+function get_state_trajectories(
     model::DynamicPPL.Model,
     chains::Chains,
     target_states::Vector{T};
-    agent_parameters::AxisArray = extract_quantities(model, chains),
+    agent_parameters::AxisArray = get_session_parameters(model, chains),
     inputs_per_agent::Vector = model.args.inputs_per_agent,
 ) where {T<:Union{String,Tuple,Any}}
 

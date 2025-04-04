@@ -1,7 +1,7 @@
 ############################################################################################
 ####### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM AN AGENT_PARMAETERS AXISARRAY ####
 ############################################################################################
-function get_estimates(
+function summarize(
     agent_parameters::AxisArray{
         Float64,
         4,
@@ -17,7 +17,7 @@ function get_estimates(
     summary_function::Function = median,
 ) where {T<:Union{Type{Dict},Type{DataFrame}}}
 
-    get_estimates(agent_parameters, summary_function, output_type)
+    summarize(agent_parameters, summary_function, output_type)
 
 end
 
@@ -25,7 +25,7 @@ end
 ##########################################################
 ####### DSISPATCH FUNCTION FOR GENERATING A DATAFRAME ####
 ##########################################################
-function get_estimates(
+function summarize(
     agent_parameters::AxisArray{
         Float64,
         4,
@@ -91,7 +91,7 @@ end
 #########################################################
 ####### VERSION WHICH GENERATES A DICTIONARY INSTEAD ####
 #########################################################
-function get_estimates(
+function summarize(
     agent_parameters::AxisArray{
         Float64,
         4,
@@ -139,7 +139,7 @@ end
 ###########################################################################################
 ###### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM A AGENT STATES AXISARRAY ####
 ###########################################################################################
-function get_estimates(
+function summarize(
     state_trajectories::AxisArrays.AxisArray{
         Union{Missing,Float64},
         5,

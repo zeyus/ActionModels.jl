@@ -1,7 +1,7 @@
 #########################################################
 ####### FUNCTION FOR EXTRACTING GENERATED QUANTITIES ####
 #########################################################
-function extract_quantities(model::DynamicPPL.Model, fitted_model::Chains)
+function get_session_parameters(model::DynamicPPL.Model, fitted_model::Chains)
 
     # Extract the generated quantities from the fitted model
     quantities = generated_quantities(model, fitted_model)

@@ -29,7 +29,7 @@ export plot_trajectory, plot_trajectory!
 export RegressionPrior
 export create_model
 export fit_model, ChainSaveResume
-export extract_quantities, get_estimates, get_trajectories
+export get_session_parameters, get_state_trajectories, summarize
 export parameter_recovery
 export plot_parameters, plot_trajectories
 
@@ -89,9 +89,9 @@ include(joinpath("fitting_models", "turing_model", "population_models", "single_
 include(joinpath("fitting_models", "tools", "fit_model.jl"))
 include(joinpath("fitting_models", "tools", "save_resume.jl"))
 include(joinpath("fitting_models", "tools", "parameter_recovery.jl"))
-include(joinpath("fitting_models", "API", "get_session_parameters.jl"))
-include(joinpath("fitting_models", "API", "get_state_trajectories.jl"))
-include(joinpath("fitting_models", "API", "summarize.jl"))
+include(joinpath("fitting_models", "extract_results", "get_session_parameters.jl"))
+include(joinpath("fitting_models", "extract_results", "get_state_trajectories.jl"))
+include(joinpath("fitting_models", "extract_results", "summarize.jl"))
 include(joinpath("fitting_models", "plots", "plot_parameters.jl"))
 include(joinpath("fitting_models", "plots", "plot_trajectories.jl"))
 
