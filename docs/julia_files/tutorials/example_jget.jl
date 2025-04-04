@@ -1,11 +1,11 @@
-docs_path = joinpath(@__DIR__, "..", "..", "docs")
+docs_path = joinpath(@__DIR__, "..", "..")
 using Pkg
 Pkg.activate(docs_path)
 
-using Test
-using LogExpFunctions
 
 using ActionModels
+using ActionModels: LogExpFunctions
+
 using Distributions
 using DataFrames, CSV
 using MixedModels
