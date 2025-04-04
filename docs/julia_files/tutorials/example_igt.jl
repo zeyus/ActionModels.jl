@@ -85,7 +85,7 @@ model = create_model(
 
 AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
-# AD = AutoReverseDiff(; compile = true) #Seems to work! 
+# AD = AutoReverseDiff(; compile = true)
 # import Mooncake; AD = AutoMooncake(; config = nothing); 
 
 #Set samplings settings
@@ -172,7 +172,7 @@ model = create_model(
 
 # AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
-# AD = AutoReverseDiff(; compile = true) #Explodes memory
+# AD = AutoReverseDiff(; compile = true) 
 import Mooncake; AD = AutoMooncake(; config = nothing);
 
 #Set samplings settings
