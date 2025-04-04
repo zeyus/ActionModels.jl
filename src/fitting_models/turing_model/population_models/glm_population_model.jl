@@ -1,26 +1,15 @@
 
-# TODO: Adapt so it can split a parameter into a tuple (until we get rid of tuple parameter names for good)
-# TODO: (1.0) implement rename_chains for linear regressions (also for ordering of the random effects 
-#             - MAYBE some code uses the data order, maybe some uses the formula order)
 # TODO: (1.0) implement Regression input type
 # TODO: implement check_population_model
 #       - TODO: Make check for whether there is a name collision with creating column with the parameter name
 #       - TODO: check for whether the vector of priors is the correct amount
 # TODO: (1.0) Example / usecase / tutorials)
 #      - TODO: Fit a real dataset
-# TODO: (1.0) Fix broken autodiff problems.
-#      - DONE: Mooncake is broken by the Int() part of the random effects part of the model. That can be put outside in the create_model part.
-#      - DONE: Mooncake is broken by the indexing when sampling random effects
-#      - TODO: Reversediff with compile is broken (excessive memory usage) by one of the following:
-#                   - matrix modification
-#                   - ad_val
-#                   - dependence on prev state
-#              Perhaps its due to many allocations..? Maybe it's because of reset!() ?
 # TODO: add to documentation that there shouldn't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
 # TODO: add covariance between parameters
 # TODO: Use an mvnormal to sample all the random effects, instead of a huge constructed arraydist
-# TODO: make copies of agents in agent_model
-# TODO: make ActionModels compatible with Enzyme
+# TODO: make a show or summarize function for the GLM chains object
+# TODO: fix the errors in glm_tests.jl
 
 ###################################
 ### REGRESSION POPULATION MODEL ###
@@ -36,6 +25,7 @@ function create_model(
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
     grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
+    verbose::Bool = true,
     kwargs...,
 ) where {
     F<:MixedModels.FormulaTerm,
@@ -323,10 +313,10 @@ end
 function check_population_model(
     model_type::RegressionPopulationModel,
     agent::Agent,
-    regression_formulas::Vector{F},
+    regression_formulas::Union{F,Vector{F}},
     data::DataFrame,
     priors::Union{R,Vector{R}},
-    inv_links::Vector{Function},
+    inv_links::Union{Function,Vector{Function}},
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
     grouping_cols::Union{Vector{T3},T3},
@@ -348,6 +338,8 @@ function check_population_model(
     #         ),
     #     )
     # end
+
+    #TODO: Make a check for whether the priors/linkfunctions/formulas are well-specified
 
 end
 
