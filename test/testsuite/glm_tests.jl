@@ -1,8 +1,9 @@
 using Test
 
 using ActionModels
-using ActionModels: DataFrames, MixedModels, Turing, LogExpFunctions
+using ActionModels: MixedModels, Turing, LogExpFunctions
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
+using DataFrames, Turing
 
 
 @testset "linear regression tests" begin
