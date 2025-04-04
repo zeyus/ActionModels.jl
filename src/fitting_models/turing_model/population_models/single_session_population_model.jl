@@ -8,7 +8,7 @@ function create_model(
     prior::Dict{String,D},
     inputs::II,
     actions::AA;
-    verbose = true,
+    verbose::Bool = true,
     kwargs...,
 ) where {
     D<:Distribution,
@@ -47,7 +47,7 @@ function create_model(
     grouping_cols = "session"
     data[!, grouping_cols] .= 1
 
-    #Create a full model combining the agent model and the statistical model
+    #Create an independent_population_model with the single session
     return create_model(
         agent,
         prior,
@@ -55,6 +55,7 @@ function create_model(
         input_cols = input_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
+        verbose = verbose,
         kwargs...,
     )
 end

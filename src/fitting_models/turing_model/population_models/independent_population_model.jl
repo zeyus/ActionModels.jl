@@ -10,6 +10,7 @@ function create_model(
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
     grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
+    verbose::Bool = true,
     kwargs...,
 ) where {
     D<:Distribution,
