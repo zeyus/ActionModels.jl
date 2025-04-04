@@ -97,7 +97,7 @@ function init_agent(
         substruct = substruct,
         parameters = Dict(),
         initial_state_parameters = Dict(),
-        initial_states = Dict89
+        initial_states = Dict(),
         states = Dict(),
         settings = settings,
         save_history = save_history,
