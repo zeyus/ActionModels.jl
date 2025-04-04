@@ -48,8 +48,6 @@ if false
 end
 
 
-
-
 ### CATEGORICAL RANOMD ####
 function categorical_random(agent::Agent, input::Tuple{Int64,Float64})
 
