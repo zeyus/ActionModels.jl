@@ -6,7 +6,7 @@ function sample_posterior!(
     n_samples::Integer = 1000,
     n_chains::Integer = 2,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial(),
-    ad_type = AutoForwardDiff(; config = nothing),
+    ad_type = AutoForwardDiff(),
     sampler::Union{DynamicPPL.AbstractSampler,Turing.Inference.InferenceAlgorithm} = NUTS(;
         adtype = ad_type,
     ),
@@ -64,7 +64,7 @@ function sample_prior!(
     chains = sample(model, Prior(), parallelization, n_samples, n_chains)
 
     #Store the prior
-    modelfit.prior = ModelFitResults(chains)
+    modelfit.prior = ModelFitResult(; chains = chains)
 
     return chains
 end
