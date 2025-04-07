@@ -5,7 +5,7 @@ using Turing
 using DataFrames
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
-@testset "fitting tests" begin
+@testset "create_model_tests" begin
 
     ### SETUP ###
     #Generate dataset
@@ -50,297 +50,315 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     #Create agent
     agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
 
-    #Set samplings settings
-    # sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
-    sampler = NUTS(-1, 0.65; adtype = AutoForwardDiff())
-    n_iterations = 1000
-    sampling_kwargs = (; progress = false)
+    #Go through each supported AD type
+    for ad_type in
+        ["AutoForwardDiff", "AutoReverseDiff", "AutoReverseDiff(true)", "AutoMooncake"]
 
-    @testset "single agent" begin
-        #Extract inputs and actions from data
-        inputs = data[!, :inputs]
-        actions = data[!, :actions]
-
-        #Create model
-        model = create_model(agent, prior, inputs, actions)
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "simple statistical model" begin
-        #Create model
-        model = create_model(
-            agent,
-            prior,
-            data,
-            input_cols = input_cols,
-            action_cols = action_cols,
-            grouping_cols = [:id],
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-       
-    end
-
-    @testset "custom statistical model" begin
-
-    end
-
-    @testset "no grouping cols" begin
-        #Create model
-        model = create_model(
-            agent,
-            prior,
-            data,
-            input_cols = input_cols,
-            action_cols = action_cols,
-            grouping_cols = Symbol[],
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "multiple grouping cols" begin
-
-        #Create model
-        model = create_model(
-            agent,
-            prior,
-            data,
-            input_cols = input_cols,
-            action_cols = action_cols,
-            grouping_cols = grouping_cols,
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-
-    end
-
-    @testset "missing actions" begin
-
-        #Create new dataframe where three actions = missing
-        new_data = allowmissing(data, :actions)
-        new_data[[2, 7, 12], :actions] .= missing
-
-        #Create model
-        model = create_model(
-            agent,
-            prior,
-            new_data,
-            input_cols = input_cols,
-            action_cols = action_cols,
-            grouping_cols = grouping_cols,
-            infer_missing_actions = true,
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "multiple actions" begin
-  
-        function multi_action(agent, input::Real)
-
-            noise = agent.parameters["noise"]
-
-            actiondist1 = Normal(input, noise)
-            actiondist2 = Normal(input, noise)
-
-            return (actiondist1, actiondist2)
+        #Select appropriate AD backend
+        if ad_type == "AutoForwardDiff"
+            AD = AutoForwardDiff()
+        elseif ad_type == "AutoReverseDiff"
+            AD = AutoReverseDiff()
+        elseif ad_type == "AutoReverseDiff(true)"
+            AD = AutoReverseDiff(true)
+        elseif ad_type == "AutoMooncake"
+            AD = AutoMooncake(; config = nothing)
         end
-        #Create agent
-        new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
 
-        #Set prior
-        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+        #Set sampling arguments
+        n_iterations = 50
+        sampling_kwargs = (; progress = false)
+        sampler = NUTS(-1, 0.65; adtype = AD)
 
-        #Create model
-        model = create_model(
-            new_agent,
-            new_prior,
-            data,
-            input_cols = input_cols,
-            action_cols = [:actions, :actions_2],
-            grouping_cols = grouping_cols,
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "multiple actions, missing actions" begin
-
-        function multi_action(agent, input::Real)
-
-            noise = agent.parameters["noise"]
-
-            actiondist1 = Normal(input, noise)
-            actiondist2 = Normal(input, noise)
-
-            return (actiondist1, actiondist2)
-        end
-        #Create agent
-        new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
-
-        #Set prior
-        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
-
-        #Create new dataframe where three actions = missing
-        new_data = allowmissing(data, [:actions, :actions_2])
-        new_data[[2, 12], :actions] .= missing
-        new_data[[3], :actions_2] .= missing
-
-        #Create model
-        model = create_model(
-            new_agent,
-            new_prior,
-            new_data,
-            input_cols = input_cols,
-            action_cols = [:actions, :actions_2],
-            grouping_cols = grouping_cols,
-            infer_missing_actions = true,
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "multiple inputs" begin
-
-        function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
-
-            noise = agent.parameters["noise"]
-
-            input1, input2 = input
-
-            actiondist = Normal(input1, noise)
-
-            return actiondist
-        end
-        #Create agent
-        new_agent = init_agent(multi_input, parameters = Dict("noise" => 1.0))
-
-        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
-
-        #Create model
-        model = create_model(
-            new_agent,
-            new_prior,
-            data,
-            input_cols = [:inputs, :inputs_2],
-            action_cols = action_cols,
-            grouping_cols = grouping_cols,
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "multiple inputs and multiple actions" begin
-
-        function multi_input_action(agent, input::Tuple{R,R}) where {R<:Real}
-
-            noise = agent.parameters["noise"]
-
-            input1, input2 = input
-
-            actiondist1 = Normal(input1, noise)
-            actiondist2 = Normal(input2, noise)
-
-            return (actiondist1, actiondist2)
-        end
-        #Create agent
-        new_agent = init_agent(multi_input_action, parameters = Dict("noise" => 1.0))
-
-        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
-
-        #Create model
-        model = create_model(
-            new_agent,
-            new_prior,
-            data,
-            input_cols = [:inputs, :inputs_2],
-            action_cols = [:actions, :actions_2],
-            grouping_cols = grouping_cols,
-        )
-
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-    end
-
-    @testset "depend on previous action" begin
         
-        function dependent_action(agent::Agent, input::R) where {R<:Real}
+        ### TESTING MODEL TYPES ###
+        @testset "single agent ($AD)" begin
+            #Extract inputs and actions from data
+            inputs = data[!, :inputs]
+            actions = data[!, :actions]
 
-            noise = agent.parameters["noise"]
+            #Create model
+            model = create_model(agent, prior, inputs, actions)
 
-            prev_action = agent.states["action"]
-
-            if ismissing(prev_action)
-                prev_action = 0.0
-            end
-
-            actiondist = Normal(input + prev_action, noise)
-
-            return actiondist
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
-        #Create agent
-        new_agent = init_agent(dependent_action, parameters = Dict("noise" => 1.0))
 
-        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+        @testset "simple statistical model ($AD)" begin
+            #Create model
+            model = create_model(
+                agent,
+                prior,
+                data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = [:id],
+            )
 
-        #Create model
-        model = create_model(
-            new_agent,
-            new_prior,
-            data,
-            input_cols = input_cols,
-            action_cols = action_cols,
-            grouping_cols = grouping_cols,
-        )
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
 
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-
-    end
-
-    @testset "depend on previous action, multiple actions" begin
-         
-        function dependent_multi_action(agent::Agent, input::R) where {R<:Real}
-
-            noise = agent.parameters["noise"]
-
-            prev_action = agent.states["action"]
-
-            if ismissing(prev_action)
-                prev_action = 0.0
-            end
-
-            actiondist1 = Normal(input + prev_action, noise)
-            actiondist2 = Normal(input - prev_action, noise)
-
-            return (actiondist1, actiondist2)
         end
-        #Create agent
-        new_agent = init_agent(dependent_multi_action, parameters = Dict("noise" => 1.0))
 
-        new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+        @testset "custom statistical model ($AD)" begin
 
-        #Create model
-        model = create_model(
-            new_agent,
-            new_prior,
-            data,
-            input_cols = input_cols,
-            action_cols = action_cols,
-            grouping_cols = grouping_cols,
-        )
+        end
 
-        #Fit model
-        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        @testset "no grouping cols ($AD)" begin
+            #Create model
+            model = create_model(
+                agent,
+                prior,
+                data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = Symbol[],
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
+
+        @testset "multiple grouping cols ($AD)" begin
+
+            #Create model
+            model = create_model(
+                agent,
+                prior,
+                data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = grouping_cols,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+
+        end
+
+        @testset "missing actions ($AD)" begin
+
+            #Create new dataframe where three actions = missing
+            new_data = allowmissing(data, :actions)
+            new_data[[2, 7, 12], :actions] .= missing
+
+            #Create model
+            model = create_model(
+                agent,
+                prior,
+                new_data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = grouping_cols,
+                infer_missing_actions = true,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
+
+        @testset "multiple actions ($AD)" begin
+
+            function multi_action(agent, input::Real)
+
+                noise = agent.parameters["noise"]
+
+                actiondist1 = Normal(input, noise)
+                actiondist2 = Normal(input, noise)
+
+                return (actiondist1, actiondist2)
+            end
+            #Create agent
+            new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
+
+            #Set prior
+            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+            #Create model
+            model = create_model(
+                new_agent,
+                new_prior,
+                data,
+                input_cols = input_cols,
+                action_cols = [:actions, :actions_2],
+                grouping_cols = grouping_cols,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
+
+        @testset "multiple actions, missing actions ($AD)" begin
+
+            function multi_action(agent, input::Real)
+
+                noise = agent.parameters["noise"]
+
+                actiondist1 = Normal(input, noise)
+                actiondist2 = Normal(input, noise)
+
+                return (actiondist1, actiondist2)
+            end
+            #Create agent
+            new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
+
+            #Set prior
+            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+            #Create new dataframe where three actions = missing
+            new_data = allowmissing(data, [:actions, :actions_2])
+            new_data[[2, 12], :actions] .= missing
+            new_data[[3], :actions_2] .= missing
+
+            #Create model
+            model = create_model(
+                new_agent,
+                new_prior,
+                new_data,
+                input_cols = input_cols,
+                action_cols = [:actions, :actions_2],
+                grouping_cols = grouping_cols,
+                infer_missing_actions = true,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
+
+        @testset "multiple inputs ($AD)" begin
+
+            function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
+
+                noise = agent.parameters["noise"]
+
+                input1, input2 = input
+
+                actiondist = Normal(input1, noise)
+
+                return actiondist
+            end
+            #Create agent
+            new_agent = init_agent(multi_input, parameters = Dict("noise" => 1.0))
+
+            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+            #Create model
+            model = create_model(
+                new_agent,
+                new_prior,
+                data,
+                input_cols = [:inputs, :inputs_2],
+                action_cols = action_cols,
+                grouping_cols = grouping_cols,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
+
+        @testset "multiple inputs and multiple actions ($AD)" begin
+
+            function multi_input_action(agent, input::Tuple{R,R}) where {R<:Real}
+
+                noise = agent.parameters["noise"]
+
+                input1, input2 = input
+
+                actiondist1 = Normal(input1, noise)
+                actiondist2 = Normal(input2, noise)
+
+                return (actiondist1, actiondist2)
+            end
+            #Create agent
+            new_agent = init_agent(multi_input_action, parameters = Dict("noise" => 1.0))
+
+            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+            #Create model
+            model = create_model(
+                new_agent,
+                new_prior,
+                data,
+                input_cols = [:inputs, :inputs_2],
+                action_cols = [:actions, :actions_2],
+                grouping_cols = grouping_cols,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
+
+        @testset "depend on previous action ($AD)" begin
+
+            function dependent_action(agent::Agent, input::R) where {R<:Real}
+
+                noise = agent.parameters["noise"]
+
+                prev_action = agent.states["action"]
+
+                if ismissing(prev_action)
+                    prev_action = 0.0
+                end
+
+                actiondist = Normal(input + prev_action, noise)
+
+                return actiondist
+            end
+            #Create agent
+            new_agent = init_agent(dependent_action, parameters = Dict("noise" => 1.0))
+
+            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+            #Create model
+            model = create_model(
+                new_agent,
+                new_prior,
+                data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = grouping_cols,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+
+        end
+
+        @testset "depend on previous action, multiple actions ($AD)" begin
+
+            function dependent_multi_action(agent::Agent, input::R) where {R<:Real}
+
+                noise = agent.parameters["noise"]
+
+                prev_action = agent.states["action"]
+
+                if ismissing(prev_action)
+                    prev_action = 0.0
+                end
+
+                actiondist1 = Normal(input + prev_action, noise)
+                actiondist2 = Normal(input - prev_action, noise)
+
+                return (actiondist1, actiondist2)
+            end
+            #Create agent
+            new_agent =
+                init_agent(dependent_multi_action, parameters = Dict("noise" => 1.0))
+
+            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+
+            #Create model
+            model = create_model(
+                new_agent,
+                new_prior,
+                data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = grouping_cols,
+            )
+
+            #Fit model
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+        end
     end
 end
