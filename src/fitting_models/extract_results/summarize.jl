@@ -1,27 +1,20 @@
 function Turing.summarize(
-    session_parameters::AxisArray{
-        Float64,
-        4,
-        Array{Float64,4},
-        Tuple{
-            Axis{:session,Vector{String}},
-            Axis{:parameter,Vector{String}},
-            Axis{:sample,UnitRange{Int64}},
-            Axis{:chain,UnitRange{Int64}},
-        },
-    },
-    output_type::T = DataFrame,
+    session_parameters::AxisArray,
+    sink::T = DataFrame,
     summary_function::Function = median,
 ) where {T<:Union{Type{Dict},Type{DataFrame}}}
 
-    summarize(session_parameters, summary_function, output_type)
+    summarize(session_parameters, summary_function, sink)
 
 end
 
 
-##########################################################
-####### DSISPATCH FUNCTION FOR GENERATING A DATAFRAME ####
-##########################################################
+
+
+
+####################################################
+##### SUMMARIZE SESSION PARAMETERS TRAJECTORIES ####
+####################################################
 function Turing.summarize(
     session_parameters::AxisArray{
         Float64,
@@ -34,8 +27,9 @@ function Turing.summarize(
             Axis{:chain,UnitRange{Int64}},
         },
     },
-    output_type::Type{DataFrame},
-    summary_function::Function = median,
+    sink::Type{DataFrame},
+    summary_function::Function = median;
+    promote::Bool = false,
 )
 
     #Extract sessions and parameters
@@ -55,16 +49,16 @@ function Turing.summarize(
         df[!, column_name] = String[]
     end
 
-    # Populate the DataFrame with median values
+    # Populate the DataFrame with summarized values
     for session_id in sessions
         row = Dict()
         for parameter in parameters
             # Extract the values for the current session and parameter across samples and chains
             values = session_parameters[session_id, parameter, :, :]
             # Calculate the median value
-            median_value = summary_function(values)
+            summarized_value = summary_function(values)
             # Add the median value to the row
-            row[Symbol(parameter)] = median_value
+            row[Symbol(parameter)] = summarized_value
         end
 
         #Split session ids
@@ -109,21 +103,21 @@ function Turing.summarize(
     parameters = session_parameters.axes[2]
 
     # Initialize an empty dictionary
-    estimates_dict = Dict{Symbol,Dict{Symbol,Float64}}()
+    estimates_dict = Dict{String,Dict{String,Float64}}()
 
-    # Populate the dictionary with median values
+    # Populate the dictionary with summarized values
     for (i, session) in enumerate(sessions)
-        session_dict = Dict{Symbol,Float64}()
+        session_dict = Dict{String,Float64}()
         for (j, parameter) in enumerate(parameters)
             # Extract the values for the current session and parameter across samples and chains
             values = session_parameters[session, parameter, :, :]
             # Calculate the median value
-            median_value = summary_function(values)
+            summarized_value = summary_function(values)
             # Add the median value to the session's dictionary
-            session_dict[Symbol(parameter)] = median_value
+            session_dict[parameter] = summarized_value
         end
         # Add the session's dictionary to the main dictionary
-        estimates_dict[Symbol(session)] = session_dict
+        estimates_dict[session] = session_dict
     end
 
     return estimates_dict
@@ -133,9 +127,12 @@ end
 
 
 
-###########################################################################################
-###### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM A session STATES AXISARRAY ####
-###########################################################################################
+
+
+
+#######################################
+##### SUMMARIZE STATE TRAJECTORIES ####
+#######################################
 function Turing.summarize(
     state_trajectories::AxisArrays.AxisArray{
         Union{Missing,Float64},
