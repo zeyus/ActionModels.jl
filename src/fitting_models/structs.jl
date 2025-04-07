@@ -57,14 +57,27 @@ end
 #########################################
 
 
-@Base.kwdef struct ModelFitInfo
+Base.@kwdef struct ModelFitInfo
     session_ids::Vector{String}
     parameter_names::Vector{String}
 end
 
 Base.@kwdef mutable struct ModelFitResult
     chains::Chains
-    session_parameters::Union{<:AxisArray,Nothing} = nothing
+    session_parameters::Union{
+        Nothing,
+        session_parameters::AxisArray{
+            Float64,
+            4,
+            Array{Float64,4},
+            Tuple{
+                Axis{:session,Vector{String}},
+                Axis{:parameter,Vector{String}},
+                Axis{:sample,UnitRange{Int64}},
+                Axis{:chain,UnitRange{Int64}},
+            },
+        },
+    } = nothing
 end
 
 
