@@ -50,6 +50,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     #Create agent
     agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
 
+    prior = Dict(
+        "learning_rate" => LogitNormal(),
+        "action_precision" => LogNormal(),
+        "initial_value" => Normal(),
+    )
+
     #Go through each supported AD type
     for ad_type in
         ["AutoForwardDiff", "AutoReverseDiff", "AutoReverseDiff(true)", "AutoMooncake"]
@@ -70,7 +76,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         sampling_kwargs = (; progress = false)
         sampler = NUTS(-1, 0.65; adtype = AD)
 
-        
+
         ### TESTING MODEL TYPES ###
         @testset "single agent ($AD)" begin
             #Extract inputs and actions from data
