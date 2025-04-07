@@ -9,7 +9,8 @@ using AxisArrays #For storing session parameters and state trajectories
 using StatsModels, MixedModels, LogExpFunctions #For the GLM population Model
 using ForwardDiff, ReverseDiff, Mooncake #AD types to be compatible with
 using HDF5 #For the save_resume functionality
-using ProgressMeter, Distributed #For parameter recovery
+using ProgressLogging #For progress bars
+using Distributed #For parameter recovery and other heavy functions
 using Logging #For hiding sample rejections
 @reexport using Distributions #Make distributions available to the user
 using Turing: DynamicPPL, AbstractMCMC, AutoForwardDiff, AutoReverseDiff, AutoMooncake
@@ -26,10 +27,9 @@ export set_parameters!, set_save_history! # set_states!()
 export plot_trajectory, plot_trajectory!
 
 ## For fitting models ##
-export RegressionPrior
-export create_model
-export fit_model, SampleSaveResume
-export get_session_parameters, get_state_trajectories, summarize
+export create_model, RegressionPrior
+export sample_prior!, sample_posterior!, SampleSaveResume
+export get_session_parameters!, get_state_trajectories!, summarize
 export parameter_recovery
 export plot_parameters, plot_trajectories
 export bounded_exp, bounded_logistic
@@ -91,7 +91,7 @@ include(joinpath("fitting_models", "turing_model", "population_models", "single_
 include(joinpath("fitting_models", "tools", "sampling.jl"))
 include(joinpath("fitting_models", "tools", "save_resume.jl"))
 include(joinpath("fitting_models", "tools", "parameter_recovery.jl"))
-include(joinpath("fitting_models", "extract_results", "get_session_parameters.jl"))
+include(joinpath("fitting_models", "extract_results", "get_session_parameters!.jl"))
 include(joinpath("fitting_models", "extract_results", "get_state_trajectories.jl"))
 include(joinpath("fitting_models", "extract_results", "summarize.jl"))
 include(joinpath("fitting_models", "plots", "plot_parameters.jl"))
