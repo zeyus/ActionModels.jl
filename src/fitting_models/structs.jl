@@ -87,18 +87,18 @@ end
 
 
 ### Type for the save-resume functionality ###
-struct ChainSaveResume
+struct SampleSaveResume
     save_every::Int
     path::String
     plot_progress::Bool
     chain_prefix::String
 end
 
-ChainSaveResume(;
+SampleSaveResume(;
     save_every::Int = 100,
     path = "./.samplingstate",
     plot_progress::Bool = false,
     chain_prefix = "ActionModels_chain_link",
-) = ChainSaveResume(save_every, path, plot_progress, chain_prefix)
+) = SampleSaveResume(save_every, path, plot_progress, chain_prefix)
 
 

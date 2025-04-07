@@ -110,3 +110,84 @@ function combine_segments(save_resume::ChainSaveResume, n_segments::Int, n_chain
     return chainscat(chains...)
 end
 
+
+
+function sample_save_resume(
+    model::DynamicPPL.Model,
+    save_resume::SampleSaveResume,
+    n_samples::Integer,
+    n_chains::Integer,
+    parallelization::AbstractMCMC.AbstractMCMCEnsemble,
+    sampler::Union{DynamicPPL.AbstractSampler,Turing.Inference.InferenceAlgorithm},
+    sampler_kwargs...,
+)
+
+    if save_resume.save_every < n_samples
+        @error "save_every must be more than n_samples"
+
+    end
+
+    final_segment = n_samples % save_resume.save_every
+    n_segments = Int(floor(n_samples / save_resume.save_every)) + Int(final_segment > 0)
+
+    resume_from::Vector{Union{Nothing,Chains}} = fill(nothing, n_chains)
+    samplers = fill(sampler, n_chains)
+    last_complete_segment =
+        validate_saved_sampling_state!(save_resume, n_segments, n_chains)
+
+    # this outer loop can be parallelized
+    for chain = 1:n_chains
+        if last_complete_segment[chain] > 0
+            resume_from[chain] =
+                load_segment(save_resume, chain, last_complete_segment[chain])
+            samplers[chain] = prepare_sampler(sampler, resume_from[chain])
+        end
+
+        # the inner loop must run sequentially
+        for cur_seg = last_complete_segment[chain]+1:n_segments
+            # use the save_every value unless there are some iterations left over
+            n_iter =
+                final_segment > 0 && cur_seg == n_segments ? final_segment :
+                save_resume.save_every
+            # Run the sampler
+            seg = sample(
+                model,
+                samplers[chain],
+                n_iter;
+                nchains = 1,
+                progress = false,
+                resume_from = resume_from[chain],
+                save_state = true,
+                sampler_kwargs...,
+            )
+            # Save the chain
+            save_segment(seg, save_resume, chain, cur_seg)
+            # Update the resume_from and sampler
+            samplers[chain] = prepare_sampler(sampler, seg)
+            resume_from[chain] = seg
+
+        end
+    end
+    chains = combine_segments(save_resume, n_segments, n_chains)
+
+    return chains
+end
+
+
+
+    # ## Fit model ##
+    # if !isnothing(parallelization) && n_chains > 1
+    #     #With parallelization
+    #     chains = Logging.with_logger(sampling_logger) do
+    #         # see if it's a threads or distributed ensemble
+    #         if parallelization isa AbstractMCMC.AbstractMCMCThreads
+    #             sample(model, sampler, n_iterations, n_chains; progress=show_progress, sampler_kwargs...)
+    #         else
+    #             sample(model, sampler, n_iterations, n_chains=n_chains; progress=show_progress, sampler_kwargs...)
+    #         end
+    #     end
+    # elseif save_resume.save_every < 1
+    #     chains = Logging.with_logger(sampling_logger) do
+    #         sample(model, sampler, n_iterations, n_chains=n_chains; progress=show_progress, sampler_kwargs...)
+    #     end
+    # end
