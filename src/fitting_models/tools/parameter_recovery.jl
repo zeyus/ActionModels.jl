@@ -146,7 +146,7 @@ function parameter_recovery(
     #Toggle whether to show progress bar
     if show_progress
         #Run simulations and parameter fits in parallel
-        outcome = @showprogress map_function(
+        outcome = map_function(
             recovery_info -> single_recovery(agent, sampler_settings, recovery_info...),
             recovery_infos,
         )
