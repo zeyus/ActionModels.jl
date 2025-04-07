@@ -22,7 +22,7 @@ function prepare_sampler(sampler::NUTS, chains::Chains)
 end
 
 function validate_saved_sampling_state!(
-    save_resume::ChainSaveResume,
+    save_resume::SampleSaveResume,
     n_segments::Int,
     n_chains::Int,
 )
@@ -66,7 +66,7 @@ function validate_saved_sampling_state!(
     return last_segment
 end
 
-function load_segment(save_resume::ChainSaveResume, chain_n::Int, segment::Int)
+function load_segment(save_resume::SampleSaveResume, chain_n::Int, segment::Int)
     # load the chain
     chain = h5open(
         joinpath(
@@ -81,7 +81,7 @@ function load_segment(save_resume::ChainSaveResume, chain_n::Int, segment::Int)
     return chain
 end
 
-function save_segment(seg::Chains, save_resume::ChainSaveResume, chain_n::Int, seg_n::Int)
+function save_segment(seg::Chains, save_resume::SampleSaveResume, chain_n::Int, seg_n::Int)
     # save the chain
     h5open(
         joinpath(save_resume.path, "$(save_resume.chain_prefix)_c$(chain_n)_s$(seg_n).h5"),
@@ -91,7 +91,7 @@ function save_segment(seg::Chains, save_resume::ChainSaveResume, chain_n::Int, s
     end
 end
 
-function combine_segments(save_resume::ChainSaveResume, n_segments::Int, n_chains::Int)
+function combine_segments(save_resume::SampleSaveResume, n_segments::Int, n_chains::Int)
     chains::Vector{Union{Nothing,Chains}} = fill(nothing, n_chains)
     for chain = 1:n_chains
         segments::Vector{Union{Nothing,Chains}} = fill(nothing, n_segments)
