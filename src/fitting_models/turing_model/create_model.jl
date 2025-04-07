@@ -185,9 +185,6 @@ end
         ),
         false, #Do not add a prefix
     )
-
-    #Return the session parameters
-    return parameters_per_session
 end
 
 

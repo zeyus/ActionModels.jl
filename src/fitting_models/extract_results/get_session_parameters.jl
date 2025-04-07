@@ -1,10 +1,12 @@
 #########################################################
 ####### FUNCTION FOR EXTRACTING GENERATED QUANTITIES ####
 #########################################################
-function get_session_parameters(model::DynamicPPL.Model, fitted_model::Chains)
+function get_session_parameters(model::DynamicPPL.Model, chains::Chains)
 
+
+    #TODO: FIXTHIS
     # Extract the generated quantities from the fitted model
-    quantities = generated_quantities(model, fitted_model)
+    quantities = returned(model.args.population_model, chains)
 
     # Extract agent ids
     agent_ids = model.args.agent_ids
