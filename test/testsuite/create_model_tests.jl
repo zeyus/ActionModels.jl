@@ -52,7 +52,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
     prior = Dict(
         "learning_rate" => LogitNormal(),
-        "action_precision" => LogNormal(),
+        "action_noise" => LogNormal(),
         "initial_value" => Normal(),
     )
 
@@ -75,7 +75,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         n_iterations = 50
         sampling_kwargs = (; progress = false)
         sampler = NUTS(-1, 0.65; adtype = AD)
-
 
         ### TESTING MODEL TYPES ###
         @testset "single agent ($ad_type)" begin
@@ -103,7 +102,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             #Fit model
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
-
         end
 
         @testset "custom statistical model ($ad_type)" begin
