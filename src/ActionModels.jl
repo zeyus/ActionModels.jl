@@ -61,7 +61,7 @@ include(joinpath("defining_models", "structs.jl"))
 include(joinpath("defining_models", "init_agent.jl"))
 include(joinpath("defining_models", "create_premade_model.jl"))
 include(joinpath("defining_models", "update_states.jl"))
-include(joinpath("defining_models", "pretty_print.jl"))
+include(joinpath("defining_models", "agent_print.jl"))
 
 #Read in all premade models
 for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
@@ -82,6 +82,7 @@ include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 
 ### Functions for fitting models ###
 include(joinpath("fitting_models", "structs.jl"))
+include(joinpath("fitting_models", "turing_model", "modelfit_print.jl"))
 include(joinpath("fitting_models", "turing_model", "create_model.jl"))
 include(joinpath("fitting_models", "turing_model", "create_session_model.jl"))
 include(joinpath("fitting_models", "turing_model", "helper_functions.jl"))
