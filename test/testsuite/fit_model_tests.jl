@@ -66,7 +66,7 @@ using Distributed
             action_cols = :actions,
             grouping_cols = :ID,
         )
-        save_resume = ChainSaveResume(path = mktempdir())
+        save_resume = SampleSaveResume(path = mktempdir())
         results = fit_model(
             model;
             sampler = sampler,
