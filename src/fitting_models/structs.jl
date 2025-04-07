@@ -66,7 +66,7 @@ Base.@kwdef mutable struct ModelFitResult
     chains::Chains
     session_parameters::Union{
         Nothing,
-        session_parameters::AxisArray{
+        AxisArray{
             Float64,
             4,
             Array{Float64,4},
