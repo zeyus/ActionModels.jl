@@ -1,25 +1,17 @@
 function sample_posterior!(
     modelfit::ModelFit;
-    #Whether to resample
-    resample::Bool = false,
     #Whether to use save_resume
-    save_resume::Union{ChainSaveResume,Nothing} = nothing,
+    save_resume::Union{SampleSaveResume,Nothing} = nothing,
     #Sampling configurations
     n_samples::Integer = 1000,
     n_chains::Integer = 2,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial(),
-    adtype = AutoMooncake(; config = nothing),
+    ad_type = AutoForwardDiff(; config = nothing),
     sampler::Union{DynamicPPL.AbstractSampler,Turing.Inference.InferenceAlgorithm} = NUTS(;
-        adtype = adtype,
+        adtype = ad_type,
     ),
     sampler_kwargs...,
 )
-
-    #If the posterior has already been sampled
-    if resample == false && !isnothing(modelfit.posterior)
-        #Do nothing
-        return nothing
-    end
 
     #Extract model
     model = modelfit.model
@@ -45,7 +37,7 @@ function sample_posterior!(
     end
 
      #Store the posterior
-     modelfit.posterior = ModelFitResults(chains)
+     modelfit.posterior = ModelFitResult(; chains = chains)
 
     return chains
 end
@@ -62,7 +54,7 @@ function sample_prior!(
     #If the prior has already been sampled
     if resample == false && !isnothing(modelfit.prior)
         #Do nothing
-        return nothing
+        return modelfit.prior.chains
     end
 
     #Extract model

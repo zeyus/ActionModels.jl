@@ -62,15 +62,9 @@ end
     parameter_names::Vector{String}
 end
 
-
-struct SessionParameters
-
-end
-
-
 Base.@kwdef mutable struct ModelFitResult
     chains::Chains
-    session_parameters::Union{SessionParameters,Nothing} = nothing
+    session_parameters::Union{<:AxisArray,Nothing} = nothing
 end
 
 

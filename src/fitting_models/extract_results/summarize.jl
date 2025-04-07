@@ -1,14 +1,11 @@
-############################################################################################
-####### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM AN AGENT_PARMAETERS AXISARRAY ####
-############################################################################################
-function summarize(
-    agent_parameters::AxisArray{
+function Turing.summarize(
+    session_parameters::AxisArray{
         Float64,
         4,
         Array{Float64,4},
         Tuple{
-            Axis{:agent,Vector{Symbol}},
-            Axis{:parameter,Vector{Symbol}},
+            Axis{:session,Vector{String}},
+            Axis{:parameter,Vector{String}},
             Axis{:sample,UnitRange{Int64}},
             Axis{:chain,UnitRange{Int64}},
         },
@@ -17,7 +14,7 @@ function summarize(
     summary_function::Function = median,
 ) where {T<:Union{Type{Dict},Type{DataFrame}}}
 
-    summarize(agent_parameters, summary_function, output_type)
+    summarize(session_parameters, summary_function, output_type)
 
 end
 
@@ -25,14 +22,14 @@ end
 ##########################################################
 ####### DSISPATCH FUNCTION FOR GENERATING A DATAFRAME ####
 ##########################################################
-function summarize(
-    agent_parameters::AxisArray{
+function Turing.summarize(
+    session_parameters::AxisArray{
         Float64,
         4,
         Array{Float64,4},
         Tuple{
-            Axis{:agent,Vector{Symbol}},
-            Axis{:parameter,Vector{Symbol}},
+            Axis{:session,Vector{String}},
+            Axis{:parameter,Vector{String}},
             Axis{:sample,UnitRange{Int64}},
             Axis{:chain,UnitRange{Int64}},
         },
@@ -41,14 +38,14 @@ function summarize(
     summary_function::Function = median,
 )
 
-    #Extract agents and parameters
-    agents = agent_parameters.axes[1]
-    parameters = agent_parameters.axes[2]
+    #Extract sessions and parameters
+    sessions = session_parameters.axes[1]
+    parameters = session_parameters.axes[2]
 
     #Construct grouping column names
     grouping_cols = [
         Symbol(first(split(i, id_column_separator))) for
-        i in split(string(first(agents)), id_separator)
+        i in split(string(first(sessions)), id_separator)
     ]
 
     # Initialize an empty DataFrame
@@ -59,29 +56,29 @@ function summarize(
     end
 
     # Populate the DataFrame with median values
-    for agent_id in agents
+    for session_id in sessions
         row = Dict()
         for parameter in parameters
-            # Extract the values for the current agent and parameter across samples and chains
-            values = agent_parameters[agent_id, parameter, :, :]
+            # Extract the values for the current session and parameter across samples and chains
+            values = session_parameters[session_id, parameter, :, :]
             # Calculate the median value
             median_value = summary_function(values)
             # Add the median value to the row
             row[Symbol(parameter)] = median_value
         end
 
-        #Split agent ids
-        split_agent_ids = split(string(agent_id), id_separator)
+        #Split session ids
+        split_session_ids = split(string(session_id), id_separator)
         #Add them to the row
-        for (agent_id_part, column_name) in zip(split_agent_ids, grouping_cols)
-            row[column_name] = string(split(agent_id_part, id_column_separator)[2])
+        for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
+            row[column_name] = string(split(session_id_part, id_column_separator)[2])
         end
 
         # Add the row to the DataFrame
         push!(df, row)
     end
 
-    # Reorder the columns to have agent id's as the first columns
+    # Reorder the columns to have session id's as the first columns
     select!(df, grouping_cols, names(df)[1:end-length(grouping_cols)]...)
 
     return df
@@ -91,14 +88,14 @@ end
 #########################################################
 ####### VERSION WHICH GENERATES A DICTIONARY INSTEAD ####
 #########################################################
-function summarize(
-    agent_parameters::AxisArray{
+function Turing.summarize(
+    session_parameters::AxisArray{
         Float64,
         4,
         Array{Float64,4},
         Tuple{
-            Axis{:agent,Vector{Symbol}},
-            Axis{:parameter,Vector{Symbol}},
+            Axis{:session,Vector{String}},
+            Axis{:parameter,Vector{String}},
             Axis{:sample,UnitRange{Int64}},
             Axis{:chain,UnitRange{Int64}},
         },
@@ -107,26 +104,26 @@ function summarize(
     summary_function::Function = median,
 )
 
-    #Extract agents and parameters
-    agents = agent_parameters.axes[1]
-    parameters = agent_parameters.axes[2]
+    #Extract sessions and parameters
+    sessions = session_parameters.axes[1]
+    parameters = session_parameters.axes[2]
 
     # Initialize an empty dictionary
     estimates_dict = Dict{Symbol,Dict{Symbol,Float64}}()
 
     # Populate the dictionary with median values
-    for (i, agent) in enumerate(agents)
-        agent_dict = Dict{Symbol,Float64}()
+    for (i, session) in enumerate(sessions)
+        session_dict = Dict{Symbol,Float64}()
         for (j, parameter) in enumerate(parameters)
-            # Extract the values for the current agent and parameter across samples and chains
-            values = agent_parameters[agent, parameter, :, :]
+            # Extract the values for the current session and parameter across samples and chains
+            values = session_parameters[session, parameter, :, :]
             # Calculate the median value
             median_value = summary_function(values)
-            # Add the median value to the agent's dictionary
-            agent_dict[Symbol(parameter)] = median_value
+            # Add the median value to the session's dictionary
+            session_dict[Symbol(parameter)] = median_value
         end
-        # Add the agent's dictionary to the main dictionary
-        estimates_dict[Symbol(agent)] = agent_dict
+        # Add the session's dictionary to the main dictionary
+        estimates_dict[Symbol(session)] = session_dict
     end
 
     return estimates_dict
@@ -137,16 +134,16 @@ end
 
 
 ###########################################################################################
-###### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM A AGENT STATES AXISARRAY ####
+###### FUNCTION FOR GENERATING SUMMARIZED VARIABLES FROM A session STATES AXISARRAY ####
 ###########################################################################################
-function summarize(
+function Turing.summarize(
     state_trajectories::AxisArrays.AxisArray{
         Union{Missing,Float64},
         5,
         Array{Union{Missing,Float64},5},
         Tuple{
-            AxisArrays.Axis{:agent,Vector{Symbol}},
-            AxisArrays.Axis{:state,Vector{Symbol}},
+            AxisArrays.Axis{:session,Vector{String}},
+            AxisArrays.Axis{:state,Vector{String}},
             AxisArrays.Axis{:timestep,UnitRange{Int64}},
             AxisArrays.Axis{:sample,UnitRange{Int64}},
             AxisArrays.Axis{:chain,UnitRange{Int64}},
@@ -155,15 +152,15 @@ function summarize(
     summary_function::Function = median,
 )
 
-    #Extract agents and parameters
-    agents = state_trajectories.axes[1]
+    #Extract sessions and parameters
+    sessions = state_trajectories.axes[1]
     states = state_trajectories.axes[2]
     timesteps = state_trajectories.axes[3]
 
     #Construct grouping column names
     grouping_cols = [
         Symbol(first(split(i, id_column_separator))) for
-        i in split(string(first(agents)), id_separator)
+        i in split(string(first(sessions)), id_separator)
     ]
 
     # Initialize an empty DataFrame with the states, the grouping columns and the timestep
@@ -181,14 +178,14 @@ function summarize(
 
 
     # Populate the DataFrame with median values
-    for agent_id in agents
+    for session_id in sessions
 
         for timestep in timesteps
             row = Dict()
 
             for state in states
-                # Extract the state for the current agent and state, at the current timestep
-                values = state_trajectories[agent_id, state, timestep+1, :, :]
+                # Extract the state for the current session and state, at the current timestep
+                values = state_trajectories[session_id, state, timestep+1, :, :]
                 # Calculate the point estimate
                 median_value = summary_function(values)
 
@@ -201,11 +198,11 @@ function summarize(
                 row[state] = median_value
             end
 
-            #Split agent ids
-            split_agent_ids = split(string(agent_id), id_separator)
+            #Split session ids
+            split_session_ids = split(string(session_id), id_separator)
             #Add them to the row
-            for (agent_id_part, column_name) in zip(split_agent_ids, grouping_cols)
-                row[column_name] = string(split(agent_id_part, id_column_separator)[2])
+            for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
+                row[column_name] = string(split(session_id_part, id_column_separator)[2])
             end
 
             #Add the timestep to the row
@@ -216,7 +213,7 @@ function summarize(
         end
     end
 
-    # Reorder the columns to have agent_id as the first column
+    # Reorder the columns to have session_id as the first column
     select!(
         df,
         vcat(grouping_cols, [:timestep]),
