@@ -40,7 +40,6 @@ ahn_data[!, :subjID] = string.(ahn_data[!, :subjID])
 # Make column wit total reward
 ahn_data[!, :reward] = Float64.(ahn_data[!, :gain] + ahn_data[!, :loss]);
 
-#TODO: normalize rewards
 
 if false
     #subset the ahndata to have two subjID in each clinical_group
@@ -170,10 +169,10 @@ model = create_model(
     grouping_cols = grouping_cols,
 )
 
-# AD = AutoForwardDiff()
+AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
 # AD = AutoReverseDiff(; compile = true) 
-import Mooncake; AD = AutoMooncake(; config = nothing);
+# import Mooncake; AD = AutoMooncake(; config = nothing);
 
 #Set samplings settings
 sampler = NUTS(-1, 0.65; adtype = AD)
