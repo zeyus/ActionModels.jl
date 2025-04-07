@@ -22,9 +22,9 @@ end
 """
 Input struct for setting regression priors
 """
-Base.@kwdef struct RegressionPrior{D1<:Distribution, D2<:Distribution}
-    β::Union{D1, Vector{D1}} = TDist(3)
-    σ::Union{D2, Vector{Vector{D2}}} = truncated(TDist(3), lower = 0)
+Base.@kwdef struct RegressionPrior{D1<:Distribution,D2<:Distribution}
+    β::Union{D1,Vector{D1}} = TDist(3)
+    σ::Union{D2,Vector{Vector{D2}}} = truncated(TDist(3), lower = 0)
 end
 
 """
@@ -35,25 +35,58 @@ struct Regression
     prior::RegPrior
     inv_link::Function
 
-    Regression(formula::MixedModels.FormulaTerm, prior::RegPrior = RegPrior(), inv_link::Function = identity) = begin
+    Regression(
+        formula::MixedModels.FormulaTerm,
+        prior::RegPrior = RegPrior(),
+        inv_link::Function = identity,
+    ) = begin
         new(formula, prior, inv_link)
     end
-    Regression(formula::MixedModels.FormulaTerm, inv_link::Function, prior::RegPrior = RegPrior()) = begin
+    Regression(
+        formula::MixedModels.FormulaTerm,
+        inv_link::Function,
+        prior::RegPrior = RegPrior(),
+    ) = begin
         new(formula, prior, inv_link)
     end
 end
 
 
-
+#########################################
 ### TYPES FOR MODEL FITTING AND TOOLS ###
+#########################################
 
-mutable struct FitModelResults
-    chains::Chains
-    model::DynamicPPL.Model
+
+@Base.kwdef struct ModelFitInfo
+    session_ids::Vector{String}
+    parameter_names::Vector{String}
 end
 
 
-## Type for the save-resume functionality ##
+struct SessionParameters
+
+end
+
+
+Base.@kwdef mutable struct ModelFitResult
+    chains::Chains
+    session_parameters::Union{SessionParameters,Nothing} = nothing
+end
+
+
+Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
+    model::DynamicPPL.Model
+    population_model_type::T
+    info::ModelFitInfo
+    prior::Union{ModelFitResult,Nothing} = nothing
+    posterior::Union{ModelFitResult,Nothing} = nothing
+end
+
+
+
+
+
+### Type for the save-resume functionality ###
 struct ChainSaveResume
     save_every::Int
     path::String

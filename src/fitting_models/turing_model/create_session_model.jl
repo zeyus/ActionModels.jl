@@ -23,7 +23,7 @@ function create_session_model(
     return @model function my_session_model(
         agent::Agent,
         parameter_names::Vector{String},
-        session_ids::Vector{Symbol},
+        session_ids::Vector{String},
         parameters_per_session::Vector{T},
         inputs_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};
@@ -84,7 +84,7 @@ function create_session_model(
     return @model function my_session_model(
         agent::Agent,
         parameter_names::Vector{String},
-        session_ids::Vector{Symbol},
+        session_ids::Vector{String},
         parameters_per_session::Vector{T},
         inputs_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};

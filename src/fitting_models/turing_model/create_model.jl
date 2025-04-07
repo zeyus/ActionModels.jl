@@ -87,15 +87,11 @@ function create_model(
 
     #Create IDs for each session
     session_ids = [
-        Symbol(
-            join(
-                [
-                    string(col_name) *
-                    id_column_separator *
-                    string(first(subdata)[col_name]) for col_name in grouping_cols
-                ],
-                id_separator,
-            ),
+        join(
+            [
+                string(col_name) * id_column_separator * string(first(subdata)[col_name]) for col_name in grouping_cols
+            ],
+            id_separator,
         ) for subdata in grouped_data
     ]
 
@@ -144,7 +140,7 @@ function create_model(
     )
 
     #Create a full model combining the agent model and the statistical model
-    return full_model(
+    model = full_model(
         agent_model,
         parameter_names,
         population_model,
@@ -152,6 +148,12 @@ function create_model(
         session_ids,
         inputs,
         actions,
+    )
+
+    return ModelFit(
+        model = model,
+        population_model_type = population_model_type,
+        info = ModelFitInfo(parameter_names = parameter_names, session_ids = session_ids),
     )
 end
 
@@ -165,7 +167,7 @@ end
     parameter_names::Vector{String},
     population_model::DynamicPPL.Model,
     session_model::Function,
-    session_ids::Vector{Symbol},
+    session_ids::Vector{String},
     inputs_per_session::Vector{Vector{II}},
     actions_per_session::Vector{Vector{AA}},
 ) where {I<:Any,II<:Union{I,Tuple},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple}}
@@ -228,8 +230,8 @@ function check_model(
     end
 
     #Check whether the action columns are of the correct type
-    
-    if !all(eltype.(eachcol(data[!, action_cols])) .<: Union{Real, Missing})
+
+    if !all(eltype.(eachcol(data[!, action_cols])) .<: Union{Real,Missing})
         throw(ArgumentError("The action columns must be of type Vector{<:Real}"))
     end
 

@@ -169,6 +169,7 @@ function create_model(
         action_cols = action_cols,
         grouping_cols = grouping_cols,
         parameter_names = parameter_names,
+        population_model_type = RegressionPopulationModel(),
         kwargs...,
     )
 end

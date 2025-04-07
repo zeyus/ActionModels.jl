@@ -1,73 +1,58 @@
 using Test
-using StatsPlots
+
 using ActionModels
-using ActionModels: Turing, AxisArrays, DataFrames
+using Turing
+using DataFrames
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 @testset "fitting tests" begin
 
     ### SETUP ###
-    #Create dataframe
+    #Generate dataset
     data = DataFrame(
-        inputs = repeat([1, 1, 1, 2, 2, 2], 3),
-        inputs_2 = repeat([1, 1, 1, 2, 2, 2], 3),
-        actions = [
-            0,
-            0.2,
-            0.3,
-            0.4,
-            0.5,
-            0.6,
-            0,
-            0.5,
-            0.8,
-            1,
-            1.5,
-            1.8,
-            0,
-            2,
-            0.5,
-            4,
-            5,
-            3,
-        ],
-        actions_2 = [
-            0,
-            0.2,
-            0.3,
-            0.4,
-            0.5,
-            0.6,
-            0,
-            0.5,
-            0.8,
-            1,
-            1.5,
-            1.8,
-            0,
-            2,
-            0.5,
-            4,
-            5,
-            3,
-        ],
-        age = vcat([repeat([20], 6), repeat([22], 6), repeat([28], 6)]...),
-        category = vcat([repeat(["1"], 6), repeat(["2"], 6), repeat(["2"], 6)]...),
-        id = vcat([repeat(["Hans"], 6), repeat(["Georg"], 6), repeat(["Jørgen"], 6)]...),
+        inputs = repeat([1, 1, 1, 2, 2, 2], 6),
+        actions = vcat(
+            [0, 0.2, 0.3, 0.4, 0.5, 0.6],
+            [0, 0.5, 0.8, 1, 1.5, 1.8],
+            [0, 2, 0.5, 4, 5, 3],
+            [0, 0.1, 0.15, 0.2, 0.25, 0.3],
+            [0, 0.2, 0.4, 0.7, 1.0, 1.1],
+            [0, 2, 0.5, 4, 5, 3],
+        ),
+        age = vcat(
+            repeat([20], 6),
+            repeat([24], 6),
+            repeat([28], 6),
+            repeat([20], 6),
+            repeat([24], 6),
+            repeat([28], 6),
+        ),
+        id = vcat(
+            repeat(["Hans"], 6),
+            repeat(["Georg"], 6),
+            repeat(["Jørgen"], 6),
+            repeat(["Hans"], 6),
+            repeat(["Georg"], 6),
+            repeat(["Jørgen"], 6),
+        ),
+        treatment = vcat(repeat(["control"], 18), repeat(["treatment"], 18)),
     )
+
+    #Add a second set of actions and inputs
+    data.actions_2 = data.actions
+    data.inputs_2 = data.inputs
+
+    #Define input and action cols
+    input_cols = [:inputs]
+    action_cols = [:actions]
+    grouping_cols = [:id, :treatment]
 
     #Create agent
     agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
 
-    #Set prior
-    prior = Dict(
-        "learning_rate" => LogitNormal(0.0, 1.0),
-        "action_noise" => truncated(Normal(0.0, 1.0), lower = 0),
-        "initial_value" => Normal(0.0, 1.0),
-    )
-
     #Set samplings settings
-    sampler = NUTS(-1, 0.65)
+    # sampler = NUTS(-1, 0.65; adtype = AutoReverseDiff(; compile = true))
+    sampler = NUTS(-1, 0.65; adtype = AutoForwardDiff())
     n_iterations = 1000
     sampling_kwargs = (; progress = false)
 
@@ -80,13 +65,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         model = create_model(agent, prior, inputs, actions)
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        #Extract quantities
-        #agent_parameters = get_session_parameters(model, fitted_model)
-
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "simple statistical model" begin
@@ -95,62 +74,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             agent,
             prior,
             data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = :id,
+            input_cols = input_cols,
+            action_cols = action_cols,
+            grouping_cols = [:id],
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-        # #Rename chains
-        # renamed_model = rename_chains(fitted_model, model)
-
-        # #Extract agent parameters
-        # agent_parameters = get_session_parameters(model, fitted_model)
-        # estimates_df = summarize(agent_parameters, DataFrame)
-        # estimates_dict = summarize(agent_parameters, Dict)
-        # #estimates_chains = summarize(agent_parameters, Chains)
-
-        # #Extract state trajectories
-        # state_trajectories = get_state_trajectories(model, fitted_model, ["value", "action"])
-        # trajectory_estimates_df = summarize(state_trajectories)
-
-        # #Check that the learning rates are estimated right
-        # @test estimates_df[!, :learning_rate] == sort(estimates_df[!, :learning_rate])
-
-        # @test state_trajectories isa AxisArrays.AxisArray{
-        #     Union{Missing,Float64},
-        #     5,
-        #     Array{Union{Missing,Float64},5},
-        #     Tuple{
-        #         AxisArrays.Axis{:agent,Vector{Symbol}},
-        #         AxisArrays.Axis{:state,Vector{Symbol}},
-        #         AxisArrays.Axis{:timestep,UnitRange{Int64}},
-        #         AxisArrays.Axis{:sample,UnitRange{Int64}},
-        #         AxisArrays.Axis{:chain,UnitRange{Int64}},
-        #     },
-        # }
-        # @test agent_parameters isa AxisArrays.AxisArray{
-        #     Float64,
-        #     4,
-        #     Array{Float64,4},
-        #     Tuple{
-        #         AxisArrays.Axis{:agent,Vector{Symbol}},
-        #         AxisArrays.Axis{:parameter,Vector{Symbol}},
-        #         AxisArrays.Axis{:sample,UnitRange{Int64}},
-        #         AxisArrays.Axis{:chain,UnitRange{Int64}},
-        #     },
-        # }
-
-        # #Fit model
-        # prior_chains = sample(model, Prior(), n_iterations; sampling_kwargs...)
-        # renamed_prior_chains = rename_chains(prior_chains, model)
-
-        # plot_parameters(renamed_prior_chains, renamed_model)
-
-        # prior_trajectories = get_state_trajectories(model, prior_chains, ["value", "action"])
-        # plot_trajectories(prior_trajectories)
-        # plot_trajectories(state_trajectories)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+       
     end
 
     @testset "custom statistical model" begin
@@ -163,19 +94,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             agent,
             prior,
             data,
-            input_cols = :inputs,
-            action_cols = :actions,
+            input_cols = input_cols,
+            action_cols = action_cols,
             grouping_cols = Symbol[],
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        # #Extract quantities
-        # agent_parameters = get_session_parameters(model, fitted_model)
-
-        # #Rename chains
-        # renamed_model = rename_chains(fitted_model, model)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "multiple grouping cols" begin
@@ -185,28 +110,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             agent,
             prior,
             data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = [:id, :category],
+            input_cols = input_cols,
+            action_cols = action_cols,
+            grouping_cols = grouping_cols,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
-
-        # #Extract quantities
-        # agent_parameters = get_session_parameters(model, fitted_model)
-        # estimates_df = summarize(agent_parameters)
-
-        # #Extract state trajectories
-        # state_trajectories = get_state_trajectories(model, fitted_model, ["value", "action"])
-        # trajectory_estimates_df = summarize(state_trajectories)
-
-
-        #Check that the learning rates are estimated right
-        @test estimates_df[!, :learning_rate] == sort(estimates_df[!, :learning_rate])
-
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
 
     end
 
@@ -221,21 +131,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             agent,
             prior,
             new_data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = :id,
+            input_cols = input_cols,
+            action_cols = action_cols,
+            grouping_cols = grouping_cols,
             infer_missing_actions = true,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        #Extract quantities
-        agent_parameters = get_session_parameters(model, fitted_model)
-        estimates_df = summarize(agent_parameters)
-
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "multiple actions" begin
@@ -260,21 +163,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_agent,
             new_prior,
             data,
-            input_cols = :inputs,
+            input_cols = input_cols,
             action_cols = [:actions, :actions_2],
-            grouping_cols = :id,
+            grouping_cols = grouping_cols,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        #Extract quantities
-        agent_parameters = get_session_parameters(model, fitted_model)
-        estimates_df = summarize(agent_parameters)
-
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
-
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "multiple actions, missing actions" begin
@@ -304,21 +199,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_agent,
             new_prior,
             new_data,
-            input_cols = :inputs,
+            input_cols = input_cols,
             action_cols = [:actions, :actions_2],
-            grouping_cols = :id,
+            grouping_cols = grouping_cols,
             infer_missing_actions = true,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        #Extract quantities
-        agent_parameters = get_session_parameters(model, fitted_model)
-        estimates_df = summarize(agent_parameters)
-
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "multiple inputs" begin
@@ -344,19 +232,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_prior,
             data,
             input_cols = [:inputs, :inputs_2],
-            action_cols = :actions,
-            grouping_cols = :id,
+            action_cols = action_cols,
+            grouping_cols = grouping_cols,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        #Extract quantities
-        agent_parameters = get_session_parameters(model, fitted_model)
-        estimates_df = summarize(agent_parameters)
-
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "multiple inputs and multiple actions" begin
@@ -384,18 +265,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             data,
             input_cols = [:inputs, :inputs_2],
             action_cols = [:actions, :actions_2],
-            grouping_cols = :id,
+            grouping_cols = grouping_cols,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
-
-        #Extract quantities
-        agent_parameters = get_session_parameters(model, fitted_model)
-        estimates_df = summarize(agent_parameters)
-
-        #Rename chains
-        renamed_model = rename_chains(fitted_model, model)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 
     @testset "depend on previous action" begin
@@ -424,13 +298,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_agent,
             new_prior,
             data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = :id,
+            input_cols = input_cols,
+            action_cols = action_cols,
+            grouping_cols = grouping_cols,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
 
     end
 
@@ -461,12 +335,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_agent,
             new_prior,
             data,
-            input_cols = :inputs,
-            action_cols = :actions,
-            grouping_cols = :id,
+            input_cols = input_cols,
+            action_cols = action_cols,
+            grouping_cols = grouping_cols,
         )
 
         #Fit model
-        fitted_model = sample(model, sampler, n_iterations; sampling_kwargs...)
+        chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
     end
 end
