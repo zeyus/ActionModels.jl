@@ -68,7 +68,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 
 
-        @testset "intercept only ($AD)" begin
+        @testset "intercept only ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ 1),
@@ -81,7 +81,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
 
         end
-        @testset "intercept + random effect only ($AD)" begin
+        @testset "intercept + random effect only ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ 1 + (1 | id)),
@@ -94,7 +94,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "THIS IS WRONG: MISSIGN IMPLICIT INTERCEPT fixed effect only ($AD)" begin
+        @testset "THIS IS WRONG: MISSIGN IMPLICIT INTERCEPT fixed effect only ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ age),
@@ -107,7 +107,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "fixed effect and random intercept by id ($AD)" begin
+        @testset "fixed effect and random intercept by id ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ age + (1 | id)),
@@ -120,7 +120,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "fixed effect and random intercept by id and treatment ($AD)" begin
+        @testset "fixed effect and random intercept by id and treatment ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ age + (1 | id) + (1 | treatment)),
@@ -133,7 +133,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "fixed effect, random intercept + slope by treatment ($AD)" begin
+        @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ age + (1 + age | treatment)),
@@ -146,7 +146,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "fixed effect, random intercept + slope by treatment ($AD)" begin
+        @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ age + (1 + age | treatment) + (1 | id)),
@@ -159,7 +159,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "THIS ERRORS: order of random effects reversed ($AD)" begin
+        @testset "THIS ERRORS: order of random effects reversed ($ad_type)" begin
             model = create_model(
                 agent,
                 @formula(learning_rate ~ age + (1 | id) + (1 + age | treatment)),
@@ -172,7 +172,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple formulas ($AD)" begin
+        @testset "multiple formulas ($ad_type)" begin
             model = create_model(
                 agent,
                 [
@@ -189,7 +189,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             samples = sample(model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "manual prior specification ($AD)" begin
+        @testset "manual prior specification ($ad_type)" begin
             model = create_model(
                 agent,
                 [

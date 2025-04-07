@@ -78,7 +78,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 
         ### TESTING MODEL TYPES ###
-        @testset "single agent ($AD)" begin
+        @testset "single agent ($ad_type)" begin
             #Extract inputs and actions from data
             inputs = data[!, :inputs]
             actions = data[!, :actions]
@@ -90,7 +90,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "simple statistical model ($AD)" begin
+        @testset "simple statistical model ($ad_type)" begin
             #Create model
             model = create_model(
                 agent,
@@ -106,11 +106,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         end
 
-        @testset "custom statistical model ($AD)" begin
+        @testset "custom statistical model ($ad_type)" begin
 
         end
 
-        @testset "no grouping cols ($AD)" begin
+        @testset "no grouping cols ($ad_type)" begin
             #Create model
             model = create_model(
                 agent,
@@ -125,7 +125,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple grouping cols ($AD)" begin
+        @testset "multiple grouping cols ($ad_type)" begin
 
             #Create model
             model = create_model(
@@ -142,7 +142,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         end
 
-        @testset "missing actions ($AD)" begin
+        @testset "missing actions ($ad_type)" begin
 
             #Create new dataframe where three actions = missing
             new_data = allowmissing(data, :actions)
@@ -163,7 +163,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple actions ($AD)" begin
+        @testset "multiple actions ($ad_type)" begin
 
             function multi_action(agent, input::Real)
 
@@ -194,7 +194,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple actions, missing actions ($AD)" begin
+        @testset "multiple actions, missing actions ($ad_type)" begin
 
             function multi_action(agent, input::Real)
 
@@ -231,7 +231,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple inputs ($AD)" begin
+        @testset "multiple inputs ($ad_type)" begin
 
             function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
 
@@ -262,7 +262,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple inputs and multiple actions ($AD)" begin
+        @testset "multiple inputs and multiple actions ($ad_type)" begin
 
             function multi_input_action(agent, input::Tuple{R,R}) where {R<:Real}
 
@@ -294,7 +294,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "depend on previous action ($AD)" begin
+        @testset "depend on previous action ($ad_type)" begin
 
             function dependent_action(agent::Agent, input::R) where {R<:Real}
 
@@ -330,7 +330,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         end
 
-        @testset "depend on previous action, multiple actions ($AD)" begin
+        @testset "depend on previous action, multiple actions ($ad_type)" begin
 
             function dependent_multi_action(agent::Agent, input::R) where {R<:Real}
 
