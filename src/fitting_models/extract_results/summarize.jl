@@ -12,9 +12,9 @@ end
 
 
 
-####################################################
-##### SUMMARIZE SESSION PARAMETERS TRAJECTORIES ####
-####################################################
+#######################################
+##### SUMMARIZE SESSION PARAMETERS ####
+#######################################
 function Turing.summarize(
     session_parameters::AxisArray{
         Float64,

@@ -1,113 +1,90 @@
-#######################################################
-### FUNCTION FOR GETTING SAMPLED STATE TRAJECTORIES ###
-#######################################################
 function get_state_trajectories(
-    model::DynamicPPL.Model,
-    chains::Chains,
-    target_states::Vector{T};
-    agent_parameters::AxisArray = get_session_parameters(model, chains),
-    inputs_per_agent::Vector = model.args.inputs_per_agent,
-) where {T<:Union{String,Tuple,Any}}
+    modelfit::ModelFit,
+    target_states::Union{String,Vector{String}},
+    prior_or_posterior::Symbol = :posterior;
+)
 
-    #Extract agent and make it save its history
-    agent = model.args.agent
+    #Make target states into a vector
+    if target_states isa String
+        target_states = [target_states]
+    end
+
+    #TODO: check if target_states are in agent's states
+
+    #Extract the model
+    model = modelfit.model
+    #Extract the appropirate session parameters
+    all_session_parameters = get_session_parameters!(modelfit, prior_or_posterior)
+    #Extract the agent
+    agent = deepcopy(model.args.agent_model)
     set_save_history!(agent, true)
+    #Extract inputs
+    inputs_per_session = model.args.inputs_per_session
 
-    #Extract dimensions
-    agent_ids, parameters, samples, chains = agent_parameters.axes
-    n_timesteps = length(first(inputs_per_agent)) + 1
+    #Extract dimension labels
+    session_ids, parameter_names, sample_idxs, chain_idxs = all_session_parameters.axes
 
-    # Extract parameter keys
-    state_key_symbols = [
+    #Make parameter names into a vector
+    parameter_names = [parameter_name for parameter_name in parameter_names]
+
+    #Loop through sessions
+    state_trajectories = [
         begin
-            if state_key isa Tuple
-                Symbol(join(state_key, tuple_separator))
-            else
-                Symbol(state_key)
-            end
-        end for state_key in target_states
-    ]
 
-    # Create an empty AxisArray
-    empty_array = Array{Union{Missing,Float64}}(
-        undef,
-        length(agent_ids),
-        length(target_states),
-        n_timesteps,
-        length(samples),
-        length(chains),
-    )
-    state_trajectories = AxisArray(
-        empty_array,
-        Axis{:agent}(collect(agent_ids)),
-        Axis{:state}(state_key_symbols),
-        Axis{:timestep}(0:n_timesteps-1),
-        Axis{:sample}(1:samples[end]),
-        Axis{:chain}(1:chains[end]),
-    )
+            #Extract the inputs for the current session
+            session_inputs = inputs_per_session[session_idx]
 
-    #For each chain, each sample, each agent
-    for chain in chains
-        for sample_idx in samples
-            for (agent_id, inputs) in zip(agent_ids, inputs_per_agent)
+            #Create empty AxisArray for the session
+            session_trajectories = AxisArray(
+                Array{Union{Missing,Real}}(
+                    undef,
+                    length(session_inputs) + 1,
+                    length(target_states),
+                    length(sample_idxs),
+                    length(chain_idxs),
+                ),
+                Axis{:timestep}(0:length(session_inputs)),
+                Axis{:state}(Symbol.(target_states)),
+                Axis{:sample}(1:sample_idxs[end]),
+                Axis{:chain}(1:chain_idxs[end]),
+            )
 
-                ## Set parameters in agent and give inputs ##
-                # Extract parameter values for the current agent and sample
-                parameter_values = Dict{Union{String,Tuple},Real}()
-                for parameter in parameters
+            #For each sample and each chain
+            for (sample_idx, chain_idx) in
+                Iterators.product(1:length(sample_idxs), 1:length(chain_idxs))
 
-                    ## Put parameter keys in the right format
-                    parameter_string = string(parameter)
-                    parameter_string = split(parameter_string, tuple_separator)
+                parameter_sample = Tuple(session_parameters[:, sample_idx, chain_idx])
 
-                    #if the parameter is a composite parameter
-                    if length(parameter_string) > 1
-                        #Put it in a tuple
-                        parameter_string = Tuple(string.(parameter_string))
-                    else
-                        #Otherwise, just take the first element
-                        parameter_string = string(parameter)
-                    end
-
-                    #Store the parameter value
-                    parameter_values[parameter_string] =
-                        agent_parameters[agent_id, parameter, sample_idx, chain]
-                end
-
-                # Set the parameters of the agent
-                set_parameters!(agent, parameter_values)
+                #Set parameters in agent
+                set_parameters!(agent, parameter_names, parameter_sample)
                 reset!(agent)
 
-                #Simulate forward with the agent
-                give_inputs!(agent, inputs)
+                #Go through each input
+                give_inputs!(agent, session_inputs)
 
-                #For each target state
-                for state in target_states
+                #Extract histories
+                state_histories =
+                    hcat([get_history(agent, state) for state in target_states]...)
 
-                    # Join tuples
-                    if state isa Tuple
-                        state_key_symbol = Symbol(join(state, tuple_separator))
-                    else
-                        state_key_symbol = Symbol(state)
-                    end
-                    #Extract the state's history
-                    state_history = get_history(agent, state)
-
-                    #For each timestep
-                    for (timestep, state_value) in enumerate(state_history)
-                        #Store the value
-                        state_trajectories[
-                            agent_id,
-                            state_key_symbol,
-                            timestep,
-                            sample_idx,
-                            chain,
-                        ] = state_value
-                    end
-                end
+                #Store them in the session_trajectories
+                session_trajectories[:, :, sample_idx, chain_idx] .= state_histories
             end
-        end
-    end
+
+            #Return the session_trajectories
+            session_trajectories
+
+        end for
+        (session_idx, (session_id, session_inputs, session_parameters)) in enumerate(
+            zip(
+                session_ids,
+                inputs_per_session,
+                eachslice(all_session_parameters, dims = 1),
+            ),
+        )
+    ]
+    
+    #Transform into an AxisArray
+    state_trajectories = AxisArray(state_trajectories, Axis{:session}(session_ids))
 
     return state_trajectories
 end
