@@ -10,6 +10,7 @@ function create_model(
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
     grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
+    population_model_type::Union{IndependentPopulationModel,SingleSessionPopulationModel} = IndependentPopulationModel(),
     verbose::Bool = true,
     kwargs...,
 ) where {
@@ -55,7 +56,7 @@ function create_model(
         action_cols = action_cols,
         grouping_cols = grouping_cols,
         parameter_names = parameter_names,
-        population_model_type = IndependentPopulationModel(),
+        population_model_type = population_model_type,
         kwargs...,
     )
 end
@@ -67,8 +68,10 @@ end
 ) where {T<:Tuple}
 
     sampled_parameters = Tuple(
-        i ~ to_submodel(prefix(sample_parameters_all_session(prior), parameter_name), false) for
-        (prior, parameter_name) in zip(priors_per_parameter, parameter_names)
+        i ~ to_submodel(
+            prefix(sample_parameters_all_session(prior), parameter_name),
+            false,
+        ) for (prior, parameter_name) in zip(priors_per_parameter, parameter_names)
     )
     #TODO: avoid type-instabulity when building the Tuple of parameters
 

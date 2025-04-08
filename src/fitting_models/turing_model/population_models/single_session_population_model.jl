@@ -56,6 +56,7 @@ function create_model(
         action_cols = action_cols,
         grouping_cols = grouping_cols,
         verbose = verbose,
+        population_model_type = SingleSessionPopulationModel(),
         kwargs...,
     )
 end
