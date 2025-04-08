@@ -1,8 +1,6 @@
 #########################################################
 ### SIMPLE POPULATION MODEL WITH INDEPENDENT SESSIONS ###
 #########################################################
-struct IndependentPopulationModel <: AbstractPopulationModel end
-
 function create_model(
     agent::Agent,
     prior::Dict{String,D},

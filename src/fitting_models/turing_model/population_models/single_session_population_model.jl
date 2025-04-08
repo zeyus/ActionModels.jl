@@ -1,8 +1,6 @@
 #############################################
 ### POPULATION MODEL FOR A SINGLE SESSION ###
 #############################################
-struct SingleSessionPopulationModel <: AbstractPopulationModel end
-
 function create_model(
     agent::Agent,
     prior::Dict{String,D},

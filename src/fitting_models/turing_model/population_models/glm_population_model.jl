@@ -14,8 +14,6 @@
 ###################################
 ### REGRESSION POPULATION MODEL ###
 ###################################
-struct RegressionPopulationModel <: AbstractPopulationModel end
-
 function create_model(
     agent::Agent,
     regression_formulas::Union{F,Vector{F}},

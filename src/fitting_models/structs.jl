@@ -8,6 +8,9 @@ struct InferMissingActions end
 abstract type AbstractPopulationModel end
 #Type for custom population models
 struct CustomPopulationModel <: AbstractPopulationModel end
+struct RegressionPopulationModel <: AbstractPopulationModel end
+struct IndependentPopulationModel <: AbstractPopulationModel end
+struct SingleSessionPopulationModel <: AbstractPopulationModel end
 
 
 ## Types for the GLM population model ##
