@@ -1,15 +1,14 @@
-function get_state_trajectories(
+function get_state_trajectories!(
     modelfit::ModelFit,
     target_states::Union{String,Vector{String}},
     prior_or_posterior::Symbol = :posterior;
 )
 
+    ### Setup ###
     #Make target states into a vector
     if target_states isa String
         target_states = [target_states]
     end
-
-    #TODO: check if target_states are in agent's states
 
     #Extract the model
     model = modelfit.model
@@ -26,7 +25,20 @@ function get_state_trajectories(
 
     #Make parameter names into a vector
     parameter_names = [parameter_name for parameter_name in parameter_names]
+    session_ids = [session_id for session_id in session_ids]
 
+
+    ### Checks ###
+    #If any of the target states are not in agent_states, throw an error
+    agent_states = collect(keys(get_states(agent)))
+    for target_state in target_states
+        if !(target_state in agent_states)
+            error("Target state $target_state not found in agent states.")
+        end
+    end
+
+
+    ### Extract States ###
     #Loop through sessions
     state_trajectories = [
         begin
@@ -73,16 +85,10 @@ function get_state_trajectories(
             #Return the session_trajectories
             session_trajectories
 
-        end for
-        (session_idx, (session_id, session_inputs, session_parameters)) in enumerate(
-            zip(
-                session_ids,
-                inputs_per_session,
-                eachslice(all_session_parameters, dims = 1),
-            ),
-        )
+        end for (session_idx, (session_inputs, session_parameters)) in
+        enumerate(zip(inputs_per_session, eachslice(all_session_parameters, dims = 1)))
     ]
-    
+
     #Transform into an AxisArray
     state_trajectories = AxisArray(state_trajectories, Axis{:session}(session_ids))
 

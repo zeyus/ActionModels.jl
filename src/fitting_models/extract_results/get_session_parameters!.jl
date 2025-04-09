@@ -6,15 +6,19 @@ function get_session_parameters!(
 
     #Extract appropriate sample result
     if prior_or_posterior == :posterior
-        if isnothing(modelfit.posterior.chains)
-            @error "the posterior has not yet been sampled. Sample it with sample_posterior!()"
+        if isnothing(modelfit.posterior)
+            throw(
+                ArgumentError(
+                    "the posterior has not yet been sampled. Sample it with sample_posterior!()",
+                ),
+            )
         else
             sample_result = modelfit.posterior
         end
 
     elseif prior_or_posterior == :prior
 
-        if verbose && isnothing(modelfit.prior.chains)
+        if verbose && isnothing(modelfit.prior)
             @warn "sampling from the prior..."
         end
 
