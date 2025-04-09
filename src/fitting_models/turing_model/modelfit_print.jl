@@ -26,7 +26,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     n_parameters = length(modelfit.info.parameter_names)
     n_sessions = length(modelfit.info.session_ids)
 
-    println(output, "$n_parameters action model parameters, $n_sessions sessions")
+    println(output, "$n_parameters estimated action model parameters, $n_sessions sessions")
 
     if isnothing(modelfit.posterior)
         println(output, "Posterior not sampled")
