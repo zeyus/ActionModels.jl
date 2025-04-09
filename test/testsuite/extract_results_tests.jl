@@ -71,6 +71,8 @@ using ActionModels, DataFrames
     prior_parameters = get_session_parameters!(model, :prior)
     summarize(prior_parameters)
 
+    get_state_trajectories!(model, ["value"], :posterior)
+    get_state_trajectories!(model, ["value"], :prior)
 end
 
 
