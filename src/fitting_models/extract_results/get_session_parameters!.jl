@@ -81,6 +81,13 @@ function get_session_parameters!(
         end
     end
 
+    #Store as SessionParameters struct
+    session_parameters = SessionParameters(
+        parameter_names,
+        session_ids,
+        session_parameters,
+    )
+
     #Save the session parameters
     sample_result.session_parameters = session_parameters
 

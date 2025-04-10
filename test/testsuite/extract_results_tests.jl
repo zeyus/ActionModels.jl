@@ -74,6 +74,17 @@ using ActionModels, DataFrames
     prior_trajectories = get_state_trajectories!(model, ["input", "value"], :prior)
     summarize(prior_trajectories)
 
+    using StatsPlots
+    # plot(posterior_parameters)
+    # plot(posterior_parameters, session = "id:Hans.treatment:control")
+    # plot(posterior_trajectories)
+    # plot(posterior_trajectories, session = "id:Hans.treatment:control")
+
+    # plot(prior_parameters)
+    # plot(prior_parameters, session = "id:Hans.treatment:control")
+    # plot(prior_trajectories)
+    # plot(prior_trajectories, session = "id:Hans.treatment:control")
+
 end
 
 

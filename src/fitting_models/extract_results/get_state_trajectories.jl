@@ -13,7 +13,7 @@ function get_state_trajectories!(
     #Extract the model
     model = modelfit.model
     #Extract the appropirate session parameters
-    all_session_parameters = get_session_parameters!(modelfit, prior_or_posterior)
+    all_session_parameters = get_session_parameters!(modelfit, prior_or_posterior).value
     #Extract the agent
     agent = deepcopy(model.args.agent_model)
     set_save_history!(agent, true)

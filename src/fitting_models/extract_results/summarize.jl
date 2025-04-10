@@ -2,21 +2,13 @@
 ##### SUMMARIZE SESSION PARAMETERS ####
 #######################################
 function Turing.summarize(
-    session_parameters::AxisArray{
-        Float64,
-        4,
-        Array{Float64,4},
-        Tuple{
-            Axis{:session,Vector{String}},
-            Axis{:parameter,Vector{String}},
-            Axis{:sample,UnitRange{Int64}},
-            Axis{:chain,UnitRange{Int64}},
-        },
-    },
+    session_parameters::SessionParameters,
     summary_function::Function = median;
 )
 
+
     #Extract sessions and parameters
+    session_parameters = session_parameters.value
     sessions = session_parameters.axes[1]
     parameters = session_parameters.axes[2]
 
@@ -74,7 +66,7 @@ function Turing.summarize(
     #Extract sessions ids and state trajectories
     state_names = state_trajectories.state_names
     session_ids = state_trajectories.session_ids
-    state_trajectories = state_trajectories.values
+    state_trajectories = state_trajectories.value
 
 
     # Initialize an empty vector to store summarized values

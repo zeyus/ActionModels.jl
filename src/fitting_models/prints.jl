@@ -66,7 +66,7 @@ function Base.show(io::IO, ::MIME"text/plain", state_trajectories::StateTrajecto
     #Extract n sessions
     n_sessions = length(state_trajectories.session_ids)
     #Extract n_samples and n_chains
-    n_samples, n_chains = size(first(state_trajectories.values))[3:4]
+    n_samples, n_chains = size(first(state_trajectories.value))[3:4]
 
     println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
 
