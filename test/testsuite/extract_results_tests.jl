@@ -63,16 +63,17 @@ using ActionModels, DataFrames
     posterior_chains = sample_posterior!(model)
     posterior_parameters = get_session_parameters!(model, :posterior)
     summarize(posterior_parameters)
-    summarize(posterior_parameters, DataFrame)
-    summarize(posterior_parameters, DataFrame, mean)
-    summarize(posterior_parameters, Dict)
+    summarize(posterior_parameters, mean)
+    posterior_trajectories = get_state_trajectories!(model, ["input", "value"], :posterior)
+    summarize(posterior_trajectories)
+    summarize(posterior_trajectories, mean)
 
     prior_chains = sample_prior!(model)
     prior_parameters = get_session_parameters!(model, :prior)
     summarize(prior_parameters)
+    prior_trajectories = get_state_trajectories!(model, ["input", "value"], :prior)
+    summarize(prior_trajectories)
 
-    get_state_trajectories!(model, ["value"], :posterior)
-    get_state_trajectories!(model, ["value"], :prior)
 end
 
 
