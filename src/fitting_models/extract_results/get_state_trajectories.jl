@@ -24,8 +24,8 @@ function get_state_trajectories!(
     session_ids, parameter_names, sample_idxs, chain_idxs = all_session_parameters.axes
 
     #Make parameter names into a vector
-    parameter_names = [parameter_name for parameter_name in parameter_names]
-    session_ids = [session_id for session_id in session_ids]
+    parameter_names = collect(parameter_names)
+    session_ids = collect(session_ids)
 
 
     ### Checks ###
@@ -36,7 +36,6 @@ function get_state_trajectories!(
             error("Target state $target_state not found in agent states.")
         end
     end
-
 
     ### Extract States ###
     #Loop through sessions

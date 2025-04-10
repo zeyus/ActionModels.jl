@@ -1,17 +1,3 @@
-function Turing.summarize(
-    session_parameters::AxisArray,
-    sink::T = DataFrame,
-    summary_function::Function = median,
-) where {T<:Union{Type{Dict},Type{DataFrame}}}
-
-    summarize(session_parameters, summary_function, sink)
-
-end
-
-
-
-
-
 #######################################
 ##### SUMMARIZE SESSION PARAMETERS ####
 #######################################
@@ -27,9 +13,7 @@ function Turing.summarize(
             Axis{:chain,UnitRange{Int64}},
         },
     },
-    sink::Type{DataFrame},
     summary_function::Function = median;
-    promote::Bool = false,
 )
 
     #Extract sessions and parameters
@@ -79,143 +63,104 @@ function Turing.summarize(
 end
 
 
-#########################################################
-####### VERSION WHICH GENERATES A DICTIONARY INSTEAD ####
-#########################################################
-function Turing.summarize(
-    session_parameters::AxisArray{
-        Float64,
-        4,
-        Array{Float64,4},
-        Tuple{
-            Axis{:session,Vector{String}},
-            Axis{:parameter,Vector{String}},
-            Axis{:sample,UnitRange{Int64}},
-            Axis{:chain,UnitRange{Int64}},
-        },
-    },
-    output_type::Type{Dict},
-    summary_function::Function = median,
-)
-
-    #Extract sessions and parameters
-    sessions = session_parameters.axes[1]
-    parameters = session_parameters.axes[2]
-
-    # Initialize an empty dictionary
-    estimates_dict = Dict{String,Dict{String,Float64}}()
-
-    # Populate the dictionary with summarized values
-    for (i, session) in enumerate(sessions)
-        session_dict = Dict{String,Float64}()
-        for (j, parameter) in enumerate(parameters)
-            # Extract the values for the current session and parameter across samples and chains
-            values = session_parameters[session, parameter, :, :]
-            # Calculate the median value
-            summarized_value = summary_function(values)
-            # Add the median value to the session's dictionary
-            session_dict[parameter] = summarized_value
-        end
-        # Add the session's dictionary to the main dictionary
-        estimates_dict[session] = session_dict
-    end
-
-    return estimates_dict
-end
-
-
-
-
-
-
-
-
 #######################################
 ##### SUMMARIZE STATE TRAJECTORIES ####
 #######################################
 function Turing.summarize(
-    state_trajectories::AxisArrays.AxisArray{
-        Union{Missing,Float64},
-        5,
-        Array{Union{Missing,Float64},5},
-        Tuple{
-            AxisArrays.Axis{:session,Vector{String}},
-            AxisArrays.Axis{:state,Vector{String}},
-            AxisArrays.Axis{:timestep,UnitRange{Int64}},
-            AxisArrays.Axis{:sample,UnitRange{Int64}},
-            AxisArrays.Axis{:chain,UnitRange{Int64}},
+    state_trajectories::AxisVector{
+        AxisArray{
+            Union{Missing,Real},
+            4,
+            Array{Union{Missing,Real},4},
+            Tuple{
+                Axis{:timestep,UnitRange{Int64}},
+                Axis{:state,Vector{Symbol}},
+                Axis{:sample,UnitRange{Int64}},
+                Axis{:chain,UnitRange{Int64}},
+            },
         },
+        Vector{
+            AxisArray{
+                Union{Missing,Real},
+                4,
+                Array{Union{Missing,Real},4},
+                Tuple{
+                    Axis{:timestep,UnitRange{Int64}},
+                    Axis{:state,Vector{Symbol}},
+                    Axis{:sample,UnitRange{Int64}},
+                    Axis{:chain,UnitRange{Int64}},
+                },
+            },
+        },
+        Tuple{Axis{:session,Vector{String}}},
     },
     summary_function::Function = median,
 )
 
-    #Extract sessions and parameters
-    sessions = state_trajectories.axes[1]
-    states = state_trajectories.axes[2]
-    timesteps = state_trajectories.axes[3]
+    #Extract sessions ids
+    session_ids = state_trajectories.axes[1]
+    state_names = first(state_trajectories).axes[2]
+
+    # Initialize an empty vector to store summarized values
+    summarized_values = Vector{Matrix{Union{Missing,Float64}}}()
+    timestep_cols = Vector{Int}()
+    session_id_cols = Vector{Matrix{String}}()
+
+    #For each session
+    for (session_id, session_state_trajectories) in zip(session_ids, state_trajectories)
+
+        #Summarize across samples
+        session_summarized_values =
+            summarize_samples.(
+                eachslice(session_state_trajectories, dims = (1, 2)),
+                summary_function,
+            )
+
+        #Add to the vector
+        push!(summarized_values, session_summarized_values)
+
+        #Extract and add timesteps
+        timesteps = collect(session_state_trajectories.axes[1])
+        append!(timestep_cols, timesteps)
+
+        #Split session id
+        split_session_ids = map(
+            i -> String(split(i, id_column_separator)[2]),
+            split(string(session_id), id_separator),
+        )
+        #Repeat it for each timestep
+        split_session_ids =
+            permutedims(hcat(repeat([split_session_ids], length(timesteps))...))
+        push!(session_id_cols, split_session_ids)
+
+    end
 
     #Construct grouping column names
-    grouping_cols = [
+    grouping_colnames = [
         Symbol(first(split(i, id_column_separator))) for
-        i in split(string(first(sessions)), id_separator)
+        i in split(string(first(session_ids)), id_separator)
     ]
 
-    # Initialize an empty DataFrame with the states, the grouping columns and the timestep
-    df = DataFrame(Dict(begin
-        #Join tuples
-        if state isa Tuple
-            state = join(state, tuple_separator)
-        end
-        state => Float64[]
-    end for state in states))
-    for column_name in grouping_cols
-        df[!, column_name] = String[]
-    end
-    df[!, :timestep] = Int[]
-
-
-    # Populate the DataFrame with median values
-    for session_id in sessions
-
-        for timestep in timesteps
-            row = Dict()
-
-            for state in states
-                # Extract the state for the current session and state, at the current timestep
-                values = state_trajectories[session_id, state, timestep+1, :, :]
-                # Calculate the point estimate
-                median_value = summary_function(values)
-
-                #Join tuples
-                if state isa Tuple
-                    state = join(state, tuple_separator)
-                end
-
-                # Add the value to the row
-                row[state] = median_value
-            end
-
-            #Split session ids
-            split_session_ids = split(string(session_id), id_separator)
-            #Add them to the row
-            for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
-                row[column_name] = string(split(session_id_part, id_column_separator)[2])
-            end
-
-            #Add the timestep to the row
-            row[:timestep] = timestep
-
-            # Add the row to the DataFrame
-            push!(df, row, promote = true)
-        end
-    end
-
-    # Reorder the columns to have session_id as the first column
-    select!(
-        df,
-        vcat(grouping_cols, [:timestep]),
-        names(df)[1:end-(length(grouping_cols)+1)]...,
+    #Create final dataframe
+    output_df = hcat(
+        DataFrame(vcat(session_id_cols...), grouping_colnames),
+        DataFrame(timestep = vcat(timestep_cols...)),
+        DataFrame(vcat(summarized_values...), collect(state_names)),
     )
 
-    return df
+    return output_df
+
 end
+
+function summarize_samples(array::A, summary_function::Function) where {A<:AxisArray}
+    # Handle missing values
+    if all(ismissing, array)
+        return missing
+    elseif any(ismissing, array)
+        return summary_function(skipmissing(array))
+    else
+        return summary_function(array)
+    end
+end
+
+
