@@ -95,7 +95,9 @@ include(joinpath("fitting_models", "tools", "parameter_recovery.jl"))
 include(joinpath("fitting_models", "extract_results", "get_session_parameters!.jl"))
 include(joinpath("fitting_models", "extract_results", "get_state_trajectories.jl"))
 include(joinpath("fitting_models", "extract_results", "summarize.jl"))
-include(joinpath("fitting_models", "plots", "plot_parameters.jl"))
-include(joinpath("fitting_models", "plots", "plot_trajectories.jl"))
+include(joinpath("fitting_models", "plots", "plot_parameters_single_session.jl"))
+include(joinpath("fitting_models", "plots", "plot_parameters_all_sessions.jl"))
+include(joinpath("fitting_models", "plots", "plot_trajectories_single_session.jl"))
+include(joinpath("fitting_models", "plots", "plot_trajectories_all_sessions.jl"))
 
 end

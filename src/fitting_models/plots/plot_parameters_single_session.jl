@@ -1,4 +1,4 @@
-@userplot struct Plot_Parameters{T<:Tuple{Chains,Chains}}
+@userplot struct Plot_Parameters{T::ModelFit}
     args::T
 end
 """
