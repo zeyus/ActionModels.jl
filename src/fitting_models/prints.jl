@@ -52,8 +52,6 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
 end
 
 
-
-
 ################################
 ### PRINT STATE TRAJECTORIES ###
 ################################
@@ -81,3 +79,35 @@ function Base.show(io::IO, ::MIME"text/plain", state_trajectories::StateTrajecto
     ## Print the final string
     print(io, String(take!(output)))
 end
+
+################################
+### PRINT SESSION PARAMETERS ###
+################################
+
+function Base.show(io::IO, ::MIME"text/plain", session_parameters::SessionParameters)
+    #Make I/O buffer
+    output = IOBuffer()
+
+    println(output, "-- Session parameters object --")
+
+    #Extract n sessions
+    n_sessions = length(session_parameters.session_ids)
+    #Extract n_samples and n_chains
+    n_samples, n_chains = size(session_parameters.value)[3:4]
+
+    println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
+
+    parameter_names = session_parameters.parameter_names
+
+    println(output, "$(length(parameter_names)) estimated parameters:")
+
+    for parameter_name in session_parameters.parameter_names
+        println(output, "   $parameter_name")
+    end
+
+    ## Print the final string
+    print(io, String(take!(output)))
+end
+
+
+
