@@ -93,7 +93,24 @@ Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
 end
 
 
+struct StateTrajectories{T}
+    state_names::Vector{String}
+    session_ids::Vector{String}
+    values::Vector{
+        AxisArray{
+            Union{Missing,T},
+            4,
+            Array{Union{Missing,T},4},
+            Tuple{
+                Axis{:timestep,UnitRange{Int64}},
+                Axis{:state,Vector{Symbol}},
+                Axis{:sample,UnitRange{Int64}},
+                Axis{:chain,UnitRange{Int64}},
+            },
+        },
+    }
 
+end
 
 
 ### Type for the save-resume functionality ###

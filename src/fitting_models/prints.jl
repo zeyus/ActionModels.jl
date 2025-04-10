@@ -1,3 +1,6 @@
+######################
+### PRINT MODELFIT ###
+######################
 function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:AbstractPopulationModel
 
     #Make I/O buffer
@@ -42,6 +45,37 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
         n_samples, _, n_chains = size(modelfit.prior.chains) 
 
         println(output, "Prior: $n_samples samples, $n_chains chains")
+    end
+
+    ## Print the final string
+    print(io, String(take!(output)))
+end
+
+
+
+
+################################
+### PRINT STATE TRAJECTORIES ###
+################################
+function Base.show(io::IO, ::MIME"text/plain", state_trajectories::StateTrajectories{T}) where T
+    #Make I/O buffer
+    output = IOBuffer()
+
+    println(output, "-- State trajectories object --")
+
+    #Extract n sessions
+    n_sessions = length(state_trajectories.session_ids)
+    #Extract n_samples and n_chains
+    n_samples, n_chains = size(first(state_trajectories.values))[3:4]
+
+    println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
+
+    state_names = state_trajectories.state_names
+
+    println(output, "$(length(state_names)) estimated states:")
+
+    for state_name in state_trajectories.state_names
+        println(output, "   $state_name")
     end
 
     ## Print the final string

@@ -82,7 +82,7 @@ include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 
 ### Functions for fitting models ###
 include(joinpath("fitting_models", "structs.jl"))
-include(joinpath("fitting_models", "turing_model", "modelfit_print.jl"))
+include(joinpath("fitting_models", "prints.jl"))
 include(joinpath("fitting_models", "turing_model", "create_model.jl"))
 include(joinpath("fitting_models", "turing_model", "create_session_model.jl"))
 include(joinpath("fitting_models", "turing_model", "helper_functions.jl"))

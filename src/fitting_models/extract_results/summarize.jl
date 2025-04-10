@@ -67,39 +67,15 @@ end
 ##### SUMMARIZE STATE TRAJECTORIES ####
 #######################################
 function Turing.summarize(
-    state_trajectories::AxisVector{
-        AxisArray{
-            Union{Missing,Real},
-            4,
-            Array{Union{Missing,Real},4},
-            Tuple{
-                Axis{:timestep,UnitRange{Int64}},
-                Axis{:state,Vector{Symbol}},
-                Axis{:sample,UnitRange{Int64}},
-                Axis{:chain,UnitRange{Int64}},
-            },
-        },
-        Vector{
-            AxisArray{
-                Union{Missing,Real},
-                4,
-                Array{Union{Missing,Real},4},
-                Tuple{
-                    Axis{:timestep,UnitRange{Int64}},
-                    Axis{:state,Vector{Symbol}},
-                    Axis{:sample,UnitRange{Int64}},
-                    Axis{:chain,UnitRange{Int64}},
-                },
-            },
-        },
-        Tuple{Axis{:session,Vector{String}}},
-    },
+    state_trajectories::StateTrajectories{T},
     summary_function::Function = median,
-)
+) where T
 
-    #Extract sessions ids
-    session_ids = state_trajectories.axes[1]
-    state_names = first(state_trajectories).axes[2]
+    #Extract sessions ids and state trajectories
+    state_names = state_trajectories.state_names
+    session_ids = state_trajectories.session_ids
+    state_trajectories = state_trajectories.values
+
 
     # Initialize an empty vector to store summarized values
     summarized_values = Vector{Matrix{Union{Missing,Float64}}}()

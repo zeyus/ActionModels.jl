@@ -88,8 +88,10 @@ function get_state_trajectories!(
         enumerate(zip(inputs_per_session, eachslice(all_session_parameters, dims = 1)))
     ]
 
-    #Transform into an AxisArray
-    state_trajectories = AxisArray(state_trajectories, Axis{:session}(session_ids))
-
-    return state_trajectories
+    #Return StateTrajectories struct
+    return StateTrajectories(
+        target_states,
+        session_ids,
+        state_trajectories,
+    )
 end
