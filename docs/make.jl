@@ -29,7 +29,7 @@ for julia_file in glob("*/*.jl", julia_files_folder)
         generated_files_folder,
         execute = true,
         documenter = true,
-        codefence = "```julia" => "```",
+        #codefence = "```julia" => "```",
     )
 end
 
@@ -39,8 +39,17 @@ Literate.markdown(
     markdown_files_folder,
     execute = true,
     documenter = true,
-    codefence = "```julia" => "```",
+    #codefence = "```julia" => "```",
 )
+
+#And the README
+Literate.markdown(
+    joinpath(julia_files_folder, "README.jl"),
+    project_dir,
+    execute = true,
+    flavor = Literate.DocumenterFlavor(),
+)
+
 
 
 ## GENERATE AND DEPLOY DOCS ##
