@@ -1,5 +1,5 @@
 #Plotting a ModelFit just plots the session parameters
-@recipe function f(modelfit::ModelFit; plot_prior::Bool = true, kwargs...)
+@recipe function f(modelfit::ModelFit; plot_prior = true) #::Bool
 
     #Get session parameters
     posterior_parameters = get_session_parameters!(modelfit, :posterior)
@@ -9,7 +9,7 @@
         prior_parameters = nothing
     end
 
-    plot(posterior_parameters; prior_parameters = prior_parameters, kwargs...)
+    plot(posterior_parameters; prior_parameters = prior_parameters)
 end
 
 ### Function for plotting session parameters ###

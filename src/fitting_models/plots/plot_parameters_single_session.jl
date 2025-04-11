@@ -1,8 +1,8 @@
 @recipe function f(
     posterior_parameters::SessionParameters,
     session_id::String;
-    prior_parameters::Union{SessionParameters,Nothing} = nothing,
-    parameters_to_plot::Union{Nothing, String, Vector{String}} = nothing,
+    prior_parameters = nothing, #::Union{SessionParameters,Nothing}
+    parameters_to_plot = nothing, #::Union{Nothing, String, Vector{String}}
 )
 
     throw(ArgumentError("plotting estimated parameters for a single session is not yet implemented"))

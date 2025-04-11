@@ -100,7 +100,7 @@ end
 ########################################
 
 #Plotting a ModelFit just plots the session parameters
-@recipe function f(modelfit::ModelFit{SingleSessionPopulationModel}; plot_prior::Bool = true, kwargs...)
+@recipe function f(modelfit::ModelFit{SingleSessionPopulationModel}; plot_prior = true) #::Bool
 
     #Get session parameters
     posterior_parameters = get_session_parameters!(modelfit, :posterior)
@@ -114,6 +114,6 @@ end
     session_id = modelfit.info.session_ids[1]
 
     #Make the standard plot for just that session
-    plot(posterior_parameters, session_id; prior_parameters = prior_parameters, kwargs...)
+    plot(posterior_parameters, session_id; prior_parameters = prior_parameters)
 
 end

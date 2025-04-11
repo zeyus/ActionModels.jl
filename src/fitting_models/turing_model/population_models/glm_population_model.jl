@@ -347,9 +347,7 @@ end
 ########################################
 ####### DEFAULT PLOTTING FUNCTION ######
 ########################################
-
-#Plotting a ModelFit just plots the session parameters
-@recipe function f(modelfit::ModelFit{RegressionPopulationModel}; kwargs...)
+@recipe function f(modelfit::ModelFit{RegressionPopulationModel})
 
     throw(
         ArgumentError(
