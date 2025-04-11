@@ -2,7 +2,8 @@ module ActionModels
 
 #Load packages
 using Reexport 
-using Turing #For fitting models
+@reexport using Turing #For fitting models
+@reexport using Distributions #Make distributions available to the user
 using RecipesBase #For defining plots
 using DataFrames #For the input format to create_model
 using AxisArrays #For storing session parameters and state trajectories
@@ -12,7 +13,6 @@ using HDF5 #For the save_resume functionality
 using ProgressLogging #For progress bars
 using Distributed #For parameter recovery and other heavy functions
 using Logging #For hiding sample rejections
-@reexport using Distributions #Make distributions available to the user
 using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 ## For defining action models ##

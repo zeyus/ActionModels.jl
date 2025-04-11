@@ -119,6 +119,7 @@ function sample_save_resume(
     n_chains::Integer,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble,
     sampler::Union{DynamicPPL.AbstractSampler,Turing.Inference.InferenceAlgorithm},
+    init_params::Union{Nothing,Vector{Float64}} = nothing,
     sampler_kwargs...,
 )
 
@@ -158,6 +159,7 @@ function sample_save_resume(
                 progress = false,
                 resume_from = resume_from[chain],
                 save_state = true,
+                init_params = init_params,
                 sampler_kwargs...,
             )
             # Save the chain

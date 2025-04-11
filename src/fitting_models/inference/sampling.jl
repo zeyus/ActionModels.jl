@@ -107,8 +107,8 @@ function sample_posterior!(
             n_samples,
             n_chains,
             parallelization,
-            sampler;
-            init_params = init_params,
+            sampler,
+            init_params;
             sampler_kwargs...,
         )
     end

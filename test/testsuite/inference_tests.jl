@@ -110,15 +110,23 @@ using ActionModels, DataFrames
             end
         end
 
-        @testset "save/resume" begin
-            #TODO:
-            # save_resume = SampleSaveResume(path = mktempdir())
-
+        @testset "save/resume THIS ERRORS!" begin
+            # posterior_chains = sample_posterior!(model, resample = true, save_resume = SampleSaveResume(path = mktempdir()))
         end
 
         @testset "parallel sampling" begin
-            #TODO:
+            using Distributed
 
+            addprocs(2)
+
+            @everywhere using ActionModels
+            @everywhere model = $model
+
+            posterior_chains = sample_posterior!(model, MCMCDistributed(), resample = true)
+
+            #TODO: test parallel sampling with save/resume
+
+            rmprocs(workers())
         end
     end
 end
