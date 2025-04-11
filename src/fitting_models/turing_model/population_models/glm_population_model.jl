@@ -341,3 +341,20 @@ function check_population_model(
     #TODO: Make a check for whether the priors/linkfunctions/formulas are well-specified
 
 end
+
+
+
+########################################
+####### DEFAULT PLOTTING FUNCTION ######
+########################################
+
+#Plotting a ModelFit just plots the session parameters
+@recipe function f(modelfit::ModelFit{RegressionPopulationModel}; kwargs...)
+
+    throw(
+        ArgumentError(
+            "The regression population model does not yet have a plotting function",
+        ),
+    )
+
+end

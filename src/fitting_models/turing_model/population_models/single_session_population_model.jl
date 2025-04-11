@@ -91,3 +91,29 @@ function check_population_model(
         throw(ArgumentError("All tuples in the actions vector must have the same length."))
     end
 end
+
+
+
+
+########################################
+####### DEFAULT PLOTTING FUNCTION ######
+########################################
+
+#Plotting a ModelFit just plots the session parameters
+@recipe function f(modelfit::ModelFit{SingleSessionPopulationModel}; plot_prior::Bool = true, kwargs...)
+
+    #Get session parameters
+    posterior_parameters = get_session_parameters!(modelfit, :posterior)
+    if plot_prior == true
+        prior_parameters = get_session_parameters!(modelfit, :prior)
+    else
+        prior_parameters = nothing
+    end
+
+    #Get the session id
+    session_id = modelfit.info.session_ids[1]
+
+    #Make the standard plot for just that session
+    plot(posterior_parameters, session_id; prior_parameters = prior_parameters, kwargs...)
+
+end

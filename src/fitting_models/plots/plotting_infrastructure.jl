@@ -1,12 +1,15 @@
 #Plotting a ModelFit just plots the session parameters
-@recipe function f(modelfit::ModelFit; kwargs...)
+@recipe function f(modelfit::ModelFit; plot_prior::Bool = true, kwargs...)
 
     #Get session parameters
     posterior_parameters = get_session_parameters!(modelfit, :posterior)
-    prior_parameters = get_session_parameters!(modelfit, :prior)
+    if plot_prior == true
+        prior_parameters = get_session_parameters!(modelfit, :prior)
+    else
+        prior_parameters = nothing
+    end
 
     plot(posterior_parameters; prior_parameters = prior_parameters, kwargs...)
-
 end
 
 ### Function for plotting session parameters ###
