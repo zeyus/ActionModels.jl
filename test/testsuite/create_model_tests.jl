@@ -1,7 +1,6 @@
 using Test
 
 using ActionModels
-using Turing
 using DataFrames
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 

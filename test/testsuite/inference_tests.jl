@@ -105,8 +105,10 @@ using ActionModels, DataFrames
         end
 
         @testset "different AD backends" begin
-            for AD in [AutoForwardDiff(), AutoReverseDiff(), AutoReverseDiff(; compile=true), AutoMooncake()]
-                posterior_chains = sample_posterior!(model, resample = true, AD = AD)
+            for AD in [AutoForwardDiff(), AutoReverseDiff(), AutoReverseDiff(; compile=true), AutoMooncake(; config = nothing)]
+                #@testset "AD: $AD" begin
+                    posterior_chains = sample_posterior!(model, resample = true, adtype = AD)
+                end
             end
         end
 

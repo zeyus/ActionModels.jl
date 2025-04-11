@@ -27,7 +27,12 @@ end
 
 
 ### FUNCTION FOR CONVERTING A TUPLE OF VECTORS INTO A VECTOR OF TUPLES ###
-function revert(t::NTuple{N,Vector{T}}) where {N, T}
+# function revert(t::NTuple{N,V}) where {N, T, V<:AbstractArray{T}}
+function revert(t::V) where {V<:Tuple}
+
+    T = eltype(first(t))  # Type of the elements in the tuple
+    N = length(t)        # Number of elements in the tuple
+
     n = length(first(t))                     # Length of the vectors
     result = Vector{NTuple{N, T}}(undef, n)  # Preallocate result vector
 
