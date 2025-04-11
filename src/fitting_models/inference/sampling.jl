@@ -51,7 +51,7 @@ function sample_posterior!(
     end
 
     #Check whether a gradient can be calculated at init_params
-    gradients = LogDensityProblems.logdensity_and_gradient(LogDensityFunction(model; adtype=sampler.adtype), prior_params)[2]
+    gradients = LogDensityProblems.logdensity_and_gradient(LogDensityFunction(model; adtype=sampler.adtype), init_params)[2]
     if any(isinf.(gradients)) || any(isnan.(gradients))
         @warn """
         The initial parameters for the sampler return NaN or Inf gradients. 

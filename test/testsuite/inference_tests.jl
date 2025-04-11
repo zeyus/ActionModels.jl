@@ -58,39 +58,61 @@ using ActionModels, DataFrames
         grouping_cols = grouping_cols,
     )
 
-    ### Test sampling and data extraction ###
-    posterior_chains = sample_posterior!(model)
-    posterior_parameters = get_session_parameters!(model, :posterior)
-    summarize(posterior_parameters)
-    summarize(posterior_parameters, mean)
-    posterior_trajectories = get_state_trajectories!(model, ["input", "value"], :posterior)
-    summarize(posterior_trajectories)
-    summarize(posterior_trajectories, mean)
+    @testset "sampling and extracting results" begin
+        posterior_chains = sample_posterior!(model)
+        posterior_parameters = get_session_parameters!(model, :posterior)
+        summarize(posterior_parameters)
+        summarize(posterior_parameters, mean)
+        posterior_trajectories = get_state_trajectories!(model, ["input", "value"], :posterior)
+        summarize(posterior_trajectories)
+        summarize(posterior_trajectories, mean)
 
-    prior_chains = sample_prior!(model)
-    prior_parameters = get_session_parameters!(model, :prior)
-    summarize(prior_parameters)
-    prior_trajectories = get_state_trajectories!(model, ["input", "value"], :prior)
-    summarize(prior_trajectories)
+        prior_chains = sample_prior!(model)
+        prior_parameters = get_session_parameters!(model, :prior)
+        summarize(prior_parameters)
+        prior_trajectories = get_state_trajectories!(model, ["input", "value"], :prior)
+        summarize(prior_trajectories)
+    end
 
-    ### Test plotting functions ###
-    using StatsPlots
-    # plot(posterior_parameters)
-    # plot(posterior_parameters, session = "id:Hans.treatment:control")
-    # plot(posterior_trajectories)
-    # plot(posterior_trajectories, session = "id:Hans.treatment:control")
+    @testset "plotting results" begin
+        ### Test plotting functions ###
+        using StatsPlots
 
-    # plot(prior_parameters)
-    # plot(prior_parameters, session = "id:Hans.treatment:control")
-    # plot(prior_trajectories)
-    # plot(prior_trajectories, session = "id:Hans.treatment:control")
+        #Default Turing plots
+        plot(model.posterior.chains)
+        plot(model.prior.chains)
 
-    ### Test sampling with different init_params ###
-    posterior_chains = sample_posterior!(model, resample = true, init_params = nothing)
-    posterior_chains = sample_posterior!(model, resample = true, init_params = :MLE)
-    posterior_chains = sample_posterior!(model, resample = true, init_params = :MAP)
-    posterior_chains = sample_posterior!(model, resample = true, init_params = :sample_prior)
+        # plot(posterior_parameters)
+        # plot(posterior_parameters, session = "id:Hans.treatment:control")
+        # plot(posterior_trajectories)
+        # plot(posterior_trajectories, session = "id:Hans.treatment:control")
 
+        # plot(prior_parameters)
+        # plot(prior_parameters, session = "id:Hans.treatment:control")
+        # plot(prior_trajectories)
+        # plot(prior_trajectories, session = "id:Hans.treatment:control")
+    end
+    
+    @testset "sample_posterior! variations" begin
+
+        @testset "different init_params" begin
+            posterior_chains = sample_posterior!(model, resample = true, init_params = nothing)
+            posterior_chains = sample_posterior!(model, resample = true, init_params = :MLE)
+            posterior_chains = sample_posterior!(model, resample = true, init_params = :MAP)
+            posterior_chains = sample_posterior!(model, resample = true, init_params = :sample_prior)
+        end
+
+        @testset "save/resume" begin
+            #TODO:
+            # save_resume = SampleSaveResume(path = mktempdir())
+
+        end
+
+        @testset "parallel sampling" begin
+            #TODO:
+
+        end
+    end
 end
 
 
