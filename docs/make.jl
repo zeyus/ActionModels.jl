@@ -47,7 +47,7 @@ Literate.markdown(
     joinpath(julia_files_folder, "README.jl"),
     project_dir,
     execute = true,
-    flavor = Literate.DocumenterFlavor(),
+    flavor = Literate.CommonMarkFlavor(),
 )
 
 
