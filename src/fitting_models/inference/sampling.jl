@@ -1,6 +1,8 @@
 function sample_posterior!(
     modelfit::ModelFit,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial();
+    #Whether to display warnings
+    verbose::Bools = true,
     #Whether to resample the posterior
     resample::Bool = false,
     #Whether to use save_resume
@@ -51,21 +53,46 @@ function sample_posterior!(
     end
 
     #Check whether a gradient can be calculated at init_params
-    gradients = LogDensityProblems.logdensity_and_gradient(LogDensityFunction(model; adtype=sampler.adtype), init_params)[2]
-    if any(isinf.(gradients)) || any(isnan.(gradients))
-        @warn """
-        The initial parameters for the sampler return NaN or Inf gradients. 
-        The sampler will instead be initialized with Turing-default random values.
-        """
-        init_params = nothing
+    if !isnothing(init_params)
+        gradients = LogDensityProblems.logdensity_and_gradient(
+            LogDensityFunction(model; adtype = sampler.adtype),
+            init_params,
+        )[2]
+        if verbose && (any(isinf.(gradients)) || any(isnan.(gradients)))
+            @warn """
+            The initial parameters for the sampler return NaN or Inf gradients. 
+            The sampler will instead be initialized with Turing-default random values.
+            """
+            init_params = nothing
+        end
+
+        #TODO: should this happen also if init_params is nothing?
+        #Check if gradient agrees with ForwardDiff
+        forwarddiff_gradients = LogDensityProblems.logdensity_and_gradient(
+            LogDensityFunction(model; adtype = AutoForwardDiff()),
+            init_params,
+        )[2]
+        if verbose && gradients != forwarddiff_gradients
+            @warn """
+            The gradients calculated with the chosen autodifferentiation type does not agree with ForwardDiff.
+            This is likely due to a problem with the model. Take appropriate care.
+            """
+        end
     end
 
     #If save_resume is not activated
     if isnothing(save_resume)
 
         #Sample the posterior
-        chains =
-            sample(model, sampler, parallelization, n_samples, n_chains; init_params = init_params, sampler_kwargs...)
+        chains = sample(
+            model,
+            sampler,
+            parallelization,
+            n_samples,
+            n_chains;
+            init_params = init_params,
+            sampler_kwargs...,
+        )
     else
 
         #Sample with save_resume
@@ -76,7 +103,7 @@ function sample_posterior!(
             n_chains,
             parallelization,
             sampler;
-            init_params = init_params, 
+            init_params = init_params,
             sampler_kwargs...,
         )
     end
