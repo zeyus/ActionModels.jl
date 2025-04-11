@@ -1,13 +1,45 @@
 using Test
 using ActionModels
 
-@testset "simulate actions" begin
-
+@testset "simulation" begin
+    ### SETUP ###
     agent = premade_agent("binary_rescorla_wagner_softmax", verbose = false)
 
-    inputs = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+    @testset "give_inputs!" begin
 
-    actions = give_inputs!(agent, inputs)
+        inputs = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
 
-    @test length(actions) == length(inputs)
+        actions = give_inputs!(agent, inputs)
+
+        @test length(actions) == length(inputs)
+        
+    end
+
+    @testset "parameter and state API" begin
+        #Variations of get_states
+        get_states(agent)
+
+        get_states(agent, "value_probability")
+
+        get_states(agent, ["value_probability", "action"])
+
+        #Variations of get_parameters
+        get_parameters(agent)
+
+        get_parameters(agent, ("initial", "value"))
+
+        get_parameters(agent, [("initial", "value"), "learning_rate"])
+
+        #Variations of set_parameters
+        set_parameters!(agent, ("initial", "value"), 1)
+
+        set_parameters!(agent, Dict("learning_rate" => 3, "action_precision" => 0.5))
+
+        #Variations of get_history
+        get_history(agent, "value")
+
+        get_history(agent)
+
+        reset!(agent)
+    end
 end
