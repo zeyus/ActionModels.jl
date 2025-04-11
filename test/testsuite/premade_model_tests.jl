@@ -13,7 +13,7 @@ using ActionModels
         elseif ad_type == "AutoReverseDiff"
             AD = AutoReverseDiff()
         elseif ad_type == "AutoReverseDiff(true)"
-            AD = AutoReverseDiff(true)
+            AD = AutoReverseDiff(; compile = true)
         elseif ad_type == "AutoMooncake"
             AD = AutoMooncake(; config = nothing)
         end

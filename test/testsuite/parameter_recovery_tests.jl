@@ -1,6 +1,5 @@
 using Test
 using ActionModels
-using Distributed
 
 # @testset "parameter recovery" begin
 
