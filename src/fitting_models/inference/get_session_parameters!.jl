@@ -6,15 +6,14 @@ function get_session_parameters!(
 
     #Extract appropriate sample result
     if prior_or_posterior == :posterior
-        if isnothing(modelfit.posterior)
-            throw(
-                ArgumentError(
-                    "the posterior has not yet been sampled. Sample it with sample_posterior!()",
-                ),
-            )
-        else
-            sample_result = modelfit.posterior
+
+        if verbose && isnothing(modelfit.posterior)
+            @warn "Posterior has not yet been sampled. Sampling now with default settings. Use sample_posterior! to choose other settings."
         end
+
+        sample_posterior!(modelfit)
+
+        sample_result = modelfit.posterior
 
     elseif prior_or_posterior == :prior
 
@@ -25,6 +24,7 @@ function get_session_parameters!(
         sample_prior!(modelfit)
 
         sample_result = modelfit.prior
+        
     else
         @error "use only either :posterior or :prior as the second argument"
     end

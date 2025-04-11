@@ -1,6 +1,8 @@
 function sample_posterior!(
     modelfit::ModelFit,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial();
+    #Whether to resample the posterior
+    resample::Bool = false,
     #Whether to use save_resume
     save_resume::Union{SampleSaveResume,Nothing} = nothing,
     #Sampling configurations
@@ -12,6 +14,12 @@ function sample_posterior!(
     ),
     sampler_kwargs...,
 )
+
+    #If the posterior has already been sampled
+    if resample == false && !isnothing(modelfit.posterior)
+        #Do nothing
+        return modelfit.posterior.chains
+    end
 
     #Extract model
     model = modelfit.model
