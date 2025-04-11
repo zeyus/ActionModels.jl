@@ -1,7 +1,7 @@
 using Test
 using ActionModels, DataFrames
 
-@testset "fitting-API" begin
+@testset "inference API" begin
 
     ### SETUP ###
     #Generate dataset
@@ -58,8 +58,7 @@ using ActionModels, DataFrames
         grouping_cols = grouping_cols,
     )
 
-
-    ### TESTS ###
+    ### Test sampling and data extraction ###
     posterior_chains = sample_posterior!(model)
     posterior_parameters = get_session_parameters!(model, :posterior)
     summarize(posterior_parameters)
@@ -74,6 +73,7 @@ using ActionModels, DataFrames
     prior_trajectories = get_state_trajectories!(model, ["input", "value"], :prior)
     summarize(prior_trajectories)
 
+    ### Test plotting functions ###
     using StatsPlots
     # plot(posterior_parameters)
     # plot(posterior_parameters, session = "id:Hans.treatment:control")
@@ -84,6 +84,12 @@ using ActionModels, DataFrames
     # plot(prior_parameters, session = "id:Hans.treatment:control")
     # plot(prior_trajectories)
     # plot(prior_trajectories, session = "id:Hans.treatment:control")
+
+    ### Test sampling with different init_params ###
+    posterior_chains = sample_posterior!(model, resample = true, init_params = nothing)
+    posterior_chains = sample_posterior!(model, resample = true, init_params = :MLE)
+    posterior_chains = sample_posterior!(model, resample = true, init_params = :MAP)
+    posterior_chains = sample_posterior!(model, resample = true, init_params = :sample_prior)
 
 end
 
