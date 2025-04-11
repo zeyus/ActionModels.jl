@@ -59,6 +59,7 @@ using ActionModels, DataFrames
     )
 
     @testset "sampling and extracting results" begin
+        #Posterior
         posterior_chains = sample_posterior!(model)
         posterior_parameters = get_session_parameters!(model, :posterior)
         summarize(posterior_parameters)
@@ -67,6 +68,7 @@ using ActionModels, DataFrames
         summarize(posterior_trajectories)
         summarize(posterior_trajectories, mean)
 
+        #Prior
         prior_chains = sample_prior!(model)
         prior_parameters = get_session_parameters!(model, :prior)
         summarize(prior_parameters)
@@ -100,6 +102,12 @@ using ActionModels, DataFrames
             posterior_chains = sample_posterior!(model, resample = true, init_params = :MLE)
             posterior_chains = sample_posterior!(model, resample = true, init_params = :MAP)
             posterior_chains = sample_posterior!(model, resample = true, init_params = :sample_prior)
+        end
+
+        @testset "different AD backends" begin
+            for AD in [AutoForwardDiff(), AutoReverseDiff(), AutoReverseDiff(; compile=true), AutoMooncake()]
+                posterior_chains = sample_posterior!(model, resample = true, AD = AD)
+            end
         end
 
         @testset "save/resume" begin

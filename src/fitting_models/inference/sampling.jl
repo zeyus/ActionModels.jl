@@ -2,7 +2,7 @@ function sample_posterior!(
     modelfit::ModelFit,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial();
     #Whether to display warnings
-    verbose::Bools = true,
+    verbose::Bool = true,
     #Whether to resample the posterior
     resample::Bool = false,
     #Whether to use save_resume
@@ -72,7 +72,12 @@ function sample_posterior!(
             LogDensityFunction(model; adtype = AutoForwardDiff()),
             init_params,
         )[2]
-        if verbose && gradients != forwarddiff_gradients
+
+        if verbose && !isapprox(gradients, forwarddiff_gradients)
+
+            @show gradients
+            @show forwarddiff_gradients
+
             @warn """
             The gradients calculated with the chosen autodifferentiation type does not agree with ForwardDiff.
             This is likely due to a problem with the model. Take appropriate care.
