@@ -6,7 +6,7 @@ function sample_posterior!(
     #Whether to use save_resume
     save_resume::Union{SampleSaveResume,Nothing} = nothing,
     #Which way to choose initial parameters for the sampler
-    init_params::Union{Nothing,Symbol,Vector{Float64}} = nothing,
+    init_params::Union{Nothing,Symbol,Vector{Float64}} = :MAP,
     #Sampling configurations
     n_samples::Integer = 1000,
     n_chains::Integer = 2,
@@ -39,7 +39,7 @@ function sample_posterior!(
 
             #Draw a single initial sample from the prior
         elseif init_params == :sample_prior
-            init_params = Vector(sample(model, Prior(), 10).value[1, 1:end-1, 1])
+            init_params = DynamicPPL.VarInfo(model)[:]
 
         else
             throw(
@@ -50,7 +50,15 @@ function sample_posterior!(
         end
     end
 
-    #TODO: use init_params to set the initial parameters for the sampler
+    #Check whether a gradient can be calculated at init_params
+    gradients = LogDensityProblems.logdensity_and_gradient(LogDensityFunction(model; adtype=sampler.adtype), prior_params)[2]
+    if any(isinf.(gradients)) || any(isnan.(gradients))
+        @warn """
+        The initial parameters for the sampler return NaN or Inf gradients. 
+        The sampler will instead be initialized with Turing-default random values.
+        """
+        init_params = nothing
+    end
 
     #If save_resume is not activated
     if isnothing(save_resume)

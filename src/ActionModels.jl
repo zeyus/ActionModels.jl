@@ -13,7 +13,7 @@ using ProgressLogging #For progress bars
 using Distributed #For parameter recovery and other heavy functions
 using Logging #For hiding sample rejections
 @reexport using Distributions #Make distributions available to the user
-using Turing: DynamicPPL, AbstractMCMC, AutoForwardDiff, AutoReverseDiff, AutoMooncake
+using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 ## For defining action models ##
 export Agent, RejectParameters, update_states!
