@@ -1,3 +1,21 @@
+@recipe function f(
+    posterior_parameters::SessionParameters,
+    session_id::String;
+    prior_parameters::Union{SessionParameters,Nothing} = nothing,
+    parameters_to_plot::Union{Nothing, String, Vector{String}} = nothing,
+)
+
+    throw(ArgumentError("plotting estimated parameters for a single session is not yet implemented"))
+
+end
+
+
+#This can be the old standard plot with the distributions for each parameter
+
+
+
+
+
 # @userplot struct Plot_Parameters{T::ModelFit}
 #     args::T
 # end

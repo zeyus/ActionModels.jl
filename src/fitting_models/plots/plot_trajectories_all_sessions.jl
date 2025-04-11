@@ -1,3 +1,17 @@
+@recipe function f(
+    posterior_states::StateTrajectories;
+    prior_states::Union{StateTrajectories,Nothing} = nothing,
+    states_to_plot::Union{Nothing, String, Vector{String}} = nothing,
+)
+
+    throw(ArgumentError("plotting estimated state trajectories for all sessions is not yet implemented"))
+
+end
+
+
+# This should have the summarized (i.e. median) trajectories across time for all sessions, and with the median of them all plotted on top
+
+
 # @userplot struct Plot_Trajectories{
 #     T<:Tuple{
 #         AxisArrays.AxisArray{
