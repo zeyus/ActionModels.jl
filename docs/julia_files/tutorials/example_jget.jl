@@ -92,9 +92,9 @@ model = create_model(
 
 # AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
-# AD = AutoReverseDiff(; compile = true)
-import Mooncake;
-AD = AutoMooncake(; config = nothing);
+AD = AutoReverseDiff(; compile = true)
+# import Mooncake;
+# AD = AutoMooncake(; config = nothing);
 
 #Set samplings settings
 sampler = NUTS(-1, 0.65; adtype = AD)
@@ -152,9 +152,9 @@ model = create_model(
 
 # AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
-# AD = AutoReverseDiff(; compile = true)
-import Mooncake;
-AD = AutoMooncake(; config = nothing);
+AD = AutoReverseDiff(; compile = true)
+# import Mooncake;
+# AD = AutoMooncake(; config = nothing);
 
 #Set samplings settings
 sampler = NUTS(-1, 0.65; adtype = AD)

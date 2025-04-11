@@ -82,9 +82,9 @@ model = create_model(
     grouping_cols = [:subjID],
 )
 
-AD = AutoForwardDiff()
+# AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
-# AD = AutoReverseDiff(; compile = true)
+AD = AutoReverseDiff(; compile = true)
 # import Mooncake; AD = AutoMooncake(; config = nothing); 
 
 #Set samplings settings
@@ -169,9 +169,9 @@ model = create_model(
     grouping_cols = grouping_cols,
 )
 
-AD = AutoForwardDiff()
+# AD = AutoForwardDiff()
 # AD = AutoReverseDiff(; compile = false)
-# AD = AutoReverseDiff(; compile = true) 
+AD = AutoReverseDiff(; compile = true) 
 # import Mooncake; AD = AutoMooncake(; config = nothing);
 
 #Set samplings settings
