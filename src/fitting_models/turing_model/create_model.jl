@@ -235,8 +235,8 @@ function check_model(
         throw(ArgumentError("The action columns must be of type Vector{<:Real}"))
     end
 
-    # #Check whether there are NaN values in the action columns
-    # if any(isnan.(Matrix(data[!, action_cols])))
-    #     throw(ArgumentError("There are NaN values in the action columns"))
-    # end
+    #Check whether there are NaN values in the action columns
+    if any(isnan.(skipmissing(Matrix(data[!, action_cols]))))
+        throw(ArgumentError("There are NaN values in the action columns"))
+    end
 end
