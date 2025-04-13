@@ -62,7 +62,7 @@ end
 #Turing model for sampling all sessions for all parameters
 @model function independent_population_model(
     priors_per_parameter::T,
-    parameter_names::Vector{String},
+    parameter_names::Vector{Symbol},
 ) where {T<:Tuple}
 
     sampled_parameters = Tuple(
@@ -92,7 +92,7 @@ end
 function check_population_model(
     model_type::IndependentPopulationModel,
     agent::Agent,
-    prior::Dict{String,D},
+    prior::Dict{Symbol,D},
     data::DataFrame,
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},

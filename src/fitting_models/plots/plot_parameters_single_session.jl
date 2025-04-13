@@ -2,7 +2,7 @@
     posterior_parameters::SessionParameters,
     session_id::String;
     prior_parameters = nothing, #::Union{SessionParameters,Nothing}
-    parameters_to_plot = nothing, #::Union{Nothing, String, Vector{String}}
+    parameters_to_plot = nothing, #::Union{Nothing, Symbol, Vector{Symbol}}
 )
 
     throw(ArgumentError("plotting estimated parameters for a single session is not yet implemented"))

@@ -85,7 +85,7 @@ function create_model(
 
     #Initialize vector of sinlge regression models
     regression_models = Vector{DynamicPPL.Model}(undef, length(regression_formulas))
-    parameter_names = Vector{String}(undef, length(regression_formulas))
+    parameter_names = Vector{Symbol}(undef, length(regression_formulas))
 
     #For each formula in the regression formulas, and its corresponding prior and link function
     for (model_idx, (formula, prior, inv_link)) in

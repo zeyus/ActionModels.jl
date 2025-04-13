@@ -2,13 +2,13 @@
 ### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A STATISTICAL MODEL ###
 ###########################################################################################################
 function create_model(
-    agent::Agent,
+    action_model::ActionModel,
     population_model::DynamicPPL.Model,
     data::DataFrame;
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T3},
     grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
-    parameter_names::Vector{String},
+    parameter_names::Vector{Symbol},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
     population_model_type::AbstractPopulationModel = CustomPopulationModel(),
@@ -17,10 +17,7 @@ function create_model(
 
     ## SETUP ##
     #Create a copy of the agent to avoid changing the original 
-    agent_model = deepcopy(agent)
-
-    #Turn off saving the history of states
-    set_save_history!(agent_model, false)
+    agent_model = init_agent(action_model, save_history = false)
 
     ## Make sure columns are vectors of symbols ##
     if !(input_cols isa Vector)
@@ -164,7 +161,7 @@ end
 ####################################################################
 @model function full_model(
     agent_model::Agent,
-    parameter_names::Vector{String},
+    parameter_names::Vector{Symbol},
     population_model::DynamicPPL.Model,
     session_model::Function,
     session_ids::Vector{String},

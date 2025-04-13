@@ -1,5 +1,5 @@
 """
-    get_states(agent::Agent, target_state::Union{String,Tuple})
+    get_states(agent::Agent, target_state::Union{Symbol,Tuple})
 
 Get a single state from an agent. Returns a single value.
 
@@ -15,7 +15,7 @@ function get_states end
 
 
 ### Functions for getting a single state
-function get_states(agent::Agent, target_state::Union{String,Tuple})
+function get_states(agent::Agent, target_state::Union{Symbol,Tuple})
     #If the state is in the agent's states
     if target_state in keys(agent.states)
         #Extract it from the agent
@@ -29,7 +29,7 @@ function get_states(agent::Agent, target_state::Union{String,Tuple})
     return state
 end
 
-function get_states(substruct::Nothing, target_state::Union{String,Tuple})
+function get_states(substruct::Nothing, target_state::Union{Symbol,Tuple})
     throw(
         ArgumentError(
             "The specified state $state_name does not exist in the agent or in the substructure",

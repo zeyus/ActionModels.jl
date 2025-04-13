@@ -71,6 +71,7 @@ for premade_model_file in readdir(joinpath("src", "defining_models", "premade_mo
 end
 
 ### Functions for simulation ###
+include(joinpath("simulation", "structs.jl"))
 include(joinpath("simulation", "give_inputs.jl"))
 include(joinpath("simulation", "reset.jl"))
 include(joinpath("simulation", "get_and_set", "set_parameters.jl"))

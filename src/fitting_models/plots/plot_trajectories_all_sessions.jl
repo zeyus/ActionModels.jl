@@ -1,7 +1,7 @@
 @recipe function f(
     posterior_states::StateTrajectories;
     prior_states = nothing, #::Union{StateTrajectories,Nothing}
-    states_to_plot = nothing, #::Union{Nothing, String, Vector{String}}
+    states_to_plot = nothing, #::Union{Nothing, Symbol, Vector{Symbol}}
 )
 
     throw(ArgumentError("plotting estimated state trajectories for all sessions is not yet implemented"))

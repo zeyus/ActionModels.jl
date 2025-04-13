@@ -1,12 +1,12 @@
 """
-    plot_trajector(agent::Agent, target_state::Union{String,Tuple}; kwargs...)
+    plot_trajector(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs...)
 
 Plot trajectory of a state from an agent. Keyword arguments are passed to Plots.
 """
 function plot_trajectory end
 
 
-function plot_trajectory(agent::Agent, target_state::Union{String,Tuple}; kwargs...)
+function plot_trajectory(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs...)
 
     #If the target state is in the agent's history
     if target_state in keys(agent.history)
@@ -19,7 +19,7 @@ function plot_trajectory(agent::Agent, target_state::Union{String,Tuple}; kwargs
     end
 end
 
-function plot_trajectory!(agent::Agent, target_state::Union{String,Tuple}; kwargs...)
+function plot_trajectory!(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs...)
 
     #If the target state is in the agent's history
     if target_state in keys(agent.history)
@@ -33,12 +33,12 @@ function plot_trajectory!(agent::Agent, target_state::Union{String,Tuple}; kwarg
 end
 
 
-function plot_trajectory(substruct::Nothing, target_state::Union{String,Tuple}; kwargs...)
+function plot_trajectory(substruct::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
     throw(ArgumentError("The specified state does not exist in the agent's history"))
 end
 
 
-function plot_trajectory!(substruct::Nothing, target_state::Union{String,Tuple}; kwargs...)
+function plot_trajectory!(substruct::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
     throw(ArgumentError("The specified state does not exist in the history"))
 end
 

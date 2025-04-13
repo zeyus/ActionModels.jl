@@ -1,6 +1,6 @@
 ###Function for setting a single parameter ###
 """
-    set_parameters!(agent::Agent, target_param::Union{String,Tuple}, param_value::Any)
+    set_parameters!(agent::Agent, target_param::Union{Symbol,Tuple}, param_value::Any)
 
 Setting a single parameter value for an agent.
 
@@ -11,7 +11,7 @@ Set mutliple parameters values for an agent. Takes a dictionary of parameter nam
 function set_parameters! end
 
 ### Function for setting a single parameter ###
-function set_parameters!(agent::Agent, target_param::String, param_value::R) where R<:Real
+function set_parameters!(agent::Agent, target_param::Symbol, param_value::R) where R<:Real
 
     #If the parameter exists in the agent's parameters
     if target_param in keys(agent.parameters)
@@ -22,22 +22,6 @@ function set_parameters!(agent::Agent, target_param::String, param_value::R) whe
     elseif target_param in keys(agent.initial_state_parameters) 
         #Set it (it's not necessary to set it in the intial_states)
         agent.initial_state_parameters[target_param].value = param_value
-
-        #If the target param is a shared parameter
-    elseif target_param in keys(agent.parameter_groups)
-
-        #Extract shared parameter
-        parameter_group = agent.parameter_groups[target_param]
-
-        #Set the shared parameter value
-        setfield!(parameter_group, :value, param_value)
-
-        #For each derived parameter
-        for grouped_parameter in parameter_group.grouped_parameters
-
-            #Set that parameter
-            set_parameters!(agent, grouped_parameter, param_value)
-        end
     else
         #Otherwise, look in the substruct
         set_parameters!(agent.substruct, target_param, param_value)
@@ -46,7 +30,7 @@ end
 
 function set_parameters!(
     substruct::Nothing,
-    target_param::String,
+    target_param::Symbol,
     param_value::R,
 ) where R<:Real
     throw(
@@ -56,7 +40,7 @@ end
 
 
 ### Function for setting multiple parameters with a dict ###
-function set_parameters!(agent::Agent, parameter_values::Dict{String, R}) where R<:Real
+function set_parameters!(agent::Agent, parameter_values::Dict{Symbol, R}) where R<:Real
 
     #For each parameter to set
     for (param_key, param_value) in parameter_values
@@ -66,7 +50,7 @@ function set_parameters!(agent::Agent, parameter_values::Dict{String, R}) where 
 end
 
 ### Function for setting multiple parameters with a vector of parmaeter names, and a vector, subarray or tuple of parameter values ###
-function set_parameters!(agent::Agent, parameter_names::Vector{String}, parameter_values::P) where {R<:Real, P<:Union{Vector{R}, NTuple{N,R} where N}}
+function set_parameters!(agent::Agent, parameter_names::Vector{Symbol}, parameter_values::P) where {R<:Real, P<:Union{Vector{R}, NTuple{N,R} where N}}
 
     #For each parameter to set
     for (param_key, param_value) in zip(parameter_names, parameter_values)
@@ -75,3 +59,21 @@ function set_parameters!(agent::Agent, parameter_names::Vector{String}, paramete
     end
 end
 
+
+
+
+#     #If the target param is a shared parameter
+# elseif target_param in keys(agent.parameter_groups)
+
+#     #Extract shared parameter
+#     parameter_group = agent.parameter_groups[target_param]
+
+#     #Set the shared parameter value
+#     setfield!(parameter_group, :value, param_value)
+
+#     #For each derived parameter
+#     for grouped_parameter in parameter_group.grouped_parameters
+
+#         #Set that parameter
+#         set_parameters!(agent, grouped_parameter, param_value)
+#     end

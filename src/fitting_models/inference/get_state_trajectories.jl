@@ -1,12 +1,12 @@
 function get_state_trajectories!(
     modelfit::ModelFit,
-    target_states::Union{String,Vector{String}},
+    target_states::Union{Symbol,Vector{Symbol}},
     prior_or_posterior::Symbol = :posterior;
 )
 
     ### Setup ###
     #Make target states into a vector
-    if target_states isa String
+    if target_states isa Symbol
         target_states = [target_states]
     end
 

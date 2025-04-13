@@ -43,9 +43,9 @@ using ActionModels, DataFrames
     agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
 
     prior = Dict(
-        "learning_rate" => LogitNormal(),
-        "action_noise" => LogNormal(),
-        "initial_value" => Normal(),
+        :learning_rate => LogitNormal(),
+        :action_noise => LogNormal(),
+        :initial_value => Normal(),
     )
 
     #Create model
@@ -64,7 +64,7 @@ using ActionModels, DataFrames
         posterior_parameters = get_session_parameters!(model, :posterior)
         summarize(posterior_parameters)
         summarize(posterior_parameters, mean)
-        posterior_trajectories = get_state_trajectories!(model, ["input", "value"], :posterior)
+        posterior_trajectories = get_state_trajectories!(model, [:input, :value], :posterior)
         summarize(posterior_trajectories)
         summarize(posterior_trajectories, mean)
 
@@ -72,7 +72,7 @@ using ActionModels, DataFrames
         prior_chains = sample_prior!(model)
         prior_parameters = get_session_parameters!(model, :prior)
         summarize(prior_parameters)
-        prior_trajectories = get_state_trajectories!(model, ["input", "value"], :prior)
+        prior_trajectories = get_state_trajectories!(model, [:input, :value], :prior)
         summarize(prior_trajectories)
 
         #TODO: check that the posteriors are correct (i.e. that the order of learning rates is correct)

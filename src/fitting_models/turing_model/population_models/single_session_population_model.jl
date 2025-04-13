@@ -3,7 +3,7 @@
 #############################################
 function create_model(
     agent::Agent,
-    prior::Dict{String,D},
+    prior::Dict{Symbol,D},
     inputs::II,
     actions::AA;
     verbose::Bool = true,
@@ -66,7 +66,7 @@ end
 function check_population_model(
     model_type::SingleSessionPopulationModel,
     agent::Agent,
-    prior::Dict{String,D},
+    prior::Dict{Symbol,D},
     inputs::II,
     actions::AA,
     verbose::Bool;

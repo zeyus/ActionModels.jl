@@ -22,7 +22,7 @@ function create_session_model(
     #Create session model function with flattened actions included
     return @model function my_session_model(
         agent::Agent,
-        parameter_names::Vector{String},
+        parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::Vector{T},
         inputs_per_session::Vector{Vector{II}},
@@ -41,7 +41,7 @@ function create_session_model(
                         #Get the action probability (either a distribution, or a tuple of distributions) 
                         action_distribution = agent.action_model(agent, input)
                         #Save the action
-                        update_states!(agent, "action", action)
+                        update_states!(agent, :action, action)
 
                         #Return the action probability distribution
                         action_distribution
@@ -83,7 +83,7 @@ function create_session_model(
     #Create session model function
     return @model function my_session_model(
         agent::Agent,
-        parameter_names::Vector{String},
+        parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::Vector{T},
         inputs_per_session::Vector{Vector{II}},
@@ -132,7 +132,7 @@ end
 
 @model function sample_single_session(
     agent::Agent,
-    parameter_names::Vector{String},
+    parameter_names::Vector{Symbol},
     session_parameters::T,
     session_inputs::Vector{II},
     session_actions::Vector{AA},
@@ -163,7 +163,7 @@ end
     action ~ agent.action_model(agent, input)
 
     #Store the agent's action in the agent
-    update_states!(agent, "action", action)
+    update_states!(agent, :action, action)
 end
 
 #Turing submodel for sampling a simple timestep, with multiple actions
@@ -185,7 +185,7 @@ end
     )
 
     #Store the agent's action in the agent
-    update_states!(agent, "action", action)
+    update_states!(agent, :action, action)
 end
 
 #Turing subsubmodel for sampling one of the actions in the timesteo

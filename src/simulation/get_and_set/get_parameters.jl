@@ -1,5 +1,5 @@
 """
-    get_parameters(agent::Agent, target_param::Union{String,Tuple})
+    get_parameters(agent::Agent, target_param::Union{Symbol,Tuple})
 
 Get a single parameter from an agent. Returns a single value.
 
@@ -15,7 +15,7 @@ function get_parameters end
 
 
 ### Functions for getting a single param ###
-function get_parameters(agent::Agent, target_param::String)
+function get_parameters(agent::Agent, target_param::Symbol)
 
     #If the target parameter is in the agent's parameters
     if target_param in keys(agent.parameters)
@@ -40,7 +40,7 @@ function get_parameters(agent::Agent, target_param::String)
     return param
 end
 
-function get_parameters(substruct::Nothing, target_param::Union{String,Tuple})
+function get_parameters(substruct::Nothing, target_param::Union{Symbol,Tuple})
     throw(
         ArgumentError("The specified parameter $target_param does not exist in the agent"),
     )
@@ -49,7 +49,7 @@ end
 
 
 ### Functions for getting multiple parameters ###
-function get_parameters(agent::Agent, target_parameters::Vector{String})
+function get_parameters(agent::Agent, target_parameters::Vector{Symbol})
     #Initialize dict
     parameters = Dict()
 
@@ -81,19 +81,7 @@ function get_parameters(agent::Agent)
 
     #Combine all parameter keys into one
     target_parameters =
-        Vector{String}(vcat(parameter_keys, initial_state_parameter_keys, parameter_group_keys))
-
-    #If there are shared parameters
-    if length(parameter_group_keys) > 0
-        #Go through each shared parameter
-        for parameter_group in values(agent.parameter_groups)
-            #Remove derived parameters from the list
-            filter!(x -> x ∉ parameter_group.grouped_parameters, target_parameters)
-
-            #Filter the substruct parameter dictionary to remove parameters with keys that are derived parameters
-            filter!(x -> x[1] ∉ parameter_group.grouped_parameters, substruct_parameters)
-        end
-    end
+        Vector{Symbol}(vcat(parameter_keys, initial_state_parameter_keys, parameter_group_keys))
 
     #Get the agent's parameter values
     agent_parameters = get_parameters(agent, target_parameters)
@@ -108,3 +96,21 @@ function get_parameters(substruct::Nothing)
     #If the substruct is empty, return an empty list
     return Dict()
 end
+
+
+
+
+
+
+
+    # #If there are shared parameters
+    # if length(parameter_group_keys) > 0
+    #     #Go through each shared parameter
+    #     for parameter_group in values(agent.parameter_groups)
+    #         #Remove derived parameters from the list
+    #         filter!(x -> x ∉ parameter_group.grouped_parameters, target_parameters)
+
+    #         #Filter the substruct parameter dictionary to remove parameters with keys that are derived parameters
+    #         filter!(x -> x[1] ∉ parameter_group.grouped_parameters, substruct_parameters)
+    #     end
+    # end

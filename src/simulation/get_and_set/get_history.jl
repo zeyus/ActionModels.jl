@@ -1,5 +1,5 @@
 """
-    get_history(agent::Agent, target_state::Union{String,Tuple})
+    get_history(agent::Agent, target_state::Union{Symbol,Tuple})
 
 Get the history of a single state from an agent. Returns a vector.
 
@@ -15,7 +15,7 @@ function get_history end
 
 
 ### Functions for getting a single state ###
-function get_history(agent::Agent, target_state::Union{String,Tuple})
+function get_history(agent::Agent, target_state::Union{Symbol,Tuple})
     #If the state is in the agent's history
     if target_state in keys(agent.history)
         #Extract it
@@ -28,7 +28,7 @@ function get_history(agent::Agent, target_state::Union{String,Tuple})
     return state_history
 end
 
-function get_history(substruct::Nothing, target_state::Union{String,Tuple})
+function get_history(substruct::Nothing, target_state::Union{Symbol,Tuple})
     throw(
         ArgumentError(
             "The specified state $target_state does not exist in the agent's history",

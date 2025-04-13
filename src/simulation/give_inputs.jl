@@ -12,7 +12,7 @@ function single_input!(agent::Agent, input::Any)
     if length(action_distribution) == 1
 
         #Sample an action from the distribution
-        agent.states["action"] = rand(action_distribution)
+        agent.states[:action] = rand(action_distribution)
 
         #If multiple action distributions are returned
     else
@@ -26,14 +26,14 @@ function single_input!(agent::Agent, input::Any)
         end
 
         #And store it 
-        agent.states["action"] = actions
+        agent.states[:action] = actions
     end
 
     #Record the action
-    push!(agent.history["action"], agent.states["action"])
+    push!(agent.history[:action], agent.states[:action])
 
     #Return the action
-    return agent.states["action"]
+    return agent.states[:action]
 end
 
 
@@ -50,7 +50,7 @@ function give_inputs!(agent::Agent, input::Real)
     single_input!(agent, input)
 
     #Get the history of actions, without the initial state
-    actions = agent.history["action"][2:end]
+    actions = agent.history[:action][2:end]
 
     #Make into array, and return it
     return stack(actions, dims = 1)
@@ -70,7 +70,7 @@ function give_inputs!(
     end
 
     #Get the history of actions, without the initial state
-    actions = agent.history["action"][2:end]
+    actions = agent.history[:action][2:end]
 
     #Make into array, and return it
     return stack(actions, dims = 1)
@@ -87,7 +87,7 @@ function give_inputs!(agent::Agent, inputs::Matrix)
     end
 
     #Get the history of actions, without the initial state
-    actions = agent.history["action"][2:end]
+    actions = agent.history[:action][2:end]
 
     #Make into array, and return it
     return stack(actions, dims = 1)

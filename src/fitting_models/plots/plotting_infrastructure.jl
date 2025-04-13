@@ -16,7 +16,7 @@ end
 function plot_session_parameters(
     modelfit::ModelFit;
     session_id::Union{Nothing,String} = nothing,
-    parameters_to_plot::Union{Nothing,String,Vector{String}} = nothing,
+    parameters_to_plot::Union{Nothing,Symbol,Vector{Symbol}} = nothing,
     plot_prior::Bool = true,
     kwargs...,
 )
@@ -50,7 +50,7 @@ end
 function plot_state_trajectories(
     modelfit::ModelFit;
     session_id::Union{Nothing,String} = nothing,
-    states_to_plot::Union{Nothing,String,Vector{String}} = nothing,
+    states_to_plot::Union{Nothing,Symbol,Vector{Symbol}} = nothing,
     plot_prior::Bool = true,
     kwargs...,
 )

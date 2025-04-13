@@ -1,5 +1,5 @@
 ### Function which updates a single state, and saves it history
-function update_states!(agent::Agent, state::String, value)
+function update_states!(agent::Agent, state::Symbol, value)
     #Update state
     agent.states[state] = value
 

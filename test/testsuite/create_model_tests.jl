@@ -50,9 +50,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
 
     prior = Dict(
-        "learning_rate" => LogitNormal(),
-        "action_noise" => LogNormal(),
-        "initial_value" => Normal(),
+        :learning_rate => LogitNormal(),
+        :action_noise => LogNormal(),
+        :initial_value => Normal(),
     )
 
     #Go through each supported AD type
@@ -166,7 +166,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             function multi_action(agent, input::Real)
 
-                noise = agent.parameters["noise"]
+                noise = agent.parameters[:noise]
 
                 actiondist1 = Normal(input, noise)
                 actiondist2 = Normal(input, noise)
@@ -174,10 +174,10 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create agent
-            new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
+            new_agent = init_agent(multi_action, parameters = Dict(:noise => 1.0))
 
             #Set prior
-            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+            new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
@@ -197,7 +197,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             function multi_action(agent, input::Real)
 
-                noise = agent.parameters["noise"]
+                noise = agent.parameters[:noise]
 
                 actiondist1 = Normal(input, noise)
                 actiondist2 = Normal(input, noise)
@@ -205,10 +205,10 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create agent
-            new_agent = init_agent(multi_action, parameters = Dict("noise" => 1.0))
+            new_agent = init_agent(multi_action, parameters = Dict(:noise => 1.0))
 
             #Set prior
-            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+            new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create new dataframe where three actions = missing
             new_data = allowmissing(data, [:actions, :actions_2])
@@ -234,7 +234,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
 
-                noise = agent.parameters["noise"]
+                noise = agent.parameters[:noise]
 
                 input1, input2 = input
 
@@ -243,9 +243,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return actiondist
             end
             #Create agent
-            new_agent = init_agent(multi_input, parameters = Dict("noise" => 1.0))
+            new_agent = init_agent(multi_input, parameters = Dict(:noise => 1.0))
 
-            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+            new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
@@ -265,7 +265,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             function multi_input_action(agent, input::Tuple{R,R}) where {R<:Real}
 
-                noise = agent.parameters["noise"]
+                noise = agent.parameters[:noise]
 
                 input1, input2 = input
 
@@ -275,9 +275,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create agent
-            new_agent = init_agent(multi_input_action, parameters = Dict("noise" => 1.0))
+            new_agent = init_agent(multi_input_action, parameters = Dict(:noise => 1.0))
 
-            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+            new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
@@ -297,9 +297,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             function dependent_action(agent::Agent, input::R) where {R<:Real}
 
-                noise = agent.parameters["noise"]
+                noise = agent.parameters[:noise]
 
-                prev_action = agent.states["action"]
+                prev_action = agent.states[:action]
 
                 if ismissing(prev_action)
                     prev_action = 0.0
@@ -310,9 +310,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return actiondist
             end
             #Create agent
-            new_agent = init_agent(dependent_action, parameters = Dict("noise" => 1.0))
+            new_agent = init_agent(dependent_action, parameters = Dict(:noise => 1.0))
 
-            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+            new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
@@ -333,9 +333,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             function dependent_multi_action(agent::Agent, input::R) where {R<:Real}
 
-                noise = agent.parameters["noise"]
+                noise = agent.parameters[:noise]
 
-                prev_action = agent.states["action"]
+                prev_action = agent.states[:action]
 
                 if ismissing(prev_action)
                     prev_action = 0.0
@@ -348,9 +348,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
             #Create agent
             new_agent =
-                init_agent(dependent_multi_action, parameters = Dict("noise" => 1.0))
+                init_agent(dependent_multi_action, parameters = Dict(:noise => 1.0))
 
-            new_prior = Dict("noise" => LogNormal(0.0, 1.0))
+            new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(

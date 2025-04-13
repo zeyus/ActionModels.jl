@@ -9,11 +9,11 @@ States: "value", "value_probability", "action_probability".
 function binary_rescorla_wagner_softmax(agent::Agent, input::Union{Bool,Integer})
 
     #Read in parameters
-    learning_rate = agent.parameters["learning_rate"]
-    action_precision = agent.parameters["action_precision"]
+    learning_rate = agent.parameters[:learning_rate]
+    action_precision = agent.parameters[:action_precision]
 
     #Read in states
-    old_value = agent.states["value"]
+    old_value = agent.states[:value]
 
     #Sigmoid transform the value
     old_value_probability = 1 / (1 + exp(-old_value))
@@ -28,10 +28,10 @@ function binary_rescorla_wagner_softmax(agent::Agent, input::Union{Bool,Integer}
     action_distribution = Distributions.Bernoulli(action_probability)
 
     #Update states
-    update_states!(agent, "value", new_value)
-    update_states!(agent, "value_probability", 1 / (1 + exp(-new_value)))
-    update_states!(agent, "action_probability", action_probability)
-    update_states!(agent, "input", input)
+    update_states!(agent, ;value, new_value)
+    update_states!(agent, :value_probability, 1 / (1 + exp(-new_value)))
+    update_states!(agent, :action_probability, action_probability)
+    update_states!(agent, :input, input)
 
     return action_distribution
 end
@@ -53,7 +53,7 @@ function premade_binary_rescorla_wagner_softmax(config::Dict)
 
     #Default parameters and settings
     default_config =
-        Dict("learning_rate" => 0.1, "action_precision" => 1, "initial_value" => 0)
+        Dict(:learning_rate => 0.1, :action_precision => 1, :initial_value => 0)
     #Warn the user about used defaults and misspecified keys
     warn_premade_defaults(default_config, config)
 

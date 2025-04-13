@@ -62,7 +62,7 @@ end
 
 ### Structs for containing outputted session parameters and state trajectories ###
 struct SessionParameters
-    parameter_names::Vector{String}
+    parameter_names::Vector{Symbol}
     session_ids::Vector{String}
     value::AxisArray{
         Float64,
@@ -70,7 +70,7 @@ struct SessionParameters
         Array{Float64,4},
         Tuple{
             Axis{:session,Vector{String}},
-            Axis{:parameter,Vector{String}},
+            Axis{:parameter,Vector{Symbol}},
             Axis{:sample,UnitRange{Int64}},
             Axis{:chain,UnitRange{Int64}},
         },
@@ -78,7 +78,7 @@ struct SessionParameters
 end
 
 struct StateTrajectories{T}
-    state_names::Vector{String}
+    state_names::Vector{Symbol}
     session_ids::Vector{String}
     value::Vector{
         AxisArray{
@@ -100,7 +100,7 @@ end
 ### Structs for storing results of model fitting ###
 Base.@kwdef struct ModelFitInfo
     session_ids::Vector{String}
-    parameter_names::Vector{String}
+    parameter_names::Vector{Symbol}
 end
 
 Base.@kwdef mutable struct ModelFitResult
