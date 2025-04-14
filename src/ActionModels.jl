@@ -56,12 +56,16 @@ const tuple_separator = "."
 
 
 
-### Functions for model definition ###
+### Types ###
 include(joinpath("defining_models", "structs.jl"))
-include(joinpath("defining_models", "init_agent.jl"))
+include(joinpath("simulation", "structs.jl"))
+include(joinpath("fitting_models", "structs.jl"))
+
+
+### Functions for model definition ###
 include(joinpath("defining_models", "create_premade_model.jl"))
 include(joinpath("defining_models", "update_states.jl"))
-include(joinpath("defining_models", "agent_print.jl"))
+include(joinpath("defining_models", "prints.jl"))
 
 #Read in all premade models
 for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
@@ -71,9 +75,10 @@ for premade_model_file in readdir(joinpath("src", "defining_models", "premade_mo
 end
 
 ### Functions for simulation ###
-include(joinpath("simulation", "structs.jl"))
+include(joinpath("simulation", "init_agent.jl"))
 include(joinpath("simulation", "give_inputs.jl"))
 include(joinpath("simulation", "reset.jl"))
+include(joinpath("simulation", "prints.jl"))
 include(joinpath("simulation", "get_and_set", "set_parameters.jl"))
 include(joinpath("simulation", "get_and_set", "set_save_history.jl"))
 include(joinpath("simulation", "get_and_set", "get_parameters.jl"))
@@ -82,7 +87,6 @@ include(joinpath("simulation", "get_and_set", "get_history.jl"))
 include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 
 ### Functions for fitting models ###
-include(joinpath("fitting_models", "structs.jl"))
 include(joinpath("fitting_models", "prints.jl"))
 include(joinpath("fitting_models", "turing_model", "create_model.jl"))
 include(joinpath("fitting_models", "turing_model", "create_session_model.jl"))

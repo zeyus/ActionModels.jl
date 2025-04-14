@@ -4,8 +4,7 @@ function Base.show(io::IO, ::MIME"text/plain", agent::Agent)
     action_model_name = string(agent.action_model)
     n_parameters = length(get_parameters(agent))
     n_states = length(get_states(agent))
-    n_settings = length(agent.settings)
-    n_observations = length(agent.history["action"]) - 1
+    n_observations = length(agent.history[:action]) - 1
 
     ## Build the output string
     output = IOBuffer()
@@ -25,11 +24,6 @@ function Base.show(io::IO, ::MIME"text/plain", agent::Agent)
 
     # States
     println(output, "Number of states (including the action): $n_states")
-
-    # Settings
-    if n_settings > 0
-        println(output, "Number of settings: $n_settings")
-    end
 
     # Number of observations
     if n_observations > 0

@@ -104,13 +104,13 @@ struct ActionModel{T<:Union{AbstractSubstruct, Nothing}}
         for (parameter_name, parameter) in pairs(parameters)
             if parameter isa InitialStateParameter
                 #Check that the parameter sets a state that exists
-                state_name = parameter.state_name
+                state_name = parameter.state
                 if !(state_name in keys(states))
                     throw(ArgumentError("The initial state parameter $parameter_name sets the state $state_name, but this state has not been specified by the user."))
                 end
                 #Check that the type of the parameter matches the type of the state
                 state = states[state_name]
-                if parameter.type <: state.type
+                if !(parameter.type <: state.type)
                     throw(ArgumentError("The initial state parameter $parameter_name has type $(parameter.type), but sets the state $state_name which has type $(state.type)."))
                 end
             end

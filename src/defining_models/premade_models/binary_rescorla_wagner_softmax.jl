@@ -28,9 +28,7 @@ function binary_rescorla_wagner_softmax(agent::Agent, input::Union{Bool,Integer}
     action_distribution = Distributions.Bernoulli(action_probability)
 
     #Update states
-    update_states!(agent, ;value, new_value)
-    update_states!(agent, :value_probability, 1 / (1 + exp(-new_value)))
-    update_states!(agent, :action_probability, action_probability)
+    update_states!(agent, :value, new_value)
     update_states!(agent, :input, input)
 
     return action_distribution
@@ -53,32 +51,27 @@ function premade_binary_rescorla_wagner_softmax(config::Dict)
 
     #Default parameters and settings
     default_config =
-        Dict(:learning_rate => 0.1, :action_precision => 1, :initial_value => 0)
+        Dict(:learning_rate => 0.1, :action_precision => 1., :initial_value => 0.)
     #Warn the user about used defaults and misspecified keys
     warn_premade_defaults(default_config, config)
 
     #Merge to overwrite defaults
     config = merge(default_config, config)
 
-    ## Create agent 
-    action_model = binary_rescorla_wagner_softmax
-    parameters = Dict(
-        "learning_rate" => config["learning_rate"],
-        "action_precision" => config["action_precision"],
-        "intial_value" => InitialState("value", config["initial_value"]),
+    ## Create model 
+    parameters = (
+        learning_rate = Parameter(config[:learning_rate]),
+        action_precision = Parameter(config[:action_precision]),
+        intial_value = InitialStateParameter(config[:initial_value], :value),
     )
-    states = Dict(
-        "value" => missing,
-        "value_probability" => missing,
-        "action_probability" => missing,
-        "input" => missing,
+    states = (
+        value = State(Float64),
+        input = State(Float64),
     )
-    settings = Dict()
 
-    return init_agent(
-        action_model,
-        parameters = parameters,
-        states = states,
-        settings = settings,
+    return ActionModel(
+        binary_rescorla_wagner_softmax,
+        parameters,
+        states,
     )
 end
