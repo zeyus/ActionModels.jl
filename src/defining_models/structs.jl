@@ -2,15 +2,15 @@
 ### TYPE FOR INITIALIZING AN ACTIONMODEL ###
 ############################################
 
-#For creating parameters
+## For creating parameters ##
 abstract type AbstractParameter end
 
-struct Parameter{T<:Real} <: AbstractParameter 
+struct Parameter{T<:Real} <: AbstractParameter
     value::T
     type::Type{T}
 
     function Parameter(value::T) where {T<:Real}
-        new{T}(value, T)
+        new{Float64}(value, Float64)
     end
     function Parameter(value::T, ::Type{T}) where {T<:Real}
         new{T}(value, T)
@@ -44,7 +44,8 @@ struct InitialStateParameter{T<:Real} <: AbstractParameter
     end
 end
 
-#For creating states
+
+## For creating states ##
 abstract type AbstractState end
 struct State{T} <: AbstractState
     value::T
@@ -58,47 +59,126 @@ struct State{T} <: AbstractState
         new{T}(value, T)
     end
 
-    function State( ::Type{T}, value) where {T}
+    function State(::Type{T}, value) where {T}
         new{T}(value, T)
     end
 
     function State(::Type{T}) where {T}
-        new{Union{T, Missing}}(missing, Union{T, Missing})
+        new{Union{T,Missing}}(missing, Union{T,Missing})
     end
 end
 
-#Supertype for substructs
+## For creating observations ##
+abstract type AbstractObservation end
+struct Observation{T} <: AbstractObservation
+    type::Type{T}
+
+    function Observation(value::T) where {T}
+        new{T}(T)
+    end
+end
+
+
+## For creating actions ##
+abstract type AbstractAction end
+struct Action{T,TD} <: AbstractAction
+    type::Type{T}
+    distribution_type::Type{TD}
+
+    function Action(
+        action_type::Type{T} = Nothing,
+        distribution_type::Type{TD} = Nothing,
+    ) where {T<:Real,TD<:Distribution}
+
+        if T != get_action_type(TD)
+            @warn "Action type $T is different from the the action type $(get_action_type(TD)) which should match the distribution type $TD. Check that everything is in order"
+        end
+
+        new{T,TD}(action_type, distribution_type)
+    end
+
+    function Action(distribution_type::Type{TD}) where {TD<:Distribution}
+
+        action_type = get_action_type(TD)
+
+        T = action_type
+
+        new{T,TD}(action_type, distribution_type)
+    end
+
+    function Action(action_type::Type{T}) where {T<:Real}
+        new{T,Nothing}(action_type, Nothing)
+    end
+end
+
+function get_action_type(
+    action_dist_type::Type{T},
+) where {T<:Distribution{Univariate,Continuous}}
+    return Float64
+end
+function get_action_type(
+    action_dist_type::Type{T},
+) where {T<:Distribution{Multivariate,Continuous}}
+    return Array{Float64}
+end
+function get_action_type(
+    action_dist_type::Type{T},
+) where {T<:Distribution{Univariate,Discrete}}
+    return Int64
+end
+function get_action_type(
+    action_dist_type::Type{T},
+) where {T<:Distribution{Multivariate,Discrete}}
+    return Array{Int64}
+end
+function get_action_type(action_dist_type::Type{T}) where {T<:Distribution}
+    return Nothing
+end
+
+
+## Supertype for substructs ##
 abstract type AbstractSubstruct end
 
-#ActionModel struct
-struct ActionModel{T<:Union{AbstractSubstruct, Nothing}} 
+
+## ActionModel struct ##
+abstract type AbstractActionModel end
+struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
     action_model::Function
-    parameters::NamedTuple{parameter_names, <:Tuple{Vararg{<:AbstractParameter}}} where {parameter_names}
-    states::NamedTuple{state_names, <:Tuple{Vararg{<:AbstractState}}} where {state_names}
-    input_types::Union{Nothing,Tuple{Vararg{DataType}}}
-    action_types::Union{Nothing,Tuple{Vararg{DataType}}}
-    action_dist_types::Union{Nothing,Tuple{Vararg{DataType}}}
+    parameters::NamedTuple{
+        parameter_names,
+        <:Tuple{Vararg{<:AbstractParameter}},
+    } where {parameter_names}
+    states::NamedTuple{state_names,<:Tuple{Vararg{<:AbstractState}}} where {state_names}
+    observations::Union{
+        Nothing,
+        NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},
+    } where {observation_names}
+    actions::Union{
+        Nothing,
+        NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
+    } where {action_names}
     substruct::T
 
     function ActionModel(
         action_model::Function,
-        parameters::NamedTuple{parameter_names, <:Tuple{Vararg{<:AbstractParameter}}} where {parameter_names},
-        states::NamedTuple{state_names, <:Tuple{Vararg{<:AbstractState}}} where {state_names};
-        input_types::Union{Nothing,Tuple{Vararg{DataType}}} = nothing,
-        action_types::Union{Nothing,Tuple{Vararg{DataType}}} = nothing,
-        action_dist_types::Union{Nothing,Tuple{Vararg{DataType}}} = nothing,
-        substruct::T = nothing
-    ) where {T<:Union{AbstractSubstruct, Nothing}}
-    
-        #Check that action types are subtypes of real
-        if !isnothing(action_types) && !all(action_types .<: Real)
-            throw(ArgumentError("Not all specified action types $action_types are subtypes of Real."))
-        end
-
-        #Check that all action distribution types are subtypes of Distribution
-        if !isnothing(action_dist_types) && !all(action_dist_types .<: Distribution)
-            throw(ArgumentError("Not all specified action distribution types $action_dist_types are subtypes of Distribution."))
-        end
+        parameters::NamedTuple{
+            parameter_names,
+            <:Tuple{Vararg{<:AbstractParameter}},
+        } where {parameter_names},
+        states::NamedTuple{
+            state_names,
+            <:Tuple{Vararg{<:AbstractState}},
+        } where {state_names},
+        observations::Union{
+            Nothing,
+            NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},
+        } where {observation_names} = nothing,
+        actions::Union{
+            Nothing,
+            NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
+        } where {action_names} = nothing,
+        substruct::T = nothing,
+    ) where {T<:Union{AbstractSubstruct,Nothing}}
 
         #Check initial state parameters
         for (parameter_name, parameter) in pairs(parameters)
@@ -106,17 +186,32 @@ struct ActionModel{T<:Union{AbstractSubstruct, Nothing}}
                 #Check that the parameter sets a state that exists
                 state_name = parameter.state
                 if !(state_name in keys(states))
-                    throw(ArgumentError("The initial state parameter $parameter_name sets the state $state_name, but this state has not been specified by the user."))
+                    throw(
+                        ArgumentError(
+                            "The initial state parameter $parameter_name sets the state $state_name, but this state has not been specified by the user.",
+                        ),
+                    )
                 end
                 #Check that the type of the parameter matches the type of the state
                 state = states[state_name]
                 if !(parameter.type <: state.type)
-                    throw(ArgumentError("The initial state parameter $parameter_name has type $(parameter.type), but sets the state $state_name which has type $(state.type)."))
+                    throw(
+                        ArgumentError(
+                            "The initial state parameter $parameter_name has type $(parameter.type), but sets the state $state_name which has type $(state.type).",
+                        ),
+                    )
                 end
             end
         end
 
-    return new{T}(action_model, parameters, states, input_types, action_types, action_dist_types, substruct)
+        return new{T}(
+            action_model,
+            parameters,
+            states,
+            observations,
+            actions,
+            substruct,
+        )
     end
 end
 
@@ -132,3 +227,22 @@ Custom error type which will result in rejection of a sample
 struct RejectParameters <: Exception
     errortext::Any
 end
+
+
+
+
+
+
+
+
+
+ActionModel(
+    sum,
+    (a = Parameter(1.0), b = Parameter(2.0), c = Parameter(3.0)),
+    (x = State(1.0), y = State(2.0), z = State(3.0)),
+    (obs1 = Observation(1.0), obs2 = Observation(2.0)),
+    (action1 = Action(Bernoulli), action2 = Action(Normal)),
+    nothing,
+)
+
+Action(Categorical)

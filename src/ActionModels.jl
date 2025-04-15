@@ -16,11 +16,12 @@ using Logging #For hiding sample rejections
 using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 ## For defining action models ##
-export Agent, RejectParameters, update_states!
-export InitialState, ParameterGroup
+export Parameter, InitialStateParameter, State, Observation, Action, ActionModel
+export RejectParameters, update_states!
 export init_agent, premade_agent
 
 ## For simulation ##
+export Agent, init_agent,
 export give_inputs!, single_input!, reset!
 export get_history, get_states, get_parameters
 export set_parameters!, set_save_history! # set_states!()
