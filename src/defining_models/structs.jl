@@ -86,8 +86,8 @@ struct Action{T,TD} <: AbstractAction
     distribution_type::Type{TD}
 
     function Action(
-        action_type::Type{T} = Nothing,
-        distribution_type::Type{TD} = Nothing,
+        action_type::Type{T},
+        distribution_type::Type{TD},
     ) where {T<:Real,TD<:Distribution}
 
         if T != get_action_type(TD)
@@ -136,13 +136,13 @@ function get_action_type(action_dist_type::Type{T}) where {T<:Distribution}
 end
 
 
-## Supertype for substructs ##
-abstract type AbstractSubstruct end
+## Supertype for submodels ##
+abstract type AbstractSubmodel end
 
 
 ## ActionModel struct ##
 abstract type AbstractActionModel end
-struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
+struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
         parameter_names,
@@ -157,7 +157,7 @@ struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
         Nothing,
         NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
     } where {action_names}
-    substruct::T
+    submodel::T
 
     function ActionModel(
         action_model::Function,
@@ -177,8 +177,8 @@ struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
             Nothing,
             NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
         } where {action_names} = nothing,
-        substruct::T = nothing,
-    ) where {T<:Union{AbstractSubstruct,Nothing}}
+        submodel::T = nothing,
+    ) where {T<:Union{AbstractSubmodel,Nothing}}
 
         #Check initial state parameters
         for (parameter_name, parameter) in pairs(parameters)
@@ -210,7 +210,7 @@ struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
             states,
             observations,
             actions,
-            substruct,
+            submodel,
         )
     end
 end

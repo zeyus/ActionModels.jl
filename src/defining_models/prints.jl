@@ -28,7 +28,7 @@ function Base.show(io::IO, ::MIME"text/plain", action_model::ActionModel)
     end
 
     # submodel info
-    if !isnothing(agent.submodel)
+    if !isnothing(action_model.submodel)
         submodel_type = string(typeof(action_model.submodel))
         println(output, "submodel type: $submodel_type")
     end

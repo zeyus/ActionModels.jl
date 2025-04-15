@@ -21,7 +21,7 @@ export RejectParameters, update_states!
 export init_agent, premade_agent
 
 ## For simulation ##
-export Agent, init_agent,
+export Agent, init_agent
 export give_inputs!, single_input!, reset!
 export get_history, get_states, get_parameters
 export set_parameters!, set_save_history! # set_states!()
