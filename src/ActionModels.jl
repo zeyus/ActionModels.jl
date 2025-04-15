@@ -18,7 +18,6 @@ using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, Aut
 ## For defining action models ##
 export Parameter, InitialStateParameter, State, Observation, Action, ActionModel
 export RejectParameters, update_states!
-export init_agent, premade_agent
 
 ## For simulation ##
 export Agent, init_agent
@@ -37,24 +36,11 @@ export bounded_exp, bounded_logistic
 export @formula
 
 
-## Load premade agents ##
-function __init__()
-    # Only if not precompiling
-    if ccall(:jl_generating_output, Cint, ()) == 0
-        premade_agents["binary_rescorla_wagner_softmax"] =
-            premade_binary_rescorla_wagner_softmax
-        premade_agents["continuous_rescorla_wagner_gaussian"] =
-            premade_continuous_rescorla_wagner_gaussian
-    end
-end
-
 
 ## Constants for creating ids and names consistently ##
 const id_separator = "."
 const id_column_separator = ":"
 const tuple_separator = "."
-
-
 
 
 ### Types ###
@@ -64,10 +50,8 @@ include(joinpath("fitting_models", "structs.jl"))
 
 
 ### Functions for model definition ###
-include(joinpath("defining_models", "create_premade_model.jl"))
 include(joinpath("defining_models", "update_states.jl"))
 include(joinpath("defining_models", "prints.jl"))
-
 #Read in all premade models
 for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
     if endswith(premade_model_file, ".jl")

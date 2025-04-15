@@ -1,24 +1,77 @@
-# using ActionModels
-# using Distributions
+using ActionModels, DataFrames
 
-# agent = premade_agent("binary_rescorla_wagner_softmax")
+## Define model ##
+action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
-# inputs = [1, 0, 1]
+action_model.parameters
 
-# actions = give_inputs!(agent, inputs)
+## Simulate with agent ##
+agent = init_agent(action_model)
+
+give_inputs!(agent, [1.,0,0,1])
+
+get_parameters(agent)
+set_parameters!(agent, :learning_rate, 0.2)
+set_parameters!(agent, :initial_value, 0.2)
+get_parameters(agent)
+
+reset!(agent)
+
+get_states(agent)
+
+## Fit model ##
+#Generate dataset
+data = DataFrame(
+    inputs = repeat([1., 1, 1, 2, 2, 2], 6),
+    actions = vcat(
+        [0, 0.2, 0.3, 0.4, 0.5, 0.6],
+        [0, 0.5, 0.8, 1, 1.5, 1.8],
+        [0, 2, 0.5, 4, 5, 3],
+        [0, 0.1, 0.15, 0.2, 0.25, 0.3],
+        [0, 0.2, 0.4, 0.7, 1.0, 1.1],
+        [0, 2, 0.5, 4, 5, 3],
+    ),
+    age = vcat(
+        repeat([20], 6),
+        repeat([24], 6),
+        repeat([28], 6),
+        repeat([20], 6),
+        repeat([24], 6),
+        repeat([28], 6),
+    ),
+    id = vcat(
+        repeat(["Hans"], 6),
+        repeat(["Georg"], 6),
+        repeat(["Jørgen"], 6),
+        repeat(["Hans"], 6),
+        repeat(["Georg"], 6),
+        repeat(["Jørgen"], 6),
+    ),
+    treatment = vcat(repeat(["control"], 18), repeat(["treatment"], 18)),
+)
+
+#Define input and action cols
+input_cols = [:inputs]
+action_cols = [:actions]
+grouping_cols = [:id, :treatment]
 
 
+#Create and fit model
+prior = Dict(
+        :learning_rate => LogitNormal(),
+        :action_noise => LogNormal(),
+        :initial_value => Normal(),
+    )
 
-# param_priors = Dict("learning_rate" => Uniform(0, 1))
+#Create model
+model = create_model(
+    action_model,
+    prior,
+    data,
+    input_cols = input_cols,
+    action_cols = action_cols,
+    grouping_cols = grouping_cols,
+)
 
-# chains = fit_model(
-#     agent,
-#     param_priors,
-#     inputs,
-#     actions,
-#     n_chains = 2,
-#     n_iterations = 10,
-#     n_cores = 2,
-# )
-
-# get_posteriors(chains)
+sample_posterior!(model)
+get_session_parameters!(model, :posterior)

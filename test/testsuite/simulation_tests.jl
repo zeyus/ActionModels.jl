@@ -3,7 +3,9 @@ using ActionModels
 
 @testset "simulation" begin
     ### SETUP ###
-    agent = premade_agent("binary_rescorla_wagner_softmax", verbose = false)
+    action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
+
+    agent = init_agent(action_model)
 
     @testset "give_inputs!" begin
 

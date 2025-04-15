@@ -10,8 +10,13 @@ function Base.show(io::IO, ::MIME"text/plain", action_model::ActionModel)
     n_parameters = length(action_model.parameters)
     println(output, "Number of parameters: $n_parameters")
 
-    n_states = length(action_model.states)
+    if !isnothing(action_model.states)
+        n_states = length(action_model.states)
+    else
+        n_states = 0
+    end
     println(output, "Number of states: $n_states")
+    
 
     if !isnothing(action_model.observations)
         n_observations = length(action_model.observations)

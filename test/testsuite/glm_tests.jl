@@ -41,8 +41,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     action_cols = [:actions]
     grouping_cols = [:id, :treatment]
 
-    #Create agent
-    agent = premade_agent("continuous_rescorla_wagner_gaussian")
+    #Create action model
+    action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
 
     #Go through each supported AD type
@@ -69,7 +69,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "intercept only ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 @formula(learning_rate ~ 1),
                 data;
                 action_cols = action_cols,
@@ -82,7 +82,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         end
         @testset "intercept + random effect only ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 @formula(learning_rate ~ 1 + (1 | id)),
                 data;
                 action_cols = action_cols,
@@ -96,7 +96,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         @testset "THIS IS WRONG: MISSING IMPLICIT INTERCEPT fixed effect only ($ad_type)" begin
             #TODO: fix this
             # model = create_model(
-            #     agent,
+            #     action_model,
             #     @formula(learning_rate ~ age),
             #     data;
             #     action_cols = action_cols,
@@ -109,7 +109,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "fixed effect and random intercept by id ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 @formula(learning_rate ~ age + (1 | id)),
                 data;
                 action_cols = action_cols,
@@ -122,7 +122,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "fixed effect and random intercept by id and treatment ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 @formula(learning_rate ~ age + (1 | id) + (1 | treatment)),
                 data;
                 action_cols = action_cols,
@@ -135,7 +135,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 @formula(learning_rate ~ age + (1 + age | treatment)),
                 data;
                 action_cols = action_cols,
@@ -148,7 +148,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 @formula(learning_rate ~ age + (1 + age | treatment) + (1 | id)),
                 data;
                 action_cols = action_cols,
@@ -163,7 +163,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             #TODO: fix this
             
             # model = create_model(
-            #     agent,
+            #     action_model,
             #     @formula(learning_rate ~ age + (1 | id) + (1 + age | treatment)),
             #     data;
             #     action_cols = action_cols,
@@ -176,7 +176,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "multiple formulas ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 [
                     @formula(learning_rate ~ age + (1 | id)),
                     @formula(action_noise ~ age + (1 | id)),
@@ -193,7 +193,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "manual prior specification ($ad_type)" begin
             model = create_model(
-                agent,
+                action_model,
                 [
                     @formula(learning_rate ~ age + (1 + age | treatment) + (1 | id)),
                     @formula(action_noise ~ age + (1 | id)),

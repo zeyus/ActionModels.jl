@@ -148,7 +148,10 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
         parameter_names,
         <:Tuple{Vararg{<:AbstractParameter}},
     } where {parameter_names}
-    states::NamedTuple{state_names,<:Tuple{Vararg{<:AbstractState}}} where {state_names}
+    states::Union{
+        Nothing,
+        NamedTuple{state_names,<:Tuple{Vararg{<:AbstractState}}},
+    } where {state_names}
     observations::Union{
         Nothing,
         NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},
@@ -165,10 +168,10 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
             parameter_names,
             <:Tuple{Vararg{<:AbstractParameter}},
         } where {parameter_names},
-        states::Union{Nothing,NamedTuple{
-            state_names,
-            <:Tuple{Vararg{<:AbstractState}},
-        }} where {state_names} = nothing,
+        states::Union{
+            Nothing,
+            NamedTuple{state_names,<:Tuple{Vararg{<:AbstractState}}},
+        } where {state_names} = nothing,
         observations::Union{
             Nothing,
             NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},
@@ -204,14 +207,7 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
             end
         end
 
-        return new{T}(
-            action_model,
-            parameters,
-            states,
-            observations,
-            actions,
-            submodel,
-        )
+        return new{T}(action_model, parameters, states, observations, actions, submodel)
     end
 end
 
@@ -227,3 +223,5 @@ Custom error type which will result in rejection of a sample
 struct RejectParameters <: Exception
     errortext::Any
 end
+
+abstract type AbstractPremadeModel end

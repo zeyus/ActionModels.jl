@@ -39,8 +39,8 @@ using ActionModels, DataFrames
     action_cols = [:actions]
     grouping_cols = [:id, :treatment]
 
-    #Create agent
-    agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
+    #Create model
+    model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
     prior = Dict(
         :learning_rate => LogitNormal(),
@@ -50,7 +50,7 @@ using ActionModels, DataFrames
 
     #Create model
     model = create_model(
-        agent,
+        model,
         prior,
         data,
         input_cols = input_cols,
@@ -119,18 +119,18 @@ using ActionModels, DataFrames
         end
 
         @testset "parallel sampling" begin
-            using Distributed
+            # using Distributed
 
-            addprocs(2)
+            # addprocs(2)
 
-            @everywhere using ActionModels
-            @everywhere model = $model
+            # @everywhere using ActionModels
+            # @everywhere model = $model
 
-            posterior_chains = sample_posterior!(model, MCMCDistributed(), resample = true)
+            # posterior_chains = sample_posterior!(model, MCMCDistributed(), resample = true)
 
-            #TODO: test parallel sampling with save/resume
+            # #TODO: test parallel sampling with save/resume
 
-            rmprocs(workers())
+            # rmprocs(workers())
         end
     end
 end

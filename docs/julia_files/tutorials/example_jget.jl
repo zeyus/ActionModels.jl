@@ -1,7 +1,3 @@
-docs_path = joinpath(@__DIR__, "..", "..")
-using Pkg
-Pkg.activate(docs_path)
-
 using ActionModels
 using Turing, LogExpFunctions
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
@@ -52,8 +48,6 @@ JGET_data = combine(
 )
 disallowmissing!(JGET_data, [:pdi_total])
 
-#Normalise inputs and responses
-#TODO: 
 
 if false
     #subset the data
@@ -65,16 +59,16 @@ end
 ### GAUSSIAN RANDOM ###
 function gaussian_choice(agent::Agent, input::T) where {T<:Real}
 
-    action_noise = agent.parameters["action_noise"]
-    mean = agent.parameters["mean"]
+    action_noise = agent.parameters[:action_noise]
+    mean = agent.parameters[:mean]
 
     return Normal(mean, action_noise)
 end
 
-agent = init_agent(gaussian_choice, parameters = Dict("action_noise" => 1, "mean" => 50))
+action_model = ActionModel(gaussian_choice, parameters = (action_noise = Parameter(1), mean = Parameter(50)))
 
 model = create_model(
-    agent,
+    action_model,
     [
         @formula(mean ~ 1 + session + pdi_total + (1 | ID)),
         @formula(action_noise ~ 1 + session + pdi_total + (1 | ID))
@@ -105,34 +99,10 @@ samples = sample(model, sampler, n_iterations)
 
 
 ### RESCORLA-WAGNER ###
-function rescorla_wagner(agent::Agent, input::T) where {T<:Real}
-
-    learning_rate = agent.parameters["learning_rate"]
-    action_noise = agent.parameters["action_noise"]
-
-    expected_value = agent.states["value"]
-
-    action_probability = Normal(expected_value, action_noise)
-
-    new_expected_value = expected_value + learning_rate * (input - expected_value)
-
-    update_states!(agent, "value", new_expected_value)
-
-    return action_probability
-end
-
-agent = init_agent(
-    rescorla_wagner,
-    parameters = Dict(
-        "learning_rate" => 0.2,
-        "action_noise" => 5,
-        "initial_value" => InitialState("value", 50),
-    ),
-    states = Dict("value" => 50),
-)
+action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
 model = create_model(
-    agent,
+    action_model,
     [
         @formula(learning_rate ~ 1 + session + pdi_total + (1 | ID)),
         @formula(action_noise ~ 1 + session + pdi_total + (1 | ID)),

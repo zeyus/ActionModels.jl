@@ -46,8 +46,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     action_cols = [:actions]
     grouping_cols = [:id, :treatment]
 
-    #Create agent
-    agent = premade_agent("continuous_rescorla_wagner_gaussian", verbose = false)
+    #Create action_model
+    action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
     prior = Dict(
         :learning_rate => LogitNormal(),
@@ -76,13 +76,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         sampler = NUTS(-1, 0.65; adtype = AD)
 
         ### TESTING MODEL TYPES ###
-        @testset "single agent ($ad_type)" begin
+        @testset "single session ($ad_type)" begin
             #Extract inputs and actions from data
             inputs = data[!, :inputs]
             actions = data[!, :actions]
 
             #Create model
-            model = create_model(agent, prior, inputs, actions)
+            model = create_model(action_model, prior, inputs, actions)
 
             #Fit model
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
@@ -91,7 +91,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         @testset "simple statistical model ($ad_type)" begin
             #Create model
             model = create_model(
-                agent,
+                action_model,
                 prior,
                 data,
                 input_cols = input_cols,
@@ -112,7 +112,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         @testset "no grouping cols ($ad_type)" begin
             #Create model
             model = create_model(
-                agent,
+                action_model,
                 prior,
                 data,
                 input_cols = input_cols,
@@ -128,7 +128,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             #Create model
             model = create_model(
-                agent,
+                action_model,
                 prior,
                 data,
                 input_cols = input_cols,
@@ -149,7 +149,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             #Create model
             model = create_model(
-                agent,
+                action_model,
                 prior,
                 new_data,
                 input_cols = input_cols,
@@ -275,7 +275,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 return (actiondist1, actiondist2)
             end
-            #Create agent
+            #Create action_model
             new_model = ActionModel(multi_input_action, parameters = (;noise = Parameter(1.0, Real)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))

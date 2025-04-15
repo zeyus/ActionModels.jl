@@ -1,7 +1,3 @@
-docs_path = joinpath(@__DIR__, "..", "..")
-using Pkg
-Pkg.activate(docs_path)
-
 using ActionModels
 using Turing, LogExpFunctions
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
@@ -56,7 +52,7 @@ function categorical_random(agent::Agent, input::Tuple{Int64,Float64})
 
     deck, reward = input
 
-    inv_temperature = exp(agent.parameters["inv_temperature"])
+    inv_temperature = exp(agent.parameters[:inv_temperature])
 
     #Set the probability 
     base_probs = [0.1, 0.4, 0.1, 0.1]
@@ -67,13 +63,17 @@ function categorical_random(agent::Agent, input::Tuple{Int64,Float64})
     return Categorical(action_probabilities)
 end
 
-agent = init_agent(categorical_random, parameters = Dict("inv_temperature" => 1))
+action_model = ActionModel(
+    categorical_random,
+    parameters = (; inv_temperature = Parameter(1)),
+    observations = (deck = Observation(Int64), reward = Observation(Float64)),
+    actions = (; deck = Action(Categorical)),
+)
 
 
 model = create_model(
-    agent,
+    action_model,
     @formula(inv_temperature ~ clinical_group + (1 | subjID)),
-    # @formula(temperature ~ 1),
     ahn_data,
     # priors = RegressionPrior(β = [Normal(0, 0.1)]),
     inv_links = exp,
@@ -104,12 +104,12 @@ function pvl_delta(agent::Agent, input::Tuple{Int64,Float64})
 
     deck, reward = input
 
-    learning_rate = agent.parameters["learning_rate"]
-    reward_sensitivity = agent.parameters["reward_sensitivity"]
-    loss_aversion = agent.parameters["loss_aversion"]
-    inv_temperature = agent.parameters["inv_temperature"]
+    learning_rate = agent.parameters[:learning_rate]
+    reward_sensitivity = agent.parameters[:reward_sensitivity]
+    loss_aversion = agent.parameters[:loss_aversion]
+    inv_temperature = agent.parameters[:inv_temperature]
 
-    expected_value = agent.states["expected_value"]
+    expected_value = agent.states[:expected_value]
 
     #Get action probabilities by softmaxing expected values for each deck
     action_probabilities = softmax(expected_value * inv_temperature)
@@ -131,25 +131,25 @@ function pvl_delta(agent::Agent, input::Tuple{Int64,Float64})
         expected_value[deck_idx] + learning_rate * prediction_error * (deck == deck_idx) for deck_idx = 1:4
     ]
 
-    update_states!(agent, "expected_value", new_expected_value)
+    update_states!(agent, :expected_value, new_expected_value)
 
     return Categorical(action_probabilities)
 end
 
-agent = init_agent(
+action_model = ActionModel(
     pvl_delta,
-    parameters = Dict(
-        "learning_rate" => 0.1,
-        "reward_sensitivity" => 0.5,
-        "inv_temperature" => 1,
-        "loss_aversion" => 1,
+    parameters = (
+        learning_rate = Parameter(0.1),
+        reward_sensitivity = Parameter(0.5),
+        inv_temperature = Parameter(1),
+        loss_aversion = Parameter(1),
     ),
-    states = Dict("expected_value" => zeros(Float64, 4)),
+    states = (;expected_value = State(zeros(Float64, 4))), #TODO: Fix this
 )
 
 
 model = create_model(
-    agent,
+    action_model,
     [
         @formula(learning_rate ~ clinical_group + (1 | subjID)),
         @formula(reward_sensitivity ~ clinical_group + (1 | subjID)),
