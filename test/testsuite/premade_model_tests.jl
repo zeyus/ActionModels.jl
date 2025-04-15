@@ -2,6 +2,9 @@ using Test
 
 using ActionModels
 
+ActionModels_path = dirname(dirname(pathof(ActionModels)))
+test_path = joinpath(ActionModels_path, "test")
+
 @testset "premade models" begin
 
     for ad_type in

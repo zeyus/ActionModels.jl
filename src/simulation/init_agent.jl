@@ -31,8 +31,10 @@ function init_agent(
     end
 
     ##Add states
-    for (state_key, state_value) in pairs(action_model.states)
-        agent.states[state_key] = state_value.value
+    if !isnothing(action_model.states)
+        for (state_key, state_value) in pairs(action_model.states)
+            agent.states[state_key] = state_value.value
+        end
     end
 
     #If an action state was not specified

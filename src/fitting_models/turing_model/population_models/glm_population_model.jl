@@ -151,7 +151,7 @@ function create_model(
             linear_model(X, ranef_info, inv_link = inv_link, prior = internal_prior)
 
         #Store the parameter name from the formula
-        parameter_names[model_idx] = string(formula.lhs)
+        parameter_names[model_idx] = Symbol(formula.lhs)
     end
 
     #Create the combined regression statistical model

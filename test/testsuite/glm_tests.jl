@@ -9,7 +9,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     #Generate dataset
     data = DataFrame(
         input = repeat([1, 1, 1, 2, 2, 2], 6),
-        actions = vcat(
+        action = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],
             [0, 2, 0.5, 4, 5, 3],
@@ -37,8 +37,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     )
 
     #Define input and action cols
-    input_cols = [:inputs]
-    action_cols = [:actions]
+    input_cols = [:input]
+    action_cols = [:action]
     grouping_cols = [:id, :treatment]
 
     #Create action model
@@ -77,7 +77,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
 
         end
         @testset "intercept + random effect only ($ad_type)" begin
@@ -90,7 +90,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "THIS IS WRONG: MISSING IMPLICIT INTERCEPT fixed effect only ($ad_type)" begin
@@ -117,7 +117,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "fixed effect and random intercept by id and treatment ($ad_type)" begin
@@ -130,7 +130,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
@@ -143,7 +143,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
@@ -156,7 +156,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "THIS ERRORS: order of random effects reversed ($ad_type)" begin
@@ -188,7 +188,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "manual prior specification ($ad_type)" begin
@@ -212,7 +212,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model, sampler, n_iterations; sampling_kwargs...)
+            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
     end
 end

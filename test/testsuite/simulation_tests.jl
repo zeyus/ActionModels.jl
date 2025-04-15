@@ -21,24 +21,24 @@ using ActionModels
         #Variations of get_states
         get_states(agent)
 
-        get_states(agent, :value_probability)
+        get_states(agent, :value)
 
-        get_states(agent, [:value_probability, :action])
+        get_states(agent, [:value, :action])
 
         #Variations of get_parameters
         get_parameters(agent)
 
-        get_parameters(agent, ("initial", "value"))
+        get_parameters(agent, :initial_value)
 
-        get_parameters(agent, [("initial", "value"), "learning_rate"])
+        get_parameters(agent, [:initial_value, :learning_rate])
 
         #Variations of set_parameters
-        set_parameters!(agent, ("initial", "value"), 1)
+        set_parameters!(agent, :initial_value, 1)
 
-        set_parameters!(agent, Dict("learning_rate" => 3, "action_precision" => 0.5))
+        set_parameters!(agent, Dict(:learning_rate => 3, :action_noise => 0.5))
 
         #Variations of get_history
-        get_history(agent, "value")
+        get_history(agent, :value)
 
         get_history(agent)
 
