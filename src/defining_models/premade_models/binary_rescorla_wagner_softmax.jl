@@ -60,18 +60,26 @@ function premade_binary_rescorla_wagner_softmax(config::Dict)
 
     ## Create model 
     parameters = (
-        learning_rate = Parameter(config[:learning_rate]),
-        action_precision = Parameter(config[:action_precision]),
-        intial_value = InitialStateParameter(config[:initial_value], :value),
+        learning_rate = Parameter(config[:learning_rate], Real),
+        action_precision = Parameter(config[:action_precision], Real),
+        intial_value = InitialStateParameter(config[:initial_value], :value, Real),
     )
     states = (
-        value = State(Float64),
-        input = State(Float64),
+        value = State(Real),
+        input = State(Real),
+    )
+    observations = (;
+        input = Observation(Bool)
+    )
+    actions = (;
+        report = Action(Bernoulli)
     )
 
     return ActionModel(
         binary_rescorla_wagner_softmax,
-        parameters,
-        states,
+        parameters = parameters,
+        states = states,
+        observations = observations,
+        actions = actions,
     )
 end

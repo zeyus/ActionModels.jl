@@ -160,15 +160,15 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
     submodel::T
 
     function ActionModel(
-        action_model::Function,
+        action_model::Function;
         parameters::NamedTuple{
             parameter_names,
             <:Tuple{Vararg{<:AbstractParameter}},
         } where {parameter_names},
-        states::NamedTuple{
+        states::Union{Nothing,NamedTuple{
             state_names,
             <:Tuple{Vararg{<:AbstractState}},
-        } where {state_names},
+        }} where {state_names} = nothing,
         observations::Union{
             Nothing,
             NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},

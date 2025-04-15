@@ -173,15 +173,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 return (actiondist1, actiondist2)
             end
-            #Create agent
-            new_agent = init_agent(multi_action, parameters = Dict(:noise => 1.0))
+            #Create model
+            new_model =
+                ActionModel(multi_action, parameters = (; noise = Parameter(1.0, Real)))
 
             #Set prior
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
-                new_agent,
+                new_model,
                 new_prior,
                 data,
                 input_cols = input_cols,
@@ -204,8 +205,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 return (actiondist1, actiondist2)
             end
-            #Create agent
-            new_agent = init_agent(multi_action, parameters = Dict(:noise => 1.0))
+            #Create model
+            new_model = ActionModel(multi_action, parameters = (;noise = Parameter(1.0, Real)))
 
             #Set prior
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
@@ -217,7 +218,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             #Create model
             model = create_model(
-                new_agent,
+                new_model,
                 new_prior,
                 new_data,
                 input_cols = input_cols,
@@ -242,14 +243,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 return actiondist
             end
-            #Create agent
-            new_agent = init_agent(multi_input, parameters = Dict(:noise => 1.0))
+            #Create model
+            new_model = ActionModel(multi_input, parameters = (;noise = Parameter(1.0, Real)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
-                new_agent,
+                new_model,
                 new_prior,
                 data,
                 input_cols = [:inputs, :inputs_2],
@@ -275,13 +276,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create agent
-            new_agent = init_agent(multi_input_action, parameters = Dict(:noise => 1.0))
+            new_model = ActionModel(multi_input_action, parameters = (;noise = Parameter(1.0, Real)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
-                new_agent,
+                new_model,
                 new_prior,
                 data,
                 input_cols = [:inputs, :inputs_2],
@@ -309,14 +310,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 return actiondist
             end
-            #Create agent
-            new_agent = init_agent(dependent_action, parameters = Dict(:noise => 1.0))
+            #Create model
+            new_model = ActionModel(dependent_action, parameters = (;noise = Parameter(1.0, Real)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
-                new_agent,
+                new_model,
                 new_prior,
                 data,
                 input_cols = input_cols,
@@ -346,15 +347,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 return (actiondist1, actiondist2)
             end
-            #Create agent
-            new_agent =
-                init_agent(dependent_multi_action, parameters = Dict(:noise => 1.0))
+            #Create model
+            new_model = ActionModel(dependent_multi_action, parameters = (;noise = Parameter(1.0, Real)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
             #Create model
             model = create_model(
-                new_agent,
+                new_model,
                 new_prior,
                 data,
                 input_cols = input_cols,

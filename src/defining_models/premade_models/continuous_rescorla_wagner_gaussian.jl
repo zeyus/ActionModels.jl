@@ -43,18 +43,28 @@ function premade_continuous_rescorla_wagner_gaussian(config::Dict)
 
     ## Create model 
     parameters = (
-        learning_rate = Parameter(config[:learning_rate]),
-        action_noise = Parameter(config[:action_noise]),
-        intial_value = InitialStateParameter(config[:initial_value], :value),
+        learning_rate = Parameter(config[:learning_rate], Real),
+        action_noise = Parameter(config[:action_noise], Real),
+        intial_value = InitialStateParameter(config[:initial_value], :value, Real),
     )
     states = (
-        value = State(Float64),
-        input = State(Float64),
+        value = State(Real),
+        input = State(Real),
+    )
+
+    observations = (;
+        input = Observation(Float64)
+    )
+
+    actions = (;
+        report = Action(Normal)
     )
 
     return ActionModel(
         continuos_rescorla_wagner_softmax,
-        parameters,
-        states,
+        parameters = parameters,
+        states = states,
+        observations = observations,
+        actions = actions,
     )
 end
