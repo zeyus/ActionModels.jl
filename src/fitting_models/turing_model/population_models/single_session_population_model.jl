@@ -2,7 +2,7 @@
 ### POPULATION MODEL FOR A SINGLE SESSION ###
 #############################################
 function create_model(
-    agent::Agent,
+    action_model::ActionModel,
     prior::Dict{Symbol,D},
     inputs::II,
     actions::AA;
@@ -19,7 +19,7 @@ function create_model(
     #Check population_model
     check_population_model(
         SingleSessionPopulationModel(),
-        agent,
+        action_model,
         prior,
         inputs,
         actions,
@@ -47,7 +47,7 @@ function create_model(
 
     #Create an independent_population_model with the single session
     return create_model(
-        agent,
+        action_model,
         prior,
         data;
         input_cols = input_cols,
@@ -65,7 +65,7 @@ end
 ##############################################
 function check_population_model(
     model_type::SingleSessionPopulationModel,
-    agent::Agent,
+    action_model::ActionModel,
     prior::Dict{Symbol,D},
     inputs::II,
     actions::AA,

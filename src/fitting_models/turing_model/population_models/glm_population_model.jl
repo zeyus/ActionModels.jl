@@ -15,7 +15,7 @@
 ### REGRESSION POPULATION MODEL ###
 ###################################
 function create_model(
-    agent::Agent,
+    action_model::ActionModel,
     regression_formulas::Union{F,Vector{F}},
     data::DataFrame;
     priors::Union{R,Vector{R}} = RegressionPrior(),
@@ -36,7 +36,7 @@ function create_model(
     #Check population_model
     check_population_model(
         RegressionPopulationModel(),
-        agent,
+        action_model,
         regression_formulas,
         data,
         priors,
@@ -160,7 +160,7 @@ function create_model(
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
-        agent,
+        action_model,
         population_model,
         data;
         input_cols = input_cols,
@@ -311,7 +311,7 @@ end
 ##############################################
 function check_population_model(
     model_type::RegressionPopulationModel,
-    agent::Agent,
+    action_model::ActionModel,
     regression_formulas::Union{F,Vector{F}},
     data::DataFrame,
     priors::Union{R,Vector{R}},

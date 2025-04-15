@@ -2,8 +2,8 @@
 ### SIMPLE POPULATION MODEL WITH INDEPENDENT SESSIONS ###
 #########################################################
 function create_model(
-    agent::Agent,
-    prior::Dict{String,D},
+    action_model::ActionModel,
+    prior::Dict{Symbol,D},
     data::DataFrame;
     input_cols::Union{Vector{T1},T1},
     action_cols::Union{Vector{T2},T2},
@@ -21,7 +21,7 @@ function create_model(
     #Check population_model
     check_population_model(
         IndependentPopulationModel(),
-        agent,
+        action_model,
         prior,
         data,
         input_cols,
@@ -47,7 +47,7 @@ function create_model(
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
-        agent,
+        action_model,
         population_model,
         data;
         input_cols = input_cols,
@@ -91,7 +91,7 @@ end
 ##############################################
 function check_population_model(
     model_type::IndependentPopulationModel,
-    agent::Agent,
+    action_model::ActionModel,
     prior::Dict{Symbol,D},
     data::DataFrame,
     input_cols::Union{Vector{T1},T1},
@@ -108,7 +108,7 @@ function check_population_model(
     #Unless warnings are hidden
     if verbose
         #If there are any of the agent's parameters which have not been set in the fixed or sampled parameters
-        if any(key -> !(key in keys(prior)), keys(agent.parameters))
+        if any(key -> !(key in keys(prior)), keys(action_model.parameters))
             @warn "the agent has parameters which are not estimated. The agent's current parameter values are used as fixed parameters"
         end
     end
