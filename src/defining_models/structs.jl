@@ -5,7 +5,7 @@
 ## For creating parameters ##
 abstract type AbstractParameter end
 
-struct Parameter{T<:Real} <: AbstractParameter
+mutable struct Parameter{T<:Real} <: AbstractParameter
     value::T
     type::Type{T}
 
@@ -20,7 +20,7 @@ struct Parameter{T<:Real} <: AbstractParameter
     end
 end
 
-struct InitialStateParameter{T<:Real} <: AbstractParameter
+mutable struct InitialStateParameter{T<:Real} <: AbstractParameter
     state::Symbol
     value::T
     type::Type{T}
@@ -47,7 +47,7 @@ end
 
 ## For creating states ##
 abstract type AbstractState end
-struct State{T} <: AbstractState
+mutable struct State{T} <: AbstractState
     value::T
     type::Type{T}
 
