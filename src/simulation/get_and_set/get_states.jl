@@ -22,17 +22,17 @@ function get_states(agent::Agent, target_state::Union{Symbol,Tuple})
         state = agent.states[target_state]
         #Otherwise
     else
-        #Look in the substruct
-        state = get_states(agent.substruct, target_state)
+        #Look in the submodel
+        state = get_states(agent.submodel, target_state)
     end
 
     return state
 end
 
-function get_states(substruct::Nothing, target_state::Union{Symbol,Tuple})
+function get_states(submodel::Nothing, target_state::Union{Symbol,Tuple})
     throw(
         ArgumentError(
-            "The specified state $state_name does not exist in the agent or in the substructure",
+            "The specified state $state_name does not exist in the agent or in the submodelure",
         ),
     )
 
@@ -64,15 +64,15 @@ function get_states(agent::Agent)
     #Get the agent's states 
     agent_states = get_states(agent, target_states)
 
-    #Get states from the substruct
-    substruct_states = get_states(agent.substruct)
+    #Get states from the submodel
+    submodel_states = get_states(agent.submodel)
 
     #Merge into one list
-    states = merge(substruct_states, agent_states)
+    states = merge(submodel_states, agent_states)
 
     return states
 end
 
-function get_states(substruct::Nothing)
+function get_states(submodel::Nothing)
     return Dict()
 end

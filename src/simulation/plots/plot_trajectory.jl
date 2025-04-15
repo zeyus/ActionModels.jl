@@ -14,8 +14,8 @@ function plot_trajectory(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs
         plot_trajectory_agent(agent, target_state; kwargs...)
         #Otherwise
     else
-        #Look in the substruct
-        plot_trajectory(agent.substruct, target_state; kwargs...)
+        #Look in the submodel
+        plot_trajectory(agent.submodel, target_state; kwargs...)
     end
 end
 
@@ -27,18 +27,18 @@ function plot_trajectory!(agent::Agent, target_state::Union{Symbol,Tuple}; kwarg
         plot_trajectory_agent!(agent, target_state; kwargs...)
         #Otherwise
     else
-        #Look in the substruct
-        plot_trajectory!(agent.substruct, target_state; kwargs...)
+        #Look in the submodel
+        plot_trajectory!(agent.submodel, target_state; kwargs...)
     end
 end
 
 
-function plot_trajectory(substruct::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
+function plot_trajectory(submodel::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
     throw(ArgumentError("The specified state does not exist in the agent's history"))
 end
 
 
-function plot_trajectory!(substruct::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
+function plot_trajectory!(submodel::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
     throw(ArgumentError("The specified state does not exist in the history"))
 end
 

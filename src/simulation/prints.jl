@@ -11,10 +11,10 @@ function Base.show(io::IO, ::MIME"text/plain", agent::Agent)
     println(output, "-- Agent struct --")
     println(output, "Action model name: $action_model_name")
 
-    # Substruct info
-    if !isnothing(agent.substruct)
-        substruct_type = string(typeof(agent.substruct))
-        println(output, "Substruct type: $substruct_type")
+    # submodel info
+    if !isnothing(agent.submodel)
+        submodel_type = string(typeof(agent.submodel))
+        println(output, "submodel type: $submodel_type")
     end
 
     # Parameters

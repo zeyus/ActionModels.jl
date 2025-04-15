@@ -6,7 +6,7 @@ function init_agent(
     ##Create action model struct
     agent = Agent(
         action_model = action_model.action_model,
-        substruct = action_model.substruct,
+        submodel = action_model.submodel,
         parameters = Dict(),
         initial_state_parameters = Dict(),
         initial_states = Dict(),
@@ -41,8 +41,8 @@ function init_agent(
         agent.states[:action] = missing
     end
 
-    #Reset the substruct to make sure initial states are correct, after setting the grouped parameters
-    reset!(agent.substruct)
+    #Reset the submodel to make sure initial states are correct, after setting the grouped parameters
+    reset!(agent.submodel)
 
     #Initialize states
     for (param_key, initial_state) in pairs(agent.initial_state_parameters)

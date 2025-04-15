@@ -23,13 +23,13 @@ function set_parameters!(agent::Agent, target_param::Symbol, param_value::R) whe
         #Set it (it's not necessary to set it in the intial_states)
         agent.initial_state_parameters[target_param].value = param_value
     else
-        #Otherwise, look in the substruct
-        set_parameters!(agent.substruct, target_param, param_value)
+        #Otherwise, look in the submodel
+        set_parameters!(agent.submodel, target_param, param_value)
     end
 end
 
 function set_parameters!(
-    substruct::Nothing,
+    submodel::Nothing,
     target_param::Symbol,
     param_value::R,
 ) where R<:Real

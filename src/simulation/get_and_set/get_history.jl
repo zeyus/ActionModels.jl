@@ -21,14 +21,14 @@ function get_history(agent::Agent, target_state::Union{Symbol,Tuple})
         #Extract it
         state_history = agent.history[target_state]
     else
-        #Otherwise look in the substruct
-        state_history = get_history(agent.substruct, target_state)
+        #Otherwise look in the submodel
+        state_history = get_history(agent.submodel, target_state)
     end
 
     return state_history
 end
 
-function get_history(substruct::Nothing, target_state::Union{Symbol,Tuple})
+function get_history(submodel::Nothing, target_state::Union{Symbol,Tuple})
     throw(
         ArgumentError(
             "The specified state $target_state does not exist in the agent's history",
@@ -59,16 +59,16 @@ function get_history(agent::Agent)
     #Get the agent's states' histories
     state_histories = agent.history
 
-    #Get state histories from the substruct
-    substruct_state_histories = get_history(agent.substruct)
+    #Get state histories from the submodel
+    submodel_state_histories = get_history(agent.submodel)
 
     #Add them to the agent's states
-    state_histories = merge(substruct_state_histories, state_histories)
+    state_histories = merge(submodel_state_histories, state_histories)
 
     return state_histories
 end
 
-function get_history(substruct::Nothing)
-    #For empty substructs, return an empty list
+function get_history(submodel::Nothing)
+    #For empty submodels, return an empty list
     return Dict()
 end

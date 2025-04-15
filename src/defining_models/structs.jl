@@ -136,13 +136,13 @@ function get_action_type(action_dist_type::Type{T}) where {T<:Distribution}
 end
 
 
-## Supertype for substructs ##
-abstract type AbstractSubstruct end
+## Supertype for submodels ##
+abstract type Abstractsubmodel end
 
 
 ## ActionModel struct ##
 abstract type AbstractActionModel end
-struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
+struct ActionModel{T<:Union{Abstractsubmodel,Nothing}} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
         parameter_names,
@@ -157,7 +157,7 @@ struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
         Nothing,
         NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
     } where {action_names}
-    substruct::T
+    submodel::T
 
     function ActionModel(
         action_model::Function,
@@ -177,8 +177,8 @@ struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
             Nothing,
             NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
         } where {action_names} = nothing,
-        substruct::T = nothing,
-    ) where {T<:Union{AbstractSubstruct,Nothing}}
+        submodel::T = nothing,
+    ) where {T<:Union{Abstractsubmodel,Nothing}}
 
         #Check initial state parameters
         for (parameter_name, parameter) in pairs(parameters)
@@ -210,7 +210,7 @@ struct ActionModel{T<:Union{AbstractSubstruct,Nothing}} <: AbstractActionModel
             states,
             observations,
             actions,
-            substruct,
+            submodel,
         )
     end
 end
@@ -227,22 +227,3 @@ Custom error type which will result in rejection of a sample
 struct RejectParameters <: Exception
     errortext::Any
 end
-
-
-
-
-
-
-
-
-
-ActionModel(
-    sum,
-    (a = Parameter(1.0), b = Parameter(2.0), c = Parameter(3.0)),
-    (x = State(1.0), y = State(2.0), z = State(3.0)),
-    (obs1 = Observation(1.0), obs2 = Observation(2.0)),
-    (action1 = Action(Bernoulli), action2 = Action(Normal)),
-    nothing,
-)
-
-Action(Categorical)

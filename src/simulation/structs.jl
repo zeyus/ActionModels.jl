@@ -5,7 +5,7 @@ Agent struct
 """
 Base.@kwdef mutable struct Agent
     action_model::Function
-    substruct::Any
+    submodel::Any
     parameters::Dict = Dict()
     initial_state_parameters::Dict{Symbol,InitialStateParameter} = Dict()
     initial_states::Dict{Symbol,InitialStateParameter} = Dict()

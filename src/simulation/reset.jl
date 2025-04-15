@@ -24,10 +24,10 @@ function reset!(agent::Agent)
         agent.history[state] = [agent.states[state]]
     end
 
-    #Reset the agents substruct
-    reset!(agent.substruct)
+    #Reset the agents submodel
+    reset!(agent.submodel)
 end
 
-function reset!(substruct::Nothing)
+function reset!(submodel::Nothing)
     return nothing
 end

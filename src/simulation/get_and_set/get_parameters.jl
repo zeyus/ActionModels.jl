@@ -33,14 +33,14 @@ function get_parameters(agent::Agent, target_param::Symbol)
         param = agent.initial_state_parameters[target_param].value
 
     else
-        #Otherwise look in the substruct
-        param = get_parameters(agent.substruct, target_param)
+        #Otherwise look in the submodel
+        param = get_parameters(agent.submodel, target_param)
     end
 
     return param
 end
 
-function get_parameters(substruct::Nothing, target_param::Union{Symbol,Tuple})
+function get_parameters(submodel::Nothing, target_param::Union{Symbol,Tuple})
     throw(
         ArgumentError("The specified parameter $target_param does not exist in the agent"),
     )
@@ -67,8 +67,8 @@ end
 ### Function for getting all parameters ###
 function get_parameters(agent::Agent)
 
-    #Get all parameters from the substruct
-    substruct_parameters = get_parameters(agent.substruct)
+    #Get all parameters from the submodel
+    submodel_parameters = get_parameters(agent.submodel)
 
     #Collect keys for parameters
     parameter_keys = collect(keys(agent.parameters))
@@ -86,14 +86,14 @@ function get_parameters(agent::Agent)
     #Get the agent's parameter values
     agent_parameters = get_parameters(agent, target_parameters)
 
-    #Merge agent parameters and substruct parameters
-    parameters = merge(agent_parameters, substruct_parameters)
+    #Merge agent parameters and submodel parameters
+    parameters = merge(agent_parameters, submodel_parameters)
 
     return parameters
 end
 
-function get_parameters(substruct::Nothing)
-    #If the substruct is empty, return an empty list
+function get_parameters(submodel::Nothing)
+    #If the submodel is empty, return an empty list
     return Dict()
 end
 
@@ -110,7 +110,7 @@ end
     #         #Remove derived parameters from the list
     #         filter!(x -> x ∉ parameter_group.grouped_parameters, target_parameters)
 
-    #         #Filter the substruct parameter dictionary to remove parameters with keys that are derived parameters
-    #         filter!(x -> x[1] ∉ parameter_group.grouped_parameters, substruct_parameters)
+    #         #Filter the submodel parameter dictionary to remove parameters with keys that are derived parameters
+    #         filter!(x -> x[1] ∉ parameter_group.grouped_parameters, submodel_parameters)
     #     end
     # end

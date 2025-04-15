@@ -12,7 +12,7 @@
 # ![Image2](../images/structure_with_action_model.png)
 # *We can extend the action model arrow with parameters and states. Parameters are stable and contribute as constants to the system. States change and evolve according to input and parameters (the way states change happens accordingly to the structure of the action model).*
 
-# When defining an agent, you also have to define an action model for the agent to use. you also define the states, parameters, and an optional substruct (see advanced usage of the agent).
+# When defining an agent, you also have to define an action model for the agent to use. you also define the states, parameters, and an optional submodel (see advanced usage of the agent).
 
 # We will introduce a very standard reinforcement learning action model, the binary Rescorla-Wagner softmax. The parameters in this model are learning rate and action precision. The states of the agent, who produces actions according to the Rescorla-Wagner softmax action model, are "value", "transformed value" and "action probability". 
 
