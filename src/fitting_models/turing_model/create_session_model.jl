@@ -24,11 +24,11 @@ function create_session_model(
         agent::Agent,
         parameter_names::Vector{Symbol},
         session_ids::Vector{String},
-        parameters_per_session::Vector{T},
+        parameters_per_session::T, #No way to type for an iterator
         inputs_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};
         flattened_actions::FA = flattened_actions,
-    ) where {I<:Any,II<:Union{I,Tuple},A<:Real,AA<:Union{A,Tuple},FA<:Tuple,T<:Tuple}
+    ) where {I<:Any,II<:Union{I,Tuple},A<:Real,AA<:Union{A,Tuple},FA<:Tuple,T<:Any}
 
         ## Run forwards to get the action distributions ##
         action_distributions = [
@@ -85,7 +85,7 @@ function create_session_model(
         agent::Agent,
         parameter_names::Vector{Symbol},
         session_ids::Vector{String},
-        parameters_per_session::Vector{T},
+        parameters_per_session::T, #No way to type for an iterator
         inputs_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};
         prefixes_per_session::Vector{Vector{Symbol}} = prefixes,
@@ -94,7 +94,7 @@ function create_session_model(
         II<:Union{I,Tuple},
         A<:Union{<:Real,Missing},
         AA<:Union{A,<:Tuple},
-        T<:Tuple,
+        T<:Any,
     }
 
         #For each session

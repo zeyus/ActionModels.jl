@@ -185,7 +185,7 @@ end
         (linear_submodel, parameter_name) in zip(linear_submodels, parameter_names)
     )
 
-    return revert(sampled_parameters)
+    return zip(sampled_parameters...)
 end
 
 

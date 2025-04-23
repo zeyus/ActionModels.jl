@@ -71,9 +71,8 @@ end
             false,
         ) for (prior, parameter_name) in zip(priors_per_parameter, parameter_names)
     )
-    #TODO: avoid type-instabulity when building the Tuple of parameters
 
-    return revert(sampled_parameters)
+    return zip(sampled_parameters...)
 end
 
 #Turing submodel for sampling all sessions for a single parameter
