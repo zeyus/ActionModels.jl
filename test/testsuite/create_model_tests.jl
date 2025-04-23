@@ -103,10 +103,46 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "custom statistical model ($ad_type)" begin
+        @testset "custom population model ($ad_type)" begin
 
-            #TODO:
+            #Define population model
+            @model function custom_population_model()
+                #Sample parameters (same across sessions)
+                control_learning_rate ~ LogitNormal(0.0, 1.0)
+                control_action_noise ~ LogNormal(0.0, 1.0)
+                control_initial_value ~ Normal(0.0, 1.0)
+                treatment_learning_rate ~ LogitNormal(0.0, 1.0)
+                treatment_action_noise ~ LogNormal(0.0, 1.0)
+                treatment_initial_value ~ Normal(0.0, 1.0)
 
+                #Put into vector
+                control_params = [(
+                        control_learning_rate,
+                        control_action_noise,
+                        control_initial_value,
+                    )  for _ in 1:3]
+                treatment_params = [(
+                        treatment_learning_rate,
+                        treatment_action_noise,
+                        treatment_initial_value,
+                    ) for _ in 1:3]
+                #Return vector
+                return [control_params; treatment_params]   
+            end
+
+            parameter_names = [:learning_rate, :action_noise, :initial_value]
+
+            model = create_model(
+                action_model,
+                custom_population_model(),
+                data,
+                input_cols = input_cols,
+                action_cols = action_cols,
+                grouping_cols = grouping_cols,
+                parameter_names = parameter_names,
+            )
+
+            chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
         @testset "no grouping cols ($ad_type)" begin
