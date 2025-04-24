@@ -74,8 +74,6 @@ using ActionModels, DataFrames
         summarize(prior_parameters)
         prior_trajectories = get_state_trajectories!(model, [:input, :value], :prior)
         summarize(prior_trajectories)
-
-        #TODO: check that the posteriors are correct (i.e. that the order of learning rates is correct)
     end
 
     @testset "plotting results" begin
