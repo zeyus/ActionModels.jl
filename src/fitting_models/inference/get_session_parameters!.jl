@@ -63,7 +63,7 @@ function get_session_parameters!(
     @progress for sample_idx = 1:n_samples
         for chain_idx = 1:n_chains
 
-            sample_parameters = returned_values[sample_idx, chain_idx]
+            sample_parameters = collect(returned_values[sample_idx, chain_idx])
 
             for session_idx = 1:n_sessions
 
