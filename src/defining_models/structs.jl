@@ -146,19 +146,19 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
         parameter_names,
-        <:Tuple{Vararg{<:AbstractParameter}},
+        <:Tuple{Vararg{AbstractParameter}},
     } where {parameter_names}
     states::Union{
         Nothing,
-        NamedTuple{state_names,<:Tuple{Vararg{<:AbstractState}}},
+        NamedTuple{state_names,<:Tuple{Vararg{AbstractState}}},
     } where {state_names}
     observations::Union{
         Nothing,
-        NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},
+        NamedTuple{observation_names,<:Tuple{Vararg{AbstractObservation}}},
     } where {observation_names}
     actions::Union{
         Nothing,
-        NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
+        NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
     } where {action_names}
     submodel::T
 
@@ -166,19 +166,19 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
         action_model::Function;
         parameters::NamedTuple{
             parameter_names,
-            <:Tuple{Vararg{<:AbstractParameter}},
+            <:Tuple{Vararg{AbstractParameter}},
         } where {parameter_names},
         states::Union{
             Nothing,
-            NamedTuple{state_names,<:Tuple{Vararg{<:AbstractState}}},
+            NamedTuple{state_names,<:Tuple{Vararg{AbstractState}}},
         } where {state_names} = nothing,
         observations::Union{
             Nothing,
-            NamedTuple{observation_names,<:Tuple{Vararg{<:AbstractObservation}}},
+            NamedTuple{observation_names,<:Tuple{Vararg{AbstractObservation}}},
         } where {observation_names} = nothing,
         actions::Union{
             Nothing,
-            NamedTuple{action_names,<:Tuple{Vararg{<:AbstractAction}}},
+            NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
         } where {action_names} = nothing,
         submodel::T = nothing,
     ) where {T<:Union{AbstractSubmodel,Nothing}}
