@@ -28,7 +28,14 @@ function create_session_model(
         inputs_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};
         flattened_actions::FA = flattened_actions,
-    ) where {I<:Any,II<:Union{I,Tuple},A<:Real,AA<:Union{A,Tuple},FA<:Tuple,T<:Any}
+    ) where {
+        I<:Any,
+        II<:Union{I,Tuple{Vararg{I}}},
+        A<:Real,
+        AA<:Union{A,Tuple{Vararg{A}}},
+        FA<:Tuple,
+        T<:Any,
+    }
 
         ## Run forwards to get the action distributions ##
         action_distributions = [
@@ -91,9 +98,9 @@ function create_session_model(
         prefixes_per_session::Vector{Vector{Symbol}} = prefixes,
     ) where {
         I<:Any,
-        II<:Union{I,Tuple},
+        II<:Union{I,Tuple{Vararg{I}}},
         A<:Union{<:Real,Missing},
-        AA<:Union{A,<:Tuple},
+        AA<:Union{A,<:Tuple{Vararg{A}}},
         T<:Any,
     }
 
@@ -137,7 +144,13 @@ end
     session_inputs::Vector{II},
     session_actions::Vector{AA},
     session_prefixes::Vector{Symbol},
-) where {I<:Any,II<:Union{I,Tuple},A<:Union{Real,Missing},AA<:Union{A,Tuple},T<:Tuple}
+) where {
+    I<:Any,
+    II<:Union{I,Tuple{Vararg{I}}},
+    A<:Union{Real,Missing},
+    AA<:Union{A,Tuple{Vararg{A}}},
+    T<:Tuple,
+}
     #Prepare the agent
     set_parameters!(agent, parameter_names, session_parameters)
     reset!(agent)
@@ -171,7 +184,7 @@ end
     agent::Agent,
     input::I,
     actions::AA,
-) where {I<:Any,A<:Union{Real,Missing},AA<:Union{A,Tuple}}
+) where {I<:Any,A<:Union{Real,Missing},AA<:Union{A,Tuple{Vararg{A}}}}
 
     #Get the tuple of action distributions from the action model
     action_distributions = agent.action_model(agent, input)

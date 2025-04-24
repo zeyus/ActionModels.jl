@@ -6,7 +6,7 @@ using ActionModels, DataFrames
     ### SETUP ###
     #Generate dataset
     data = DataFrame(
-        inputs = repeat([1, 1, 1, 2, 2, 2], 6),
+        inputs = repeat([1., 1, 1, 2, 2, 2], 6),
         actions = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],

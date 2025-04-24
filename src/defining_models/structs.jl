@@ -73,7 +73,7 @@ abstract type AbstractObservation end
 struct Observation{T} <: AbstractObservation
     type::Type{T}
 
-    function Observation(value::T) where {T}
+    function Observation(type::Type{T}) where {T}
         new{T}(T)
     end
 end

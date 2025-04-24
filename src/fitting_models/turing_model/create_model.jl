@@ -1,46 +1,87 @@
-###########################################################################################################
-### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A STATISTICAL MODEL ###
-###########################################################################################################
+##########################################################################################################
+### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A POPULATION MODEL ###
+##########################################################################################################
 function create_model(
     action_model::ActionModel,
     population_model::DynamicPPL.Model,
     data::DataFrame;
-    input_cols::Union{Vector{T1},T1},
-    action_cols::Union{Vector{T2},T3},
-    grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
+    input_cols::Union{
+        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    action_cols::Union{
+        NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     parameter_names::Vector{Symbol},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
     population_model_type::AbstractPopulationModel = CustomPopulationModel(),
     verbose::Bool = true,
-) where {T1<:Union{String,Symbol},T2<:Union{String,Symbol},T3<:Union{String,Symbol}}
+) where {input_names,action_names}
 
-    ## SETUP ##
-    #Create a copy of the agent to avoid changing the original 
-    agent_model = init_agent(action_model, save_history = false)
+    ### PRE-SETUP CHECKS ###
+    #Check that input cols and action cols are the same length as the inputs and actions in the action model
+    if length(input_cols) != length(action_model.observations)
+        throw(
+            ArgumentError(
+                "The number of input columns does not match the number of inputs in the action model",
+            ),
+        )
+    end
+    if length(action_cols) != length(action_model.actions)
+        throw(
+            ArgumentError(
+                "The number of action columns does not match the number of actions in the action model",
+            ),
+        )
+    end
 
-    ## Make sure columns are vectors of symbols ##
-    if !(input_cols isa Vector)
+    ### SETUP ###
+    ## Change columns to the correct format ##
+    #Make single action and input columns into vectors
+    if input_cols isa Symbol
         input_cols = [input_cols]
     end
-    input_cols = Symbol.(input_cols)
-
-    if !(action_cols isa Vector)
+    if action_cols isa Symbol
         action_cols = [action_cols]
     end
-    action_cols = Symbol.(action_cols)
+    #Make sure that input_cols and action_cols are named tuples
+    if input_cols isa Vector
+        input_cols = NamedTuple{keys(action_model.observations)}(input_cols)
+        if verbose && length(input_cols) > 1
+            @warn "Mappings from action model inputs to input columns not provided. Using the order from the action model: $(input_names)"
+        end
+    end
+    if action_cols isa Vector
+        action_cols = NamedTuple{keys(action_model.actions)}(action_cols)
+        if verbose && length(action_cols) > 1
+            @warn "Mappings from action model actions to action columns not provided. Using the order from the action model: $(action_names)"
+        end
+    end
+    #Order input action columns to match the action model
+    input_cols = NamedTuple(
+        input_name => input_cols[input_name] for input_name in keys(action_model.observations)
+    )
+    action_cols = NamedTuple(
+        action_name => action_cols[action_name] for
+        action_name in keys(action_model.actions)
+    )
 
+    #Grouping columns are a vector of symbols
     if !(grouping_cols isa Vector)
         grouping_cols = [grouping_cols]
     end
-    grouping_cols = Symbol.(grouping_cols)
 
     ## Check whether to skip or infer missing data ##
     if !infer_missing_actions
         #If there are no missing actions
-        if !any(ismissing, Matrix(data[!, action_cols]))
+        if !any(ismissing, Matrix(data[!, collect(action_cols)]))
             #Remove any potential Missing type
-            disallowmissing!(data, action_cols)
+            disallowmissing!(data, collect(action_cols))
             infer_missing_actions = nothing
         else
             if verbose
@@ -54,29 +95,32 @@ function create_model(
         end
     else
         #If there are no missing actions
-        if !any(ismissing, Matrix(data[!, action_cols]))
+        if !any(ismissing, Matrix(data[!, collect(action_cols)]))
             if verbose
                 @warn "infer_missing_actions is set to true, but there are no missing values in the action columns. Setting infer_missing_actions to false"
             end
             #Remove any potential Missing type
-            disallowmissing!(data, action_cols)
+            disallowmissing!(data, collect(action_cols))
             infer_missing_actions = nothing
         else
             infer_missing_actions = InferMissingActions()
         end
     end
 
-    # Run checks for the model specifications ##
+    ## Run checks for the model specifications ##
     check_model(
-        agent_model,
+        action_model,
         population_model,
-        data;
-        input_cols = input_cols,
-        action_cols = action_cols,
-        grouping_cols = grouping_cols,
-        population_model_type = population_model_type,
-        verbose = verbose,
+        data,
+        input_cols,
+        action_cols,
+        grouping_cols,
+        parameter_names,
+        population_model_type,
     )
+
+    ## Initialize an agent ##
+    agent_model = init_agent(action_model, save_history = false)
 
     ## EXTRACT DATA ##
     #Group data by sessions
@@ -92,38 +136,32 @@ function create_model(
         ) for subdata in grouped_data
     ]
 
-    ## Extract inputs and actions ##
+    ## Extract inputs and actions ## #TODO: make this work with the now namedtuple formatted cols
     if length(input_cols) == 1
         #Inputs are a vector of vectors of <:Any
-        inputs = [Vector(agent_data[!, first(input_cols)]) for agent_data in grouped_data]
+        inputs = [Vector(session_data[!, first(input_cols)]) for session_data in grouped_data]
     else
-        #Extract action types
-        input_types = eltype.(eachcol(data[!, input_cols]))
+        #Extract input types
+        input_types = eltype.(eachcol(data[!, collect(input_cols)]))
         #Inputs are a vector of vectors of tuples of <:Any
-        inputs = [
-            Tuple{input_types...}.(eachrow(agent_data[!, input_cols])) for
-            agent_data in grouped_data
+        inputs = Vector{Tuple{input_types...}}[
+            Tuple{input_types...}.(eachrow(session_data[!, collect(input_cols)])) for
+            session_data in grouped_data
         ]
-
-        #Retype actions
-        inputs = Vector{Vector{Tuple{input_types...}}}(inputs)
     end
 
     if length(action_cols) == 1
         #Actions are a vector of vectors of <:Real
-        actions = [Vector(agent_data[!, first(action_cols)]) for agent_data in grouped_data]
+        actions = [Vector(session_data[!, first(action_cols)]) for session_data in grouped_data]
         multiple_actions = false
     else
         #Extract action types
-        action_types = eltype.(eachcol(data[!, action_cols]))
+        action_types = eltype.(eachcol(data[!, collect(action_cols)]))
         #Actions are a vector of vectors of tuples of <:Real
-        actions = [
-            Tuple{action_types...}.(eachrow(agent_data[!, action_cols])) for
-            agent_data in grouped_data
+        actions = Vector{Tuple{action_types...}}[
+            Tuple{action_types...}.(eachrow(session_data[!, collect(action_cols)])) for
+            session_data in grouped_data
         ]
-
-        #Retype actions
-        actions = Vector{Vector{Tuple{action_types...}}}(actions)
 
         multiple_actions = true
     end
@@ -167,7 +205,7 @@ end
     session_ids::Vector{String},
     inputs_per_session::Vector{Vector{II}},
     actions_per_session::Vector{Vector{AA}},
-) where {I<:Any,II<:Union{I,Tuple},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple}}
+) where {I<:Any,II<:Union{I,Tuple{Vararg{I}}},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple{Vararg{A}}}}
 
     #Generate session parameters with the population submodel
     parameters_per_session ~ to_submodel(population_model, false)
@@ -195,16 +233,15 @@ end
 #### FUNCTION FOR CHECKING THE MODEL ####
 #########################################
 function check_model(
-    agent::Agent,
+    action_model::ActionModel,
     population_model::DynamicPPL.Model,
-    data::DataFrame;
-    input_cols::Union{Vector{T1},T1},
-    action_cols::Union{Vector{T2},T3},
-    grouping_cols::Union{Vector{T3},T3},
+    data::DataFrame,
+    input_cols::NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    action_cols::NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+    grouping_cols::Vector{Symbol},
+    parameter_names::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
-    verbose::Bool = true,
-) where {T1<:Union{String,Symbol},T2<:Union{String,Symbol},T3<:Union{String,Symbol}}
-
+) where {input_names,action_names}
     #Check that user-specified columns exist in the dataset
     if any(grouping_cols .∉ Ref(Symbol.(names(data))))
         throw(
@@ -212,13 +249,13 @@ function check_model(
                 "There are specified group columns that do not exist in the dataframe",
             ),
         )
-    elseif any(input_cols .∉ Ref(Symbol.(names(data))))
+    elseif any(values(input_cols) .∉ Ref(Symbol.(names(data))))
         throw(
             ArgumentError(
                 "There are specified input columns that do not exist in the dataframe",
             ),
         )
-    elseif any(action_cols .∉ Ref(Symbol.(names(data))))
+    elseif any(values(action_cols) .∉ Ref(Symbol.(names(data))))
         throw(
             ArgumentError(
                 "There are specified action columns that do not exist in the dataframe",
@@ -226,14 +263,28 @@ function check_model(
         )
     end
 
-    #Check whether the action columns are of the correct type
-
-    if !all(eltype.(eachcol(data[!, action_cols])) .<: Union{Real,Missing})
-        throw(ArgumentError("The action columns must be of type Vector{<:Real}"))
+    #Check whether input and action columns are subtypes of what is specified in the aciton model
+    for (action_col, (action_name, action)) in zip(action_cols, pairs(action_model.actions))
+        if !(eltype(data[!, action_col]) <: action.type)
+            throw(
+                ArgumentError(
+                    "The action colum $action_col must be a subtype of $action_name: $(action.type)",
+                ),
+            )
+        end
+    end
+    for (input_col, (input_name, input)) in zip(input_cols, pairs(action_model.observations))
+        if !(eltype(data[!, input_col]) <: input.type)
+            throw(
+                ArgumentError(
+                    "The input column $input_col must be a subtype of $input_name: $(input.type)",
+                ),
+            )
+        end
     end
 
     #Check whether there are NaN values in the action columns
-    if any(isnan.(skipmissing(Matrix(data[!, action_cols]))))
+    if any(isnan.(skipmissing(Matrix(data[!, collect(action_cols)]))))
         throw(ArgumentError("There are NaN values in the action columns"))
     end
 end
