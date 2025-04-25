@@ -263,9 +263,29 @@ function check_model(
         )
     end
 
-    #Check whether input and action columns are subtypes of what is specified in the aciton model
+    #Check that input and action column names exist in the action model
+    for (input_name_data, input_col) in pairs(input_cols)
+        if !(input_name_data in keys(action_model.observations))
+            throw(
+                ArgumentError(
+                    "The input column $input_col does not exist in the action model",
+                ),
+            )
+        end
+    end
+    for (action_name_data, action_col) in pairs(action_cols)
+        if !(action_name_data in keys(action_model.actions))
+            throw(
+                ArgumentError(
+                    "The action column $action_col does not exist in the action model",
+                ),
+            )
+        end
+    end
+
+    #Check whether input and action columns are subtypes of what is specified in the action model
     for (action_col, (action_name, action)) in zip(action_cols, pairs(action_model.actions))
-        if !(eltype(data[!, action_col]) <: action.type)
+        if !(eltype(data[!, action_col]) <: action.type || eltype(data[!, action_col]) <: Union{Missing, T} where T<:action.type)
             throw(
                 ArgumentError(
                     "The action colum $action_col has type $(eltype(data[!, action_col])), but must be a subtype of the $action_name type specified in the action model: $(action.type)",
