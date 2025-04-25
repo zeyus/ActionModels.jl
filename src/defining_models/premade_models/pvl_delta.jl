@@ -11,9 +11,7 @@ end
 
 function ActionModel(config::PVLDelta)
 
-    function pvl_delta(agent::Agent, input::Tuple{Int64,Float64})
-
-        deck, reward = input
+    function pvl_delta(agent::Agent, deck::Int64, reward::Float64)
 
         learning_rate = agent.parameters[:learning_rate]
         reward_sensitivity = agent.parameters[:reward_sensitivity]
@@ -49,11 +47,11 @@ function ActionModel(config::PVLDelta)
     end
 
     parameters = (
-            learning_rate = Parameter(config.learning_rate),
-            reward_sensitivity = Parameter(config.reward_sensitivity),
-            action_precision = Parameter(config.action_precision),
-            loss_aversion = Parameter(config.loss_aversion),
-            initial_value = InitialStateParameter(config.initial_value, :expected_value),
+            learning_rate = Parameter(config.learning_rate, Real),
+            reward_sensitivity = Parameter(config.reward_sensitivity, Real),
+            action_precision = Parameter(config.action_precision, Real),
+            loss_aversion = Parameter(config.loss_aversion, Real),
+            initial_value = InitialStateParameter(config.initial_value, :expected_value, Array{Real}),
         )
 
     states = (; expected_value = State(zeros(Float64, 4)))

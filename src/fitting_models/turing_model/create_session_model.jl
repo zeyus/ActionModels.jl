@@ -46,7 +46,7 @@ function create_session_model(
                 [
                     begin
                         #Get the action probability (either a distribution, or a tuple of distributions) 
-                        action_distribution = agent.action_model(agent, input)
+                        action_distribution = agent.action_model(agent, input...)
                         #Save the action
                         update_states!(agent, :action, action)
 
@@ -173,7 +173,7 @@ end
     action::A,
 ) where {I<:Any,A<:Union{Real,Missing}}
     #Give input and sample action
-    action ~ agent.action_model(agent, input)
+    action ~ agent.action_model(agent, input...)
 
     #Store the agent's action in the agent
     update_states!(agent, :action, action)
@@ -187,7 +187,7 @@ end
 ) where {I<:Any,A<:Union{Real,Missing},AA<:Union{A,<:Tuple{Vararg{Union{Missing,A}}}}}
 
     #Get the tuple of action distributions from the action model
-    action_distributions = agent.action_model(agent, input)
+    action_distributions = agent.action_model(agent, input...)
 
     action = Tuple(
         i ~ to_submodel(

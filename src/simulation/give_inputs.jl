@@ -6,7 +6,7 @@ Give a single input to an Agent and let it evolve. Returns the agent's action.
 function single_input!(agent::Agent, input::Any)
 
     #Run the action model to get the action distribution
-    action_distribution = agent.action_model(agent, input)
+    action_distribution = agent.action_model(agent, input...)
 
     #If a single action distribution is returned
     if length(action_distribution) == 1

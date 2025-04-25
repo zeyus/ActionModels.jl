@@ -9,7 +9,7 @@ end
 
 function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
-    function continuous_rescorla_wagner_gaussian(agent::Agent, input::Real)
+    function continuous_rescorla_wagner_gaussian(agent::Agent, input::Float64)
 
         ## Read in parameters from the agent
         learning_rate = agent.parameters[:learning_rate]
@@ -38,9 +38,9 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
     ## Create model 
     parameters = (
-        learning_rate = Parameter(config.learning_rate),
-        action_noise = Parameter(config.action_noise),
-        initial_value = InitialStateParameter(config.initial_value, :value),
+        learning_rate = Parameter(config.learning_rate, Real),
+        action_noise = Parameter(config.action_noise, Real),
+        initial_value = InitialStateParameter(config.initial_value, :value, Real),
     )
     states = (
         value = State(Real),

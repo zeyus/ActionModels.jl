@@ -277,11 +277,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "multiple inputs ($ad_type)" begin
 
-            function multi_input(agent, input::Tuple{R,R}) where {R<:Real}
+            function multi_input(agent, input1::Float64, input2::Float64)
 
                 noise = agent.parameters[:noise]
-
-                input1, input2 = input
 
                 actiondist = Normal(input1, noise)
 
@@ -316,11 +314,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "multiple inputs and multiple actions ($ad_type)" begin
 
-            function multi_input_action(agent, input::Tuple{R,R}) where {R<:Real}
+            function multi_input_action(agent, input1::Float64, input2::Float64)
 
                 noise = agent.parameters[:noise]
-
-                input1, input2 = input
 
                 actiondist1 = Normal(input1, noise)
                 actiondist2 = Normal(input2, noise)
