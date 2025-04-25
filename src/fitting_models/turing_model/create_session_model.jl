@@ -100,7 +100,7 @@ function create_session_model(
         I<:Any,
         II<:Union{I,Tuple{Vararg{I}}},
         A<:Union{<:Real,Missing},
-        AA<:Union{A,<:Tuple{Vararg{A}}},
+        AA<:Union{A,<:Tuple{Vararg{Union{Missing,A}}}},
         T<:Any,
     }
 
@@ -148,7 +148,7 @@ end
     I<:Any,
     II<:Union{I,Tuple{Vararg{I}}},
     A<:Union{Real,Missing},
-    AA<:Union{A,Tuple{Vararg{A}}},
+    AA<:Union{A,<:Tuple{Vararg{Union{Missing,A}}}},
     T<:Tuple,
 }
     #Prepare the agent
@@ -184,7 +184,7 @@ end
     agent::Agent,
     input::I,
     actions::AA,
-) where {I<:Any,A<:Union{Real,Missing},AA<:Union{A,Tuple{Vararg{A}}}}
+) where {I<:Any,A<:Union{Real,Missing},AA<:Union{A,<:Tuple{Vararg{Union{Missing,A}}}}}
 
     #Get the tuple of action distributions from the action model
     action_distributions = agent.action_model(agent, input)
