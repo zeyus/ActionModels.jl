@@ -42,7 +42,7 @@ function create_model(
     )
 
     #Add grouping column
-    grouping_cols = "session"
+    grouping_cols = :session
     data[!, grouping_cols] .= 1
 
     #Create an independent_population_model with the single session

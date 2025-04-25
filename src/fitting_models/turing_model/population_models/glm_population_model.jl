@@ -20,18 +20,20 @@ function create_model(
     data::DataFrame;
     priors::Union{R,Vector{R}} = RegressionPrior(),
     inv_links::Union{Function,Vector{Function}} = identity,
-    input_cols::Union{Vector{T1},T1},
-    action_cols::Union{Vector{T2},T2},
-    grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
+    input_cols::Union{
+        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    action_cols::Union{
+        NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     verbose::Bool = true,
     kwargs...,
-) where {
-    F<:MixedModels.FormulaTerm,
-    R<:RegressionPrior,
-    T1<:Union{String,Symbol},
-    T2<:Union{String,Symbol},
-    T3<:Union{String,Symbol},
-}
+) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, input_names, action_names}
 
     #Check population_model
     check_population_model(
@@ -316,18 +318,20 @@ function check_population_model(
     data::DataFrame,
     priors::Union{R,Vector{R}},
     inv_links::Union{Function,Vector{Function}},
-    input_cols::Union{Vector{T1},T1},
-    action_cols::Union{Vector{T2},T2},
-    grouping_cols::Union{Vector{T3},T3},
+    input_cols::Union{
+        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    action_cols::Union{
+        NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    grouping_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
-) where {
-    F<:MixedModels.FormulaTerm,
-    R<:RegressionPrior,
-    T1<:Union{String,Symbol},
-    T2<:Union{String,Symbol},
-    T3<:Union{String,Symbol},
-}
+) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, input_names, action_names}
 
     #TODO: Make a check for whether there are NaN values in the predictors
     # if any(isnan.(data[!, predictor_cols]))

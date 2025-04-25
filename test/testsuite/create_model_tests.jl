@@ -9,7 +9,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     ### SETUP ###
     #Generate dataset
     data = DataFrame(
-        inputs = repeat([1, 1, 1, 2, 2, 2], 6),
+        inputs = repeat([0.1, 1, 1, 2, 2, 2], 6),
         actions = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -116,18 +116,18 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 treatment_initial_value ~ Normal(0.0, 1.0)
 
                 #Put into vector
-                control_params = [(
-                        control_learning_rate,
-                        control_action_noise,
-                        control_initial_value,
-                    )  for _ in 1:3]
-                treatment_params = [(
+                control_params = [
+                    (control_learning_rate, control_action_noise, control_initial_value) for _ = 1:3
+                ]
+                treatment_params = [
+                    (
                         treatment_learning_rate,
                         treatment_action_noise,
                         treatment_initial_value,
-                    ) for _ in 1:3]
+                    ) for _ = 1:3
+                ]
                 #Return vector
-                return [control_params; treatment_params]   
+                return [control_params; treatment_params]
             end
 
             parameter_names = [:learning_rate, :action_noise, :initial_value]
@@ -153,7 +153,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data,
                 input_cols = input_cols,
                 action_cols = action_cols,
-                grouping_cols = Symbol[],
             )
 
             #Fit model
@@ -210,8 +209,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create model
-            new_model =
-                ActionModel(multi_action, parameters = (; noise = Parameter(1.0, Real)))
+            new_model = ActionModel(
+                multi_action,
+                parameters = (; noise = Parameter(1.0, Real)),
+                observations = (; input = Observation(Float64)),
+                actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+            )
 
             #Set prior
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
@@ -242,7 +245,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create model
-            new_model = ActionModel(multi_action, parameters = (;noise = Parameter(1.0, Real)))
+            new_model = ActionModel(
+                multi_action,
+                parameters = (; noise = Parameter(1.0)),
+                observations = (; input = Observation(Float64)),
+                actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+            )
 
             #Set prior
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
@@ -280,7 +288,15 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return actiondist
             end
             #Create model
-            new_model = ActionModel(multi_input, parameters = (;noise = Parameter(1.0, Real)))
+            new_model = ActionModel(
+                multi_input,
+                parameters = (; noise = Parameter(1.0, Float64)),
+                observations = (;
+                    input_1 = Observation(Float64),
+                    input_2 = Observation(Float64),
+                ),
+                actions = (; action_1 = Action(Normal)),
+            )
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
@@ -312,7 +328,15 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return (actiondist1, actiondist2)
             end
             #Create action_model
-            new_model = ActionModel(multi_input_action, parameters = (;noise = Parameter(1.0, Real)))
+            new_model = ActionModel(
+                multi_input_action,
+                parameters = (; noise = Parameter(1.0, Float64)),
+                observations = (;
+                    input_1 = Observation(Float64),
+                    input_2 = Observation(Float64),
+                ),
+                actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
+            )
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
@@ -347,7 +371,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 return actiondist
             end
             #Create model
-            new_model = ActionModel(dependent_action, parameters = (;noise = Parameter(1.0, Real)))
+            new_model =
+                ActionModel(dependent_action, parameters = (; noise = Parameter(1.0, Real)), observations = (; input = Observation(Float64)), actions = (; action_1 = Action(Normal)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
@@ -375,16 +400,21 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 prev_action = agent.states[:action]
 
                 if ismissing(prev_action)
-                    prev_action = 0.0
+                    prev_action = (0.0, 0.0)
                 end
 
-                actiondist1 = Normal(input + prev_action, noise)
-                actiondist2 = Normal(input - prev_action, noise)
+                actiondist1 = Normal(input + prev_action[1], noise)
+                actiondist2 = Normal(input - prev_action[2], noise)
 
                 return (actiondist1, actiondist2)
             end
             #Create model
-            new_model = ActionModel(dependent_multi_action, parameters = (;noise = Parameter(1.0, Real)))
+            new_model = ActionModel(
+                dependent_multi_action,
+                parameters = (; noise = Parameter(1.0, Real)),
+                observations = (; input = Observation(Float64)),
+                actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
+            )
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
@@ -394,7 +424,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_prior,
                 data,
                 input_cols = input_cols,
-                action_cols = action_cols,
+                action_cols = [:actions, :actions_2],
                 grouping_cols = grouping_cols,
             )
 

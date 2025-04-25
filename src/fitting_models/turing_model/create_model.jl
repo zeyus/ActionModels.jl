@@ -53,13 +53,13 @@ function create_model(
     if input_cols isa Vector
         input_cols = NamedTuple{keys(action_model.observations)}(input_cols)
         if verbose && length(input_cols) > 1
-            @warn "Mappings from action model inputs to input columns not provided. Using the order from the action model: $(input_names)"
+            @warn "Mappings from action model inputs to input columns not provided. Using the order from the action model: $(input_cols)"
         end
     end
     if action_cols isa Vector
         action_cols = NamedTuple{keys(action_model.actions)}(action_cols)
         if verbose && length(action_cols) > 1
-            @warn "Mappings from action model actions to action columns not provided. Using the order from the action model: $(action_names)"
+            @warn "Mappings from action model actions to action columns not provided. Using the order from the action model: $(action_cols)"
         end
     end
     #Order input action columns to match the action model
@@ -268,7 +268,7 @@ function check_model(
         if !(eltype(data[!, action_col]) <: action.type)
             throw(
                 ArgumentError(
-                    "The action colum $action_col must be a subtype of $action_name: $(action.type)",
+                    "The action colum $action_col has type $(eltype(data[!, action_col])), but must be a subtype of the $action_name type specified in the action model: $(action.type)",
                 ),
             )
         end
@@ -277,7 +277,7 @@ function check_model(
         if !(eltype(data[!, input_col]) <: input.type)
             throw(
                 ArgumentError(
-                    "The input column $input_col must be a subtype of $input_name: $(input.type)",
+                    "The input column $input_col has type $(eltype(data[!, input_col])), but must be a subtype of the $input_name type specified in the action model: $(input.type)",
                 ),
             )
         end

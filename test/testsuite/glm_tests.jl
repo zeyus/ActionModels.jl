@@ -8,7 +8,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
     #Generate dataset
     data = DataFrame(
-        input = repeat([1, 1, 1, 2, 2, 2], 6),
+        input = repeat([.1, 1, 1, 2, 2, 2], 6),
         action = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],

@@ -5,17 +5,23 @@ function create_model(
     action_model::ActionModel,
     prior::Dict{Symbol,D},
     data::DataFrame;
-    input_cols::Union{Vector{T1},T1},
-    action_cols::Union{Vector{T2},T2},
-    grouping_cols::Union{Vector{T3},T3} = Vector{String}(),
+    input_cols::Union{
+        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    action_cols::Union{
+        NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     population_model_type::Union{IndependentPopulationModel,SingleSessionPopulationModel} = IndependentPopulationModel(),
     verbose::Bool = true,
     kwargs...,
 ) where {
     D<:Distribution,
-    T1<:Union{String,Symbol},
-    T2<:Union{String,Symbol},
-    T3<:Union{String,Symbol},
+    input_names, action_names
 }
 
     #Check population_model
@@ -93,17 +99,20 @@ function check_population_model(
     action_model::ActionModel,
     prior::Dict{Symbol,D},
     data::DataFrame,
-    input_cols::Union{Vector{T1},T1},
-    action_cols::Union{Vector{T2},T2},
-    grouping_cols::Union{Vector{T3},T3},
+    input_cols::Union{
+        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    action_cols::Union{
+        NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+        Vector{Symbol},
+        Symbol,
+    },
+    grouping_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
-) where {
-    D<:Distribution,
-    T1<:Union{String,Symbol},
-    T2<:Union{String,Symbol},
-    T3<:Union{String,Symbol},
-}
+) where {D<:Distribution, input_names, action_names}
     #Unless warnings are hidden
     if verbose
         #If there are any of the agent's parameters which have not been set in the fixed or sampled parameters
