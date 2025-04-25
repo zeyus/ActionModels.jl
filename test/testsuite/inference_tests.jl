@@ -6,7 +6,7 @@ using ActionModels, DataFrames
     ### SETUP ###
     #Generate dataset
     data = DataFrame(
-        inputs = repeat([1., 1, 1, 2, 2, 2], 6),
+        observations = repeat([1., 1, 1, 2, 2, 2], 6),
         actions = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -34,8 +34,8 @@ using ActionModels, DataFrames
         treatment = vcat(repeat(["control"], 18), repeat(["treatment"], 18)),
     )
 
-    #Define input and action cols
-    input_cols = [:inputs]
+    #Define observation and action cols
+    observation_cols = [:observations]
     action_cols = [:actions]
     grouping_cols = [:id, :treatment]
 
@@ -53,7 +53,7 @@ using ActionModels, DataFrames
         model,
         prior,
         data,
-        input_cols = input_cols,
+        observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
     )
@@ -64,7 +64,7 @@ using ActionModels, DataFrames
         posterior_parameters = get_session_parameters!(model, :posterior)
         summarize(posterior_parameters)
         summarize(posterior_parameters, mean)
-        posterior_trajectories = get_state_trajectories!(model, [:input, :value], :posterior)
+        posterior_trajectories = get_state_trajectories!(model, [:observation, :value], :posterior)
         summarize(posterior_trajectories)
         summarize(posterior_trajectories, mean)
 
@@ -72,7 +72,7 @@ using ActionModels, DataFrames
         prior_chains = sample_prior!(model)
         prior_parameters = get_session_parameters!(model, :prior)
         summarize(prior_parameters)
-        prior_trajectories = get_state_trajectories!(model, [:input, :value], :prior)
+        prior_trajectories = get_state_trajectories!(model, [:observation, :value], :prior)
         summarize(prior_trajectories)
     end
 

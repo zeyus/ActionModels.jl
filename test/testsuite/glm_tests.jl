@@ -8,7 +8,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
     #Generate dataset
     data = DataFrame(
-        input = repeat([.1, 1, 1, 2, 2, 2], 6),
+        observation = repeat([.1, 1, 1, 2, 2, 2], 6),
         action = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -36,8 +36,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         treatment = vcat(repeat(["control"], 18), repeat(["treatment"], 18)),
     )
 
-    #Define input and action cols
-    input_cols = [:input]
+    #Define observation and action cols
+    observation_cols = [:observation]
     action_cols = [:action]
     grouping_cols = [:id, :treatment]
 
@@ -73,7 +73,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 @formula(learning_rate ~ 1),
                 data;
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -86,7 +86,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 @formula(learning_rate ~ 1 + (1 | id)),
                 data;
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -100,7 +100,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             #     @formula(learning_rate ~ age),
             #     data;
             #     action_cols = action_cols,
-            #     input_cols = input_cols,
+            #     observation_cols = observation_cols,
             #     grouping_cols = grouping_cols,
             # )
 
@@ -113,7 +113,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 @formula(learning_rate ~ age + (1 | id)),
                 data;
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -126,7 +126,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 @formula(learning_rate ~ age + (1 | id) + (1 | treatment)),
                 data;
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -139,7 +139,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 @formula(learning_rate ~ age + (1 + age | treatment)),
                 data;
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -152,7 +152,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 @formula(learning_rate ~ age + (1 + age | treatment) + (1 | id)),
                 data;
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -167,7 +167,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             #     @formula(learning_rate ~ age + (1 | id) + (1 + age | treatment)),
             #     data;
             #     action_cols = action_cols,
-            #     input_cols = input_cols,
+            #     observation_cols = observation_cols,
             #     grouping_cols = grouping_cols,
             # )
 
@@ -184,7 +184,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 inv_links = [identity, LogExpFunctions.exp],
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 
@@ -208,7 +208,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     RegressionPrior(β = Normal(0, 1)),
                 ],
                 action_cols = action_cols,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 grouping_cols = grouping_cols,
             )
 

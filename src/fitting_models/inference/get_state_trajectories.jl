@@ -17,8 +17,8 @@ function get_state_trajectories!(
     #Extract the agent
     agent = deepcopy(model.args.agent_model)
     set_save_history!(agent, true)
-    #Extract inputs
-    inputs_per_session = model.args.inputs_per_session
+    #Extract observations
+    observations_per_session = model.args.observations_per_session
 
     #Extract dimension labels
     session_ids, parameter_names, sample_idxs, chain_idxs = all_session_parameters.axes
@@ -42,19 +42,19 @@ function get_state_trajectories!(
     state_trajectories = [
         begin
 
-            #Extract the inputs for the current session
-            session_inputs = inputs_per_session[session_idx]
+            #Extract the observations for the current session
+            session_observations = observations_per_session[session_idx]
 
             #Create empty AxisArray for the session
             session_trajectories = AxisArray(
                 Array{Union{Missing,Real}}(
                     undef,
-                    length(session_inputs) + 1,
+                    length(session_observations) + 1,
                     length(target_states),
                     length(sample_idxs),
                     length(chain_idxs),
                 ),
-                Axis{:timestep}(0:length(session_inputs)),
+                Axis{:timestep}(0:length(session_observations)),
                 Axis{:state}(Symbol.(target_states)),
                 Axis{:sample}(1:sample_idxs[end]),
                 Axis{:chain}(1:chain_idxs[end]),
@@ -70,8 +70,8 @@ function get_state_trajectories!(
                 set_parameters!(agent, parameter_names, parameter_sample)
                 reset!(agent)
 
-                #Go through each input
-                give_inputs!(agent, session_inputs)
+                #Go through each observation
+                give_observations!(agent, session_observations)
 
                 #Extract histories
                 state_histories =
@@ -84,8 +84,8 @@ function get_state_trajectories!(
             #Return the session_trajectories
             session_trajectories
 
-        end for (session_idx, (session_inputs, session_parameters)) in
-        enumerate(zip(inputs_per_session, eachslice(all_session_parameters, dims = 1)))
+        end for (session_idx, (session_observations, session_parameters)) in
+        enumerate(zip(observations_per_session, eachslice(all_session_parameters, dims = 1)))
     ]
 
     #Return StateTrajectories struct

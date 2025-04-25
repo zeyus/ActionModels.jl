@@ -21,7 +21,7 @@ export RejectParameters, update_states!
 
 ## For simulation ##
 export Agent, init_agent
-export give_inputs!, single_input!, reset!
+export give_observations!, single_observation!, reset!
 export get_history, get_states, get_parameters
 export set_parameters!, set_save_history! # set_states!()
 export plot_trajectory, plot_trajectory!
@@ -61,7 +61,7 @@ end
 
 ### Functions for simulation ###
 include(joinpath("simulation", "init_agent.jl"))
-include(joinpath("simulation", "give_inputs.jl"))
+include(joinpath("simulation", "give_observations.jl"))
 include(joinpath("simulation", "reset.jl"))
 include(joinpath("simulation", "prints.jl"))
 include(joinpath("simulation", "get_and_set", "set_parameters.jl"))

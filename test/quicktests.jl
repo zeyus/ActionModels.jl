@@ -3,12 +3,10 @@ using ActionModels, DataFrames
 ## Define model ##
 action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
-action_model.parameters
-
 ## Simulate with agent ##
 agent = init_agent(action_model)
 
-give_inputs!(agent, [1.,0,0,1])
+give_observations!(agent, [1.,0,0,1])
 
 get_parameters(agent)
 set_parameters!(agent, :learning_rate, 0.2)
@@ -22,7 +20,7 @@ get_states(agent)
 ## Fit model ##
 #Generate dataset
 data = DataFrame(
-    inputs = repeat([1., 1, 1, 2, 2, 2], 6),
+    observations = repeat([1., 1, 1, 2, 2, 2], 6),
     actions = vcat(
         [0, 0.2, 0.3, 0.4, 0.5, 0.6],
         [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -50,8 +48,8 @@ data = DataFrame(
     treatment = vcat(repeat(["control"], 18), repeat(["treatment"], 18)),
 )
 
-#Define input and action cols
-input_cols = [:inputs]
+#Define observation and action cols
+observation_cols = [:observations]
 action_cols = [:actions]
 grouping_cols = [:id, :treatment]
 
@@ -68,7 +66,7 @@ model = create_model(
     action_model,
     prior,
     data,
-    input_cols = input_cols,
+    observation_cols = observation_cols,
     action_cols = action_cols,
     grouping_cols = grouping_cols,
 )

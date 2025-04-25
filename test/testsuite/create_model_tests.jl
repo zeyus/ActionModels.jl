@@ -9,7 +9,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     ### SETUP ###
     #Generate dataset
     data = DataFrame(
-        inputs = repeat([0.1, 1, 1, 2, 2, 2], 6),
+        observations = repeat([0.1, 1, 1, 2, 2, 2], 6),
         actions = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -37,12 +37,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         treatment = vcat(repeat(["control"], 18), repeat(["treatment"], 18)),
     )
 
-    #Add a second set of actions and inputs
+    #Add a second set of actions and observations
     data.actions_2 = data.actions
-    data.inputs_2 = data.inputs
+    data.observations_2 = data.observations
 
-    #Define input and action cols
-    input_cols = [:inputs]
+    #Define observation and action cols
+    observation_cols = [:observations]
     action_cols = [:actions]
     grouping_cols = [:id, :treatment]
 
@@ -77,12 +77,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         ### TESTING MODEL TYPES ###
         @testset "single session ($ad_type)" begin
-            #Extract inputs and actions from data
-            inputs = data[!, :inputs]
+            #Extract observations and actions from data
+            observations = data[!, :observations]
             actions = data[!, :actions]
 
             #Create model
-            model = create_model(action_model, prior, inputs, actions)
+            model = create_model(action_model, prior, observations, actions)
 
             #Fit model
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
@@ -94,7 +94,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 action_model,
                 prior,
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = action_cols,
                 grouping_cols = [:id],
             )
@@ -136,7 +136,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 action_model,
                 custom_population_model(),
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = action_cols,
                 grouping_cols = grouping_cols,
                 parameter_names = parameter_names,
@@ -151,7 +151,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 action_model,
                 prior,
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = action_cols,
             )
 
@@ -166,7 +166,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 action_model,
                 prior,
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = action_cols,
                 grouping_cols = grouping_cols,
             )
@@ -187,7 +187,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 action_model,
                 prior,
                 new_data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = action_cols,
                 grouping_cols = grouping_cols,
                 infer_missing_actions = true,
@@ -199,12 +199,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "multiple actions ($ad_type)" begin
 
-            function multi_action(agent, input::Real)
+            function multi_action(agent, observation::Float64)
 
                 noise = agent.parameters[:noise]
 
-                actiondist1 = Normal(input, noise)
-                actiondist2 = Normal(input, noise)
+                actiondist1 = Normal(observation, noise)
+                actiondist2 = Normal(observation, noise)
 
                 return (actiondist1, actiondist2)
             end
@@ -212,7 +212,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_model = ActionModel(
                 multi_action,
                 parameters = (; noise = Parameter(1.0, Real)),
-                observations = (; input = Observation(Float64)),
+                observations = (; observation = Observation(Float64)),
                 actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
             )
 
@@ -224,7 +224,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_model,
                 new_prior,
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = [:actions, :actions_2],
                 grouping_cols = grouping_cols,
             )
@@ -235,12 +235,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "multiple actions, missing actions ($ad_type)" begin
 
-            function multi_action(agent, input::Real)
+            function multi_action(agent, observation::Float64)
 
                 noise = agent.parameters[:noise]
 
-                actiondist1 = Normal(input, noise)
-                actiondist2 = Normal(input, noise)
+                actiondist1 = Normal(observation, noise)
+                actiondist2 = Normal(observation, noise)
 
                 return (actiondist1, actiondist2)
             end
@@ -248,7 +248,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_model = ActionModel(
                 multi_action,
                 parameters = (; noise = Parameter(1.0)),
-                observations = (; input = Observation(Float64)),
+                observations = (; observation = Observation(Float64)),
                 actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
             )
 
@@ -265,7 +265,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_model,
                 new_prior,
                 new_data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = [:actions, :actions_2],
                 grouping_cols = grouping_cols,
                 infer_missing_actions = true,
@@ -275,23 +275,23 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple inputs ($ad_type)" begin
+        @testset "multiple observations ($ad_type)" begin
 
-            function multi_input(agent, input1::Float64, input2::Float64)
+            function multi_observation(agent, observation1::Float64, observation2::Float64)
 
                 noise = agent.parameters[:noise]
 
-                actiondist = Normal(input1, noise)
+                actiondist = Normal(observation1, noise)
 
                 return actiondist
             end
             #Create model
             new_model = ActionModel(
-                multi_input,
+                multi_observation,
                 parameters = (; noise = Parameter(1.0, Float64)),
                 observations = (;
-                    input_1 = Observation(Float64),
-                    input_2 = Observation(Float64),
+                    observation_1 = Observation(Float64),
+                    observation_2 = Observation(Float64),
                 ),
                 actions = (; action_1 = Action(Normal)),
             )
@@ -303,7 +303,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_model,
                 new_prior,
                 data,
-                input_cols = [:inputs, :inputs_2],
+                observation_cols = [:observations, :observations_2],
                 action_cols = action_cols,
                 grouping_cols = grouping_cols,
             )
@@ -312,24 +312,24 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             chains = sample(model.model, sampler, n_iterations; sampling_kwargs...)
         end
 
-        @testset "multiple inputs and multiple actions ($ad_type)" begin
+        @testset "multiple observations and multiple actions ($ad_type)" begin
 
-            function multi_input_action(agent, input1::Float64, input2::Float64)
+            function multi_observation_action(agent, observation1::Float64, observation2::Float64)
 
                 noise = agent.parameters[:noise]
 
-                actiondist1 = Normal(input1, noise)
-                actiondist2 = Normal(input2, noise)
+                actiondist1 = Normal(observation1, noise)
+                actiondist2 = Normal(observation2, noise)
 
                 return (actiondist1, actiondist2)
             end
             #Create action_model
             new_model = ActionModel(
-                multi_input_action,
+                multi_observation_action,
                 parameters = (; noise = Parameter(1.0, Float64)),
                 observations = (;
-                    input_1 = Observation(Float64),
-                    input_2 = Observation(Float64),
+                    observation_1 = Observation(Float64),
+                    observation_2 = Observation(Float64),
                 ),
                 actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
             )
@@ -341,7 +341,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_model,
                 new_prior,
                 data,
-                input_cols = [:inputs, :inputs_2],
+                observation_cols = [:observations, :observations_2],
                 action_cols = [:actions, :actions_2],
                 grouping_cols = grouping_cols,
             )
@@ -352,7 +352,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "depend on previous action ($ad_type)" begin
 
-            function dependent_action(agent::Agent, input::R) where {R<:Real}
+            function dependent_action(agent::Agent, observation::Float64)
 
                 noise = agent.parameters[:noise]
 
@@ -362,13 +362,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     prev_action = 0.0
                 end
 
-                actiondist = Normal(input + prev_action, noise)
+                actiondist = Normal(observation + prev_action, noise)
 
                 return actiondist
             end
             #Create model
             new_model =
-                ActionModel(dependent_action, parameters = (; noise = Parameter(1.0, Real)), observations = (; input = Observation(Float64)), actions = (; action_1 = Action(Normal)))
+                ActionModel(dependent_action, parameters = (; noise = Parameter(1.0, Real)), observations = (; observation = Observation(Float64)), actions = (; action_1 = Action(Normal)))
 
             new_prior = Dict(:noise => LogNormal(0.0, 1.0))
 
@@ -377,7 +377,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_model,
                 new_prior,
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = action_cols,
                 grouping_cols = grouping_cols,
             )
@@ -389,7 +389,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "depend on previous action, multiple actions ($ad_type)" begin
 
-            function dependent_multi_action(agent::Agent, input::R) where {R<:Real}
+            function dependent_multi_action(agent::Agent, observation::Float64)
 
                 noise = agent.parameters[:noise]
 
@@ -399,8 +399,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     prev_action = (0.0, 0.0)
                 end
 
-                actiondist1 = Normal(input + prev_action[1], noise)
-                actiondist2 = Normal(input - prev_action[2], noise)
+                actiondist1 = Normal(observation + prev_action[1], noise)
+                actiondist2 = Normal(observation - prev_action[2], noise)
 
                 return (actiondist1, actiondist2)
             end
@@ -408,7 +408,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             new_model = ActionModel(
                 dependent_multi_action,
                 parameters = (; noise = Parameter(1.0, Real)),
-                observations = (; input = Observation(Float64)),
+                observations = (; observation = Observation(Float64)),
                 actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
             )
 
@@ -419,7 +419,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 new_model,
                 new_prior,
                 data,
-                input_cols = input_cols,
+                observation_cols = observation_cols,
                 action_cols = [:actions, :actions_2],
                 grouping_cols = grouping_cols,
             )

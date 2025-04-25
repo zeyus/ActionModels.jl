@@ -5,8 +5,8 @@ function create_model(
     action_model::ActionModel,
     population_model::DynamicPPL.Model,
     data::DataFrame;
-    input_cols::Union{
-        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::Union{
+        NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
         Symbol,
     },
@@ -21,14 +21,14 @@ function create_model(
     check_parameter_rejections::Bool = false,
     population_model_type::AbstractPopulationModel = CustomPopulationModel(),
     verbose::Bool = true,
-) where {input_names,action_names}
+) where {observation_names,action_names}
 
     ### PRE-SETUP CHECKS ###
-    #Check that input cols and action cols are the same length as the inputs and actions in the action model
-    if length(input_cols) != length(action_model.observations)
+    #Check that observation cols and action cols are the same length as the observations and actions in the action model
+    if length(observation_cols) != length(action_model.observations)
         throw(
             ArgumentError(
-                "The number of input columns does not match the number of inputs in the action model",
+                "The number of observation columns does not match the number of observations in the action model",
             ),
         )
     end
@@ -42,18 +42,18 @@ function create_model(
 
     ### SETUP ###
     ## Change columns to the correct format ##
-    #Make single action and input columns into vectors
-    if input_cols isa Symbol
-        input_cols = [input_cols]
+    #Make single action and observation columns into vectors
+    if observation_cols isa Symbol
+        observation_cols = [observation_cols]
     end
     if action_cols isa Symbol
         action_cols = [action_cols]
     end
-    #Make sure that input_cols and action_cols are named tuples
-    if input_cols isa Vector
-        input_cols = NamedTuple{keys(action_model.observations)}(input_cols)
-        if verbose && length(input_cols) > 1
-            @warn "Mappings from action model inputs to input columns not provided. Using the order from the action model: $(input_cols)"
+    #Make sure that observation_cols and action_cols are named tuples
+    if observation_cols isa Vector
+        observation_cols = NamedTuple{keys(action_model.observations)}(observation_cols)
+        if verbose && length(observation_cols) > 1
+            @warn "Mappings from action model observations to observation columns not provided. Using the order from the action model: $(observation_cols)"
         end
     end
     if action_cols isa Vector
@@ -62,9 +62,9 @@ function create_model(
             @warn "Mappings from action model actions to action columns not provided. Using the order from the action model: $(action_cols)"
         end
     end
-    #Order input action columns to match the action model
-    input_cols = NamedTuple(
-        input_name => input_cols[input_name] for input_name in keys(action_model.observations)
+    #Order observation action columns to match the action model
+    observation_cols = NamedTuple(
+        observation_name => observation_cols[observation_name] for observation_name in keys(action_model.observations)
     )
     action_cols = NamedTuple(
         action_name => action_cols[action_name] for
@@ -112,7 +112,7 @@ function create_model(
         action_model,
         population_model,
         data,
-        input_cols,
+        observation_cols,
         action_cols,
         grouping_cols,
         parameter_names,
@@ -136,16 +136,16 @@ function create_model(
         ) for subdata in grouped_data
     ]
 
-    ## Extract inputs and actions ## #TODO: make this work with the now namedtuple formatted cols
-    if length(input_cols) == 1
-        #Inputs are a vector of vectors of <:Any
-        inputs = [Vector(session_data[!, first(input_cols)]) for session_data in grouped_data]
+    ## Extract observations and actions ## #TODO: make this work with the now namedtuple formatted cols
+    if length(observation_cols) == 1
+        #observations are a vector of vectors of <:Any
+        observations = [Vector(session_data[!, first(observation_cols)]) for session_data in grouped_data]
     else
-        #Extract input types
-        input_types = eltype.(eachcol(data[!, collect(input_cols)]))
-        #Inputs are a vector of vectors of tuples of <:Any
-        inputs = Vector{Tuple{input_types...}}[
-            Tuple{input_types...}.(eachrow(session_data[!, collect(input_cols)])) for
+        #Extract observation types
+        observation_types = eltype.(eachcol(data[!, collect(observation_cols)]))
+        #observations are a vector of vectors of tuples of <:Any
+        observations = Vector{Tuple{observation_types...}}[
+            Tuple{observation_types...}.(eachrow(session_data[!, collect(observation_cols)])) for
             session_data in grouped_data
         ]
     end
@@ -181,7 +181,7 @@ function create_model(
         population_model,
         session_model,
         session_ids,
-        inputs,
+        observations,
         actions,
     )
 
@@ -203,7 +203,7 @@ end
     population_model::DynamicPPL.Model,
     session_model::Function,
     session_ids::Vector{String},
-    inputs_per_session::Vector{Vector{II}},
+    observations_per_session::Vector{Vector{II}},
     actions_per_session::Vector{Vector{AA}},
 ) where {I<:Any,II<:Union{I,Tuple{Vararg{I}}},A<:Union{<:Real,Missing},AA<:Union{A,<:Tuple{Vararg{Union{Missing,A}}}}}
 
@@ -217,7 +217,7 @@ end
             parameter_names,
             session_ids,
             parameters_per_session,
-            inputs_per_session,
+            observations_per_session,
             actions_per_session,
         ),
         false, #Do not add a prefix
@@ -236,12 +236,12 @@ function check_model(
     action_model::ActionModel,
     population_model::DynamicPPL.Model,
     data::DataFrame,
-    input_cols::NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
     action_cols::NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
     grouping_cols::Vector{Symbol},
     parameter_names::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
-) where {input_names,action_names}
+) where {observation_names,action_names}
     #Check that user-specified columns exist in the dataset
     if any(grouping_cols .∉ Ref(Symbol.(names(data))))
         throw(
@@ -249,10 +249,10 @@ function check_model(
                 "There are specified group columns that do not exist in the dataframe",
             ),
         )
-    elseif any(values(input_cols) .∉ Ref(Symbol.(names(data))))
+    elseif any(values(observation_cols) .∉ Ref(Symbol.(names(data))))
         throw(
             ArgumentError(
-                "There are specified input columns that do not exist in the dataframe",
+                "There are specified observation columns that do not exist in the dataframe",
             ),
         )
     elseif any(values(action_cols) .∉ Ref(Symbol.(names(data))))
@@ -263,12 +263,12 @@ function check_model(
         )
     end
 
-    #Check that input and action column names exist in the action model
-    for (input_name_data, input_col) in pairs(input_cols)
-        if !(input_name_data in keys(action_model.observations))
+    #Check that observation and action column names exist in the action model
+    for (observation_name_data, observation_col) in pairs(observation_cols)
+        if !(observation_name_data in keys(action_model.observations))
             throw(
                 ArgumentError(
-                    "The input column $input_col does not exist in the action model",
+                    "The observation column $observation_col does not exist in the action model",
                 ),
             )
         end
@@ -283,7 +283,7 @@ function check_model(
         end
     end
 
-    #Check whether input and action columns are subtypes of what is specified in the action model
+    #Check whether observation and action columns are subtypes of what is specified in the action model
     for (action_col, (action_name, action)) in zip(action_cols, pairs(action_model.actions))
         if !(eltype(data[!, action_col]) <: action.type || eltype(data[!, action_col]) <: Union{Missing, T} where T<:action.type)
             throw(
@@ -293,11 +293,11 @@ function check_model(
             )
         end
     end
-    for (input_col, (input_name, input)) in zip(input_cols, pairs(action_model.observations))
-        if !(eltype(data[!, input_col]) <: input.type)
+    for (observation_col, (observation_name, observation)) in zip(observation_cols, pairs(action_model.observations))
+        if !(eltype(data[!, observation_col]) <: observation.type)
             throw(
                 ArgumentError(
-                    "The input column $input_col has type $(eltype(data[!, input_col])), but must be a subtype of the $input_name type specified in the action model: $(input.type)",
+                    "The observation column $observation_col has type $(eltype(data[!, observation_col])), but must be a subtype of the $observation_name type specified in the action model: $(observation.type)",
                 ),
             )
         end

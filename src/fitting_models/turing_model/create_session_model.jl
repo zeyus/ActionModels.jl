@@ -25,7 +25,7 @@ function create_session_model(
         parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
-        inputs_per_session::Vector{Vector{II}},
+        observations_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};
         flattened_actions::FA = flattened_actions,
     ) where {
@@ -46,17 +46,17 @@ function create_session_model(
                 [
                     begin
                         #Get the action probability (either a distribution, or a tuple of distributions) 
-                        action_distribution = agent.action_model(agent, input...)
+                        action_distribution = agent.action_model(agent, observation...)
                         #Save the action
                         update_states!(agent, :action, action)
 
                         #Return the action probability distribution
                         action_distribution
 
-                    end for (input, action) in zip(session_inputs, session_actions)
+                    end for (observation, action) in zip(session_observations, session_actions)
                 ]
-            end for (session_parameters, session_inputs, session_actions) in
-            zip(parameters_per_session, inputs_per_session, actions_per_session)
+            end for (session_parameters, session_observations, session_actions) in
+            zip(parameters_per_session, observations_per_session, actions_per_session)
         ]
 
         ## Reshape into a tuple of vectors with distributions ## 
@@ -93,7 +93,7 @@ function create_session_model(
         parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
-        inputs_per_session::Vector{Vector{II}},
+        observations_per_session::Vector{Vector{II}},
         actions_per_session::Vector{Vector{AA}};
         prefixes_per_session::Vector{Vector{Symbol}} = prefixes,
     ) where {
@@ -107,13 +107,13 @@ function create_session_model(
         #For each session
         for (
             session_parameters,
-            session_inputs,
+            session_observations,
             session_actions,
             session_prefixes,
             session_id,
         ) in zip(
             parameters_per_session,
-            inputs_per_session,
+            observations_per_session,
             actions_per_session,
             prefixes_per_session,
             session_ids,
@@ -125,7 +125,7 @@ function create_session_model(
                         agent,
                         parameter_names,
                         session_parameters,
-                        session_inputs,
+                        session_observations,
                         session_actions,
                         session_prefixes,
                     ),
@@ -141,7 +141,7 @@ end
     agent::Agent,
     parameter_names::Vector{Symbol},
     session_parameters::T,
-    session_inputs::Vector{II},
+    session_observations::Vector{II},
     session_actions::Vector{AA},
     session_prefixes::Vector{Symbol},
 ) where {
@@ -156,11 +156,11 @@ end
     reset!(agent)
 
     #For each timestep
-    for (input, action, timestep_prefix) in
-        zip(session_inputs, session_actions, session_prefixes)
+    for (observation, action, timestep_prefix) in
+        zip(session_observations, session_actions, session_prefixes)
 
         i ~ to_submodel(
-            prefix(sample_single_timestep(agent, input, action), timestep_prefix),
+            prefix(sample_single_timestep(agent, observation, action), timestep_prefix),
             false,
         )
     end
@@ -169,11 +169,11 @@ end
 #Turing submodel for sampling a simple timestep, with a single action
 @model function sample_single_timestep(
     agent::Agent,
-    input::I,
+    observation::I,
     action::A,
 ) where {I<:Any,A<:Union{Real,Missing}}
-    #Give input and sample action
-    action ~ agent.action_model(agent, input...)
+    #Give observation and sample action
+    action ~ agent.action_model(agent, observation...)
 
     #Store the agent's action in the agent
     update_states!(agent, :action, action)
@@ -182,12 +182,12 @@ end
 #Turing submodel for sampling a simple timestep, with multiple actions
 @model function sample_single_timestep(
     agent::Agent,
-    input::I,
+    observation::I,
     actions::AA,
 ) where {I<:Any,A<:Union{Real,Missing},AA<:Union{A,<:Tuple{Vararg{Union{Missing,A}}}}}
 
     #Get the tuple of action distributions from the action model
-    action_distributions = agent.action_model(agent, input...)
+    action_distributions = agent.action_model(agent, observation...)
 
     action = Tuple(
         i ~ to_submodel(

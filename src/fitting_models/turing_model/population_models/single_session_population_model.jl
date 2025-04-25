@@ -4,7 +4,7 @@
 function create_model(
     action_model::ActionModel,
     prior::Dict{Symbol,D},
-    inputs::II,
+    observations::II,
     actions::AA;
     verbose::Bool = true,
     kwargs...,
@@ -21,23 +21,23 @@ function create_model(
         SingleSessionPopulationModel(),
         action_model,
         prior,
-        inputs,
+        observations,
         actions,
         verbose;
         kwargs...,
     )
 
     #Get number of 
-    n_inputs = length(first(inputs))    
+    n_observations = length(first(observations))    
     n_actions = length(first(actions))
 
     #Create column names
-    input_cols = map(x -> Symbol("input_$x"), 1:n_inputs)
+    observation_cols = map(x -> Symbol("observation_$x"), 1:n_observations)
     action_cols = map(x -> Symbol("action_$x"), 1:n_actions)
 
-    #Create dataframe of the inputs and actions
+    #Create dataframe of the observations and actions
     data = hcat(
-        DataFrame(NamedTuple{Tuple(input_cols)}.(inputs)),
+        DataFrame(NamedTuple{Tuple(observation_cols)}.(observations)),
         DataFrame(NamedTuple{Tuple(action_cols)}.(actions)),
     )
 
@@ -50,7 +50,7 @@ function create_model(
         action_model,
         prior,
         data;
-        input_cols = input_cols,
+        observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
         verbose = verbose,
@@ -67,7 +67,7 @@ function check_population_model(
     model_type::SingleSessionPopulationModel,
     action_model::ActionModel,
     prior::Dict{Symbol,D},
-    inputs::II,
+    observations::II,
     actions::AA,
     verbose::Bool;
     kwargs...,
@@ -79,12 +79,12 @@ function check_population_model(
     AA<:Vector{A},
 }
 
-    if length(inputs) != length(actions)
-        throw(ArgumentError("The inputs and actions vectors must have the same length."))
+    if length(observations) != length(actions)
+        throw(ArgumentError("The observations and actions vectors must have the same length."))
     end
 
-    if !all(y->y==length.(inputs)[1],length.(inputs))
-        throw(ArgumentError("All tuples in the inputs vector must have the same length."))
+    if !all(y->y==length.(observations)[1],length.(observations))
+        throw(ArgumentError("All tuples in the observations vector must have the same length."))
     end
 
     if !all(y->y==length.(actions)[1],length.(actions))

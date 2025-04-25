@@ -20,8 +20,8 @@ function create_model(
     data::DataFrame;
     priors::Union{R,Vector{R}} = RegressionPrior(),
     inv_links::Union{Function,Vector{Function}} = identity,
-    input_cols::Union{
-        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::Union{
+        NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
         Symbol,
     },
@@ -33,7 +33,7 @@ function create_model(
     grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     verbose::Bool = true,
     kwargs...,
-) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, input_names, action_names}
+) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, observation_names, action_names}
 
     #Check population_model
     check_population_model(
@@ -43,7 +43,7 @@ function create_model(
         data,
         priors,
         inv_links,
-        input_cols,
+        observation_cols,
         action_cols,
         grouping_cols,
         verbose;
@@ -165,7 +165,7 @@ function create_model(
         action_model,
         population_model,
         data;
-        input_cols = input_cols,
+        observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
         parameter_names = parameter_names,
@@ -318,8 +318,8 @@ function check_population_model(
     data::DataFrame,
     priors::Union{R,Vector{R}},
     inv_links::Union{Function,Vector{Function}},
-    input_cols::Union{
-        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::Union{
+        NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
         Symbol,
     },
@@ -331,7 +331,7 @@ function check_population_model(
     grouping_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
-) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, input_names, action_names}
+) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, observation_names, action_names}
 
     #TODO: Make a check for whether there are NaN values in the predictors
     # if any(isnan.(data[!, predictor_cols]))

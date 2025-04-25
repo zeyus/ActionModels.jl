@@ -5,8 +5,8 @@ function create_model(
     action_model::ActionModel,
     prior::Dict{Symbol,D},
     data::DataFrame;
-    input_cols::Union{
-        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::Union{
+        NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
         Symbol,
     },
@@ -21,7 +21,7 @@ function create_model(
     kwargs...,
 ) where {
     D<:Distribution,
-    input_names, action_names
+    observation_names, action_names
 }
 
     #Check population_model
@@ -30,7 +30,7 @@ function create_model(
         action_model,
         prior,
         data,
-        input_cols,
+        observation_cols,
         action_cols,
         grouping_cols,
         verbose;
@@ -56,7 +56,7 @@ function create_model(
         action_model,
         population_model,
         data;
-        input_cols = input_cols,
+        observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
         parameter_names = parameter_names,
@@ -99,8 +99,8 @@ function check_population_model(
     action_model::ActionModel,
     prior::Dict{Symbol,D},
     data::DataFrame,
-    input_cols::Union{
-        NamedTuple{input_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::Union{
+        NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
         Symbol,
     },
@@ -112,7 +112,7 @@ function check_population_model(
     grouping_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
-) where {D<:Distribution, input_names, action_names}
+) where {D<:Distribution, observation_names, action_names}
     #Unless warnings are hidden
     if verbose
         #If there are any of the agent's parameters which have not been set in the fixed or sampled parameters

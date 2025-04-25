@@ -1,12 +1,12 @@
 """
-    single_input!(agent::Agent, input::Any)
+    single_observation!(agent::Agent, observation::Any)
 
-Give a single input to an Agent and let it evolve. Returns the agent's action.
+Give a single observation to an Agent and let it evolve. Returns the agent's action.
 """
-function single_input!(agent::Agent, input::Any)
+function single_observation!(agent::Agent, observation::Any)
 
     #Run the action model to get the action distribution
-    action_distribution = agent.action_model(agent, input...)
+    action_distribution = agent.action_model(agent, observation...)
 
     #If a single action distribution is returned
     if length(action_distribution) == 1
@@ -38,16 +38,16 @@ end
 
 
 """
-    give_inputs!(agent::Agent, inputs)
+    give_observations!(agent::Agent, observations)
 
-Give inputs to an agent. Input can be a single value, a vector of values, or an array of values. Returns the agent's action trajectory, without the initial state.
+Give observations to an agent. observation can be a single value, a vector of values, or an array of values. Returns the agent's action trajectory, without the initial state.
 """
-function give_inputs! end
+function give_observations! end
 
-function give_inputs!(agent::Agent, input::Real)
+function give_observations!(agent::Agent, observation::Real)
 
-    #Input the single input
-    single_input!(agent, input)
+    #observation the single observation
+    single_observation!(agent, observation)
 
     #Get the history of actions, without the initial state
     actions = agent.history[:action][2:end]
@@ -56,16 +56,16 @@ function give_inputs!(agent::Agent, input::Real)
     return stack(actions, dims = 1)
 end
 
-function give_inputs!(
+function give_observations!(
     agent::Agent,
-    inputs::Union{VR,VVR},
+    observations::Union{VR,VVR},
 ) where {R<:Real,VR<:Vector{R},VVR<:Vector{VR}}
 
-    #Each value in the vector is a single input
-    for input in inputs
+    #Each value in the vector is a single observation
+    for observation in observations
 
-        #Input that row
-        single_input!(agent, input)
+        #observation that row
+        single_observation!(agent, observation)
 
     end
 
@@ -76,13 +76,13 @@ function give_inputs!(
     return stack(actions, dims = 1)
 end
 
-function give_inputs!(agent::Agent, inputs::Matrix)
+function give_observations!(agent::Agent, observations::Matrix)
 
-    #Each row in the array is a single input
-    for input in Tuple.(eachrow(inputs))
+    #Each row in the array is a single observation
+    for observation in Tuple.(eachrow(observations))
 
-        #Input that row
-        single_input!(agent, input)
+        #observation that row
+        single_observation!(agent, observation)
 
     end
 

@@ -9,7 +9,7 @@ end
 function ActionModel(config::BinaryRescorlaWagnerSoftmax)
 
     #Create function
-    function binary_rescorla_wagner_softmax(agent::Agent, input::Union{Bool,Int64})
+    function binary_rescorla_wagner_softmax(agent::Agent, observation::Union{Bool,Int64})
 
         #Read in parameters
         learning_rate = agent.parameters[:learning_rate]
@@ -22,7 +22,7 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
         old_value_probability = 1 / (1 + exp(-old_value))
     
         #Get new value state
-        new_value = old_value + learning_rate * (input - old_value_probability)
+        new_value = old_value + learning_rate * (observation - old_value_probability)
     
         #Pass through softmax to get action probability
         action_probability = 1 / (1 + exp(-action_precision * new_value))
@@ -32,7 +32,7 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
     
         #Update states
         update_states!(agent, :value, new_value)
-        update_states!(agent, :input, input)
+        update_states!(agent, :observation, observation)
     
         return action_distribution
     end
@@ -45,10 +45,10 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
     )
     states = (
         value = State(Real),
-        input = State(Real),
+        observation = State(Real),
     )
     observations = (;
-        input = Observation(Bool)
+        observation = Observation(Bool)
     )
     actions = (;
         report = Action(Bernoulli)

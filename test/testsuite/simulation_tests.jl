@@ -7,13 +7,13 @@ using ActionModels
 
     agent = init_agent(action_model)
 
-    @testset "give_inputs!" begin
+    @testset "give_observations!" begin
 
-        inputs = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+        observations = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
 
-        actions = give_inputs!(agent, inputs)
+        actions = give_observations!(agent, observations)
 
-        @test length(actions) == length(inputs)
+        @test length(actions) == length(observations)
         
     end
 
