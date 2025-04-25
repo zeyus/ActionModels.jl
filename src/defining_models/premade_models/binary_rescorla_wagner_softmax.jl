@@ -9,7 +9,7 @@ end
 function ActionModel(config::BinaryRescorlaWagnerSoftmax)
 
     #Create function
-    function binary_rescorla_wagner_softmax(agent::Agent, input::Union{Bool,Integer})
+    function binary_rescorla_wagner_softmax(agent::Agent, input::Union{Bool,Int64})
 
         #Read in parameters
         learning_rate = agent.parameters[:learning_rate]

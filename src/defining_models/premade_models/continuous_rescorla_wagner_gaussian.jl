@@ -20,10 +20,9 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
         ##We dont have any settings in this model. If we had, we would read them in as well.
         ##-----This is where the update step starts -------
-    
+
         ##Get new value state
         new_value = old_value + learning_rate * (input - old_value)
-    
     
         ##-----This is where the update step ends -------
         ##Create Bernoulli normal distribution our action probability which we calculated in the update step
@@ -39,9 +38,9 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
     ## Create model 
     parameters = (
-        learning_rate = Parameter(config.learning_rate, Real),
-        action_noise = Parameter(config.action_noise, Real),
-        initial_value = InitialStateParameter(config.initial_value, :value, Real),
+        learning_rate = Parameter(config.learning_rate),
+        action_noise = Parameter(config.action_noise),
+        initial_value = InitialStateParameter(config.initial_value, :value),
     )
     states = (
         value = State(Real),
