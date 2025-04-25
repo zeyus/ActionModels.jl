@@ -163,16 +163,24 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
             <:Tuple{Vararg{AbstractParameter}},
         } where {parameter_names},
         states::NamedTuple{state_names,<:Tuple{Vararg{AbstractState}}} where {state_names} = (;),
-        observations::NamedTuple{
-            observation_names,
-            <:Tuple{Vararg{AbstractObservation}},
-        } where {observation_names} = nothing,
-        actions::NamedTuple{
-            action_names,
-            <:Tuple{Vararg{AbstractAction}},
-        } where {action_names} = nothing,
+        observations::Union{
+            AbstractObservation,
+            NamedTuple{observation_names,<:Tuple{Vararg{AbstractObservation}}},
+        } where {observation_names},
+        actions::Union{
+            AbstractAction,
+            NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
+        } where {action_names},
         submodel::T = nothing,
     ) where {T<:Union{AbstractSubmodel,Nothing}}
+
+        #Make single actions and observations into NamedTuples
+        if actions isa AbstractAction
+            actions = (; action=actions)
+        end
+        if observations isa AbstractObservation
+            observations = (; observation=observations)
+        end
 
         #Check initial state parameters
         for (parameter_name, parameter) in pairs(parameters)
