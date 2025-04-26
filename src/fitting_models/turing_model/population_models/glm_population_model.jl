@@ -1,15 +1,25 @@
 
+## API ##
 # TODO: (1.0) implement Regression input type
-# TODO: implement check_population_model
-#       - TODO: Make check for whether there is a name collision with creating column with the parameter name
-#       - TODO: check for whether the vector of priors is the correct amount
-# TODO: (1.0) Example / usecase / tutorials)
+# TODO: (1.0) fix the errors in glm_tests.jl
+# TODO: (1.0) example / usecase / tutorials)
 #      - TODO: Fit a real dataset
-# TODO: add to documentation that there shouldn't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
-# TODO: add covariance between parameters
-# TODO: Use an mvnormal to sample all the random effects, instead of a huge constructed arraydist
-# TODO: make a show or summarize function for the GLM chains object
-# TODO: fix the errors in glm_tests.jl
+# TODO: (1.0) implement check_population_model
+#       - TODO: make check for whether there is a name collision with creating column with the parameter name
+#       - TODO: check for whether the vector of priors is the correct amount
+# TODO: (1.0) make a show or summarize function for the GLM chains object
+#       - TODO: which renames parameters to be interpretable and removes the random effects etc
+
+## FUNCTIONALITY ##
+# TODO: use an mvnormal to sample all the random effects, instead of a huge constructed arraydist
+# TODO: add covariance between random effects
+# TODO: add option for independence between random effect groups (like brms' group_by = )
+# TODO: check for type stability in the population model
+
+## DOCUMENTATION ##
+# TODO: add to documentation
+#       - TODO: that there shouldn't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
+
 
 ###################################
 ### REGRESSION POPULATION MODEL ###
