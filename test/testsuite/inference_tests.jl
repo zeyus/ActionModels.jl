@@ -76,7 +76,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         end
 
         @testset "API tests $(AD)" begin
-            
+
             #Create model
             model = create_model(
                 action_model,
@@ -97,7 +97,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
                 posterior_parameters = get_session_parameters!(model, :posterior)
                 posterior_parameters_df = summarize(posterior_parameters)
-                @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
+                @test sort(posterior_parameters_df, :learning_rate).id ==
+                      ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
                 summarize(posterior_parameters, mean)
                 posterior_trajectories =
                     get_state_trajectories!(model, [:observation, :value], :posterior)
@@ -171,20 +172,32 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 end
 
                 @testset "multi-core sampling $(AD)" begin
-                    # using Distributed
+                    using Distributed
 
-                    # addprocs(2)
+                    addprocs(2)
 
-                    # @everywhere using ActionModels
-                    # @everywhere model = $model
+                    @everywhere using ActionModels
+                    @everywhere model = $model
 
-                    # posterior_chains = sample_posterior!(model, MCMCDistributed(), resample = true, n_samples = n_samples, n_chains = n_chains)
+                    posterior_chains = sample_posterior!(
+                        model,
+                        MCMCDistributed(),
+                        resample = true,
+                        n_samples = n_samples,
+                        n_chains = n_chains,
+                    )
 
-                    # rmprocs(workers())
+                    rmprocs(workers())
                 end
 
                 @testset "multi-thread sampling $(AD)" begin
-                    #TODO:
+                    posterior_chains = sample_posterior!(
+                        model,
+                        MCMCThreads(),
+                        resample = true,
+                        n_samples = n_samples,
+                        n_chains = n_chains,
+                    )
                 end
 
                 @testset "save/resume THIS ERRORS! $(AD)" begin
@@ -213,7 +226,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
         @testset "population model tests $(AD)" begin
 
-            ### TESTING MODEL TYPES ###
             @testset "single session ($AD)" begin
                 #Extract observations and actions from data
                 observations = data[!, :observations]
@@ -221,6 +233,51 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 #Create model
                 model = create_model(action_model, prior, observations, actions)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "single session with multiple observations and actions ($AD)" begin
+
+                function multi_observation_action(
+                    agent,
+                    observation1::Float64,
+                    observation2::Float64,
+                )
+
+                    noise = agent.parameters[:noise]
+
+                    actiondist1 = Normal(observation1, noise)
+                    actiondist2 = Normal(observation2, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+
+                #Create action_model
+                new_model = ActionModel(
+                    multi_observation_action,
+                    parameters = (; noise = Parameter(1.0, Float64)),
+                    observations = (;
+                        observation_1 = Observation(Float64),
+                        observation_2 = Observation(Float64),
+                    ),
+                    actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+
+                #Extract observations and actions from data
+                observations = Tuple.(eachrow(data[!, [:observations, :observations_2]]))
+                actions = Tuple.(eachrow(data[!, [:actions, :actions_2]]))
+
+                #Create model
+                model = create_model(new_model, new_prior, observations, actions)
 
                 #Fit model
                 posterior_chains = sample_posterior!(
@@ -249,6 +306,51 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_samples = n_samples,
                     n_chains = n_chains,
                 )
+            end
+
+            @testset "no grouping cols ($AD)" begin
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "multiple grouping cols ($AD)" begin
+
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
+                #Check that the posteriors are correct
+                posterior_parameters_df = summarize(posterior_parameters)
+                @test sort(posterior_parameters_df, :learning_rate).id ==
+                      ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
             end
 
             @testset "custom population model ($AD)" begin
@@ -305,50 +407,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 
         @testset "different observation and action types ($AD)" begin
-
-            @testset "no grouping cols ($AD)" begin
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "multiple grouping cols ($AD)" begin
-
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                    grouping_cols = grouping_cols,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-
-                #Check that the posteriors are correct
-                posterior_parameters_df = summarize(posterior_parameters)
-                @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
-            end
 
             @testset "missing actions ($AD)" begin
 
@@ -547,51 +605,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     action_cols = [:actions, :actions_2],
                     grouping_cols = grouping_cols,
                 )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "single session with multiple observations and actions ($AD)" begin
-
-                function multi_observation_action(
-                    agent,
-                    observation1::Float64,
-                    observation2::Float64,
-                )
-
-                    noise = agent.parameters[:noise]
-
-                    actiondist1 = Normal(observation1, noise)
-                    actiondist2 = Normal(observation2, noise)
-
-                    return (actiondist1, actiondist2)
-                end
-
-                #Create action_model
-                new_model = ActionModel(
-                    multi_observation_action,
-                    parameters = (; noise = Parameter(1.0, Float64)),
-                    observations = (;
-                        observation_1 = Observation(Float64),
-                        observation_2 = Observation(Float64),
-                    ),
-                    actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
-                )
-
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
-
-                #Extract observations and actions from data
-                observations = Tuple.(eachrow(data[!, [:observations, :observations_2]]))
-                actions = Tuple.(eachrow(data[!, [:actions, :actions_2]]))
-
-                #Create model
-                model = create_model(new_model, new_prior, observations, actions)
 
                 #Fit model
                 posterior_chains = sample_posterior!(
