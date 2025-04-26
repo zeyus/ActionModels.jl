@@ -27,7 +27,7 @@ function create_model(
         kwargs...,
     )
 
-    #Get number of 
+    #Get number of observations and actions
     n_observations = length(first(observations))    
     n_actions = length(first(actions))
 
@@ -43,7 +43,7 @@ function create_model(
 
     #Add grouping column
     grouping_cols = :session
-    data[!, grouping_cols] .= 1
+    data[!, grouping_cols] .= :single_session
 
     #Create an independent_population_model with the single session
     return create_model(
