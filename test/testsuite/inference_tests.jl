@@ -57,7 +57,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     )
 
     #Inference parameters
-    n_samples = 50
+    n_samples = 200
     n_chains = 2
 
     #Go through each supported AD type
@@ -96,7 +96,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_chains = n_chains,
                 )
                 posterior_parameters = get_session_parameters!(model, :posterior)
-                summarize(posterior_parameters)
+                posterior_parameters_df = summarize(posterior_parameters)
+                @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
                 summarize(posterior_parameters, mean)
                 posterior_trajectories =
                     get_state_trajectories!(model, [:observation, :value], :posterior)
@@ -343,6 +344,10 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_samples = n_samples,
                     n_chains = n_chains,
                 )
+
+                #Check that the posteriors are correct
+                posterior_parameters_df = summarize(posterior_parameters)
+                @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
             end
 
             @testset "missing actions ($AD)" begin

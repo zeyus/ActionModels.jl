@@ -3,12 +3,11 @@ using Test
 using ActionModels, DataFrames, LogExpFunctions
 using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
-
 @testset "linear regression tests" begin
 
     #Generate dataset
     data = DataFrame(
-        observation = repeat([.1, 1, 1, 2, 2, 2], 6),
+        observation = repeat([0.1, 1, 1, 2, 2, 2], 6),
         action = vcat(
             [0, 0.2, 0.3, 0.4, 0.5, 0.6],
             [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -44,28 +43,24 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     #Create action model
     action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
+    #Inference parameters
+    n_samples = 200
+    n_chains = 2
 
     #Go through each supported AD type
-    for ad_type in
+    for AD in
         ["AutoForwardDiff", "AutoReverseDiff", "AutoReverseDiff(true)", "AutoMooncake"]
 
         #Select appropriate AD backend
-        if ad_type == "AutoForwardDiff"
-            AD = AutoForwardDiff()
-        elseif ad_type == "AutoReverseDiff"
-            AD = AutoReverseDiff()
-        elseif ad_type == "AutoReverseDiff(true)"
-            AD = AutoReverseDiff(; compile = true)
-        elseif ad_type == "AutoMooncake"
-            AD = AutoMooncake(; config = nothing)
+        if AD == "AutoForwardDiff"
+            ad_type = AutoForwardDiff()
+        elseif AD == "AutoReverseDiff"
+            ad_type = AutoReverseDiff()
+        elseif AD == "AutoReverseDiff(true)"
+            ad_type = AutoReverseDiff(; compile = true)
+        elseif AD == "AutoMooncake"
+            ad_type = AutoMooncake(; config = nothing)
         end
-
-        #Set sampling arguments
-        n_iterations = 50
-        sampling_kwargs = (; progress = false)
-        sampler = NUTS(-1, 0.65; adtype = AD)
-
-
 
         @testset "intercept only ($ad_type)" begin
             model = create_model(
@@ -77,7 +72,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
 
         end
         @testset "intercept + random effect only ($ad_type)" begin
@@ -90,7 +91,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "THIS IS WRONG: MISSING IMPLICIT INTERCEPT fixed effect only ($ad_type)" begin
@@ -117,7 +127,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "fixed effect and random intercept by id and treatment ($ad_type)" begin
@@ -130,7 +149,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
@@ -143,7 +171,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
@@ -156,12 +193,21 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "THIS ERRORS: order of random effects reversed ($ad_type)" begin
             #TODO: fix this
-            
+
             # model = create_model(
             #     action_model,
             #     @formula(learning_rate ~ age + (1 | id) + (1 + age | treatment)),
@@ -188,7 +234,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "manual prior specification ($ad_type)" begin
@@ -212,7 +267,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 grouping_cols = grouping_cols,
             )
 
-            samples = sample(model.model, sampler, n_iterations; sampling_kwargs...)
+            #Posterior
+            posterior_chains = sample_posterior!(
+                model,
+                ad_type = ad_type,
+                n_samples = n_samples,
+                n_chains = n_chains,
+            )
+
+            posterior_parameters_df = summarize(posterior_parameters)
+            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
     end
 end
