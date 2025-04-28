@@ -44,7 +44,6 @@ mutable struct InitialStateParameter{T<:Real} <: AbstractParameter
     end
 end
 
-
 ## For creating states ##
 abstract type AbstractState end
 mutable struct State{T} <: AbstractState
@@ -54,15 +53,12 @@ mutable struct State{T} <: AbstractState
     function State(value::T) where {T}
         new{T}(value, T)
     end
-
     function State(value, ::Type{T}) where {T}
         new{T}(value, T)
     end
-
     function State(::Type{T}, value) where {T}
         new{T}(value, T)
     end
-
     function State(::Type{T}) where {T}
         new{Union{T,Missing}}(missing, Union{T,Missing})
     end
@@ -93,7 +89,6 @@ struct Action{T,TD} <: AbstractAction
         if T != get_action_type(TD)
             @warn "Action type $T is different from the the action type $(get_action_type(TD)) which should match the distribution type $TD. Check that everything is in order"
         end
-
         new{T,TD}(action_type, distribution_type)
     end
 
@@ -139,7 +134,6 @@ end
 ## Supertype for submodels ##
 abstract type AbstractSubmodel end
 
-
 ## ActionModel struct ##
 abstract type AbstractActionModel end
 struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
@@ -158,11 +152,14 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
 
     function ActionModel(
         action_model::Function;
-        parameters::NamedTuple{
-            parameter_names,
-            <:Tuple{Vararg{AbstractParameter}},
+        parameters::Union{
+            AbstractParameter,
+            NamedTuple{parameter_names,<:Tuple{Vararg{AbstractParameter}}},
         } where {parameter_names},
-        states::NamedTuple{state_names,<:Tuple{Vararg{AbstractState}}} where {state_names} = (;),
+        states::Union{
+            AbstractState,
+            NamedTuple{state_names,<:Tuple{Vararg{AbstractState}}},
+        } where {state_names} = (;),
         observations::Union{
             AbstractObservation,
             NamedTuple{observation_names,<:Tuple{Vararg{AbstractObservation}}},
@@ -172,14 +169,33 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
             NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
         } where {action_names},
         submodel::T = nothing,
+        verbose::Bool = true,
     ) where {T<:Union{AbstractSubmodel,Nothing}}
 
-        #Make single actions and observations into NamedTuples
+        #Make single structs into NamedTuples
+        if parameters isa AbstractParameter
+            parameters = (; parameter = parameters)
+            if verbose
+                @warn "A single parameter was passed, and is given the name :parameter. Use (; parameter_name = parameter) to specify the name of the parameter."
+            end
+        end
+        if states isa AbstractState
+            states = (; state = states)
+            if verbose
+                @warn "A single state was passed, and is given the name :state. Use (; state_name = state) to specify the name of the state."
+            end
+        end
         if actions isa AbstractAction
-            actions = (; action=actions)
+            actions = (; action = actions)
+            if verbose
+                @warn "A single action was passed, and is given the name :action. Use (; action_name = action) to specify the name of the action."
+            end
         end
         if observations isa AbstractObservation
-            observations = (; observation=observations)
+            observations = (; observation = observations)
+            if verbose
+                @warn "A single observation was passed, and is given the name :observation. Use (; observation_name = observation) to specify the name of the observation."
+            end
         end
 
         #Check initial state parameters
