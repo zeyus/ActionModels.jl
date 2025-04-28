@@ -343,42 +343,59 @@ end
 
 
 
+####################################
+####### PARAMETER REJECTIONS #######
+####################################
+function create_session_model(
+    infer_missing_actions::AbstractMissingActions,  
+    multiple_actions::AbstractMultipleActions,     
+    check_parameter_rejections::Val{true},               #No parameter rejections
+    actions::Vector{Vector{A}},
+) where {A}
 
+    #Get normal session model
+    session_submodel = create_session_model(
+        infer_missing_actions,
+        multiple_actions,
+        Val{false}(),
+        actions,
+    )
 
-# ####################################
-# ####### PARAMETER REJECTIONS #######
-# ####################################
-# function create_session_model(
-#     infer_missing_actions::AbstractMissingActions,  
-#     multiple_actions::AbstractMultipleActions,     
-#     check_parameter_rejections::Val{true},               #No parameter rejections
-#     actions::Vector{Vector{A}},
-# ) where {A}
+    return @model function session_model(
+        agent::Agent,
+        parameter_names::Vector{Symbol},
+        session_ids::Vector{String},
+        parameters_per_session::T, #No way to type for an iterator
+        observations_per_session::Vector{Vector{II}},
+        actions_per_session::Vector{Vector{AA}};
+    ) where {
+        I<:Any,
+        II<:Union{I,Tuple{Vararg{I}}},
+        A<:Real,
+        AA<:Union{A,Tuple{Vararg{A}}},
+        T<:Any,
+    }
 
-#     #Get normal session model
-#     session_submodel = create_session_model(
-#         infer_missing_actions,
-#         multiple_actions,
-#         Val{false}(),
-#         actions,
-#     )
+        try 
 
-#     return @model function session_model(
-#         agent::Agent,
-#         parameter_names::Vector{Symbol},
-#         session_ids::Vector{String},
-#         parameters_per_session::T, #No way to type for an iterator
-#         observations_per_session::Vector{Vector{II}},
-#         actions_per_session::Vector{Vector{AA}};
-#     ) where {
-#         I<:Any,
-#         II<:Union{I,Tuple{Vararg{I}}},
-#         A<:Real,
-#         AA<:Union{A,Tuple{Vararg{A}}},
-#         T<:Any,
-#     }
+        #Run the normal session model
+        i ~ to_submodel(session_submodel(
+            agent,
+            parameter_names,
+            session_ids,
+            parameters_per_session,
+            observations_per_session,
+            actions_per_session,
+        ), false)
 
-#         #Run the normal session model
-#         i ~ to_submodel(session_submodel, false)
-#     end
-# end
+        catch e
+            #If there is a parameter rejection, reject the sample
+            if isa(e, RejectParameters)
+                Turing.@addlogprob! -Inf
+                return nothing
+            else
+                rethrow(e)
+            end
+        end
+    end
+end

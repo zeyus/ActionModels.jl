@@ -409,11 +409,71 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_chains = n_chains,
                 )
             end
+
+            @testset "check for parameter rejections, no rejections $(AD)" begin
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    check_parameter_rejections = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "check for parameter rejections, with rejections $(AD)" begin
+                
+                function rejected_params(agent, observation::Float64)
+
+                    noise = agent.parameters[:noise]
+
+                    if observation * noise > 5.0
+                        throw(RejectParameters("This parameter is rejected"))
+                    end
+
+                    return Normal(observation, noise)
+                end
+                #Create model
+                new_model = ActionModel(
+                    rejected_params,
+                    parameters = (; noise = Parameter(1.0, Real)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (; action = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    check_parameter_rejections = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
         end
-
-
-
-
 
         @testset "different observation and action types ($AD)" begin
 
