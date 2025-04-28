@@ -475,7 +475,40 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
         end
 
+
+
+
         @testset "different observation and action types ($AD)" begin
+
+
+            @testset "varying session lengths $(AD)" begin
+            
+                #Remove last two rows from the data
+                new_data = data[1:end-2, :]
+
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    check_parameter_rejections = true,
+                )
+            
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
+                get_session_parameters!(model, :posterior)
+                state_trajectories = get_state_trajectories!(model, [:observation, :value], :posterior)
+                summarize(state_trajectories)
+            end
 
             @testset "infer missing actions ($AD)" begin
 
