@@ -30,8 +30,8 @@ export plot_trajectory, plot_trajectory!
 export create_model, RegressionPrior
 export sample_prior!, sample_posterior!, SampleSaveResume
 export get_session_parameters!, get_state_trajectories!, summarize
-export parameter_recovery
-export plot_parameters, plot_trajectories
+# export parameter_recovery
+# export plot_parameters, plot_trajectories
 export bounded_exp, bounded_logistic
 export @formula
 

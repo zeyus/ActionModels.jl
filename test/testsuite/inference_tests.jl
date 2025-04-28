@@ -348,6 +348,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 #Check that the posteriors are correct
+                posterior_parameters = get_session_parameters!(model, :posterior)
                 posterior_parameters_df = summarize(posterior_parameters)
                 @test sort(posterior_parameters_df, :learning_rate).id ==
                       ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]

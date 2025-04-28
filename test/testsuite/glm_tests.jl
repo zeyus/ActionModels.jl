@@ -99,8 +99,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
+            @test sort(posterior_parameters_df, :learning_rate).id ==
+                  ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "THIS IS WRONG: MISSING IMPLICIT INTERCEPT fixed effect only ($ad_type)" begin
@@ -135,8 +138,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "fixed effect and random intercept by id and treatment ($ad_type)" begin
@@ -157,8 +161,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
@@ -179,8 +184,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "fixed effect, random intercept + slope by treatment ($ad_type)" begin
@@ -201,8 +207,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "THIS ERRORS: order of random effects reversed ($ad_type)" begin
@@ -242,8 +249,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
 
         @testset "manual prior specification ($ad_type)" begin
@@ -275,8 +283,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_chains = n_chains,
             )
 
+            #Check that the posteriors are correct
+            posterior_parameters = get_session_parameters!(model, :posterior)
             posterior_parameters_df = summarize(posterior_parameters)
-            @test sort(posterior_parameters_df, :learning_rate).id == ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
         end
     end
 end
