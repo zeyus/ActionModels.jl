@@ -1,6 +1,6 @@
 using ActionModels
 using Test
-using Glob
+using Glob, Distributed
 
 #Get the root path
 ActionModels_path = dirname(dirname(pathof(ActionModels)))

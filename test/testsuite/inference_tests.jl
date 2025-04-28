@@ -50,10 +50,10 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
     #Set prior
-    prior = Dict(
-        :learning_rate => LogitNormal(),
-        :action_noise => LogNormal(),
-        :initial_value => Normal(),
+    prior = (
+        learning_rate = LogitNormal(),
+        action_noise = LogNormal(),
+        initial_value = Normal(),
     )
 
     #Inference parameters
@@ -270,7 +270,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
                 )
 
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Extract observations and actions from data
                 observations = Tuple.(eachrow(data[!, [:observations, :observations_2]]))
@@ -390,7 +390,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     return [control_params; treatment_params]
                 end
 
-                parameter_names = [:learning_rate, :action_noise, :initial_value]
+                estimated_parameters = [:learning_rate, :action_noise, :initial_value]
 
                 model = create_model(
                     action_model,
@@ -399,7 +399,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
-                    parameter_names = parameter_names,
+                    estimated_parameters = estimated_parameters,
                 )
 
                 posterior_chains = sample_posterior!(
@@ -452,7 +452,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 #Set prior
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
                 
                 #Create model
                 model = create_model(
@@ -582,7 +582,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 #Set prior
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create model
                 model = create_model(
@@ -623,7 +623,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 #Set prior
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create new dataframe where three actions = missing
                 new_data = allowmissing(data, [:actions, :actions_2])
@@ -670,7 +670,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 #Set prior
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create new dataframe where three actions = missing
                 new_data = allowmissing(data, [:actions, :actions_2])
@@ -722,7 +722,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     actions = (; action_1 = Action(Normal)),
                 )
 
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create model
                 model = create_model(
@@ -769,7 +769,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
                 )
 
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create model
                 model = create_model(
@@ -814,7 +814,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     actions = (; action_1 = Action(Normal)),
                 )
 
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create model
                 model = create_model(
@@ -860,7 +860,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
                 )
 
-                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+                new_prior = (; noise = LogNormal(0.0, 1.0))
 
                 #Create model
                 model = create_model(

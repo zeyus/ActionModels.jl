@@ -16,7 +16,7 @@ function create_model(
         Symbol,
     },
     grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
-    parameter_names::Vector{Symbol},
+    estimated_parameters::Vector{Symbol},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
     population_model_type::AbstractPopulationModel = CustomPopulationModel(),
@@ -115,7 +115,7 @@ function create_model(
         observation_cols,
         action_cols,
         grouping_cols,
-        parameter_names,
+        estimated_parameters,
         population_model_type,
     )
 
@@ -177,7 +177,7 @@ function create_model(
     #Create a full model combining the agent model and the statistical model
     model = full_model(
         agent_model,
-        parameter_names,
+        estimated_parameters,
         population_model,
         session_model,
         session_ids,
@@ -188,7 +188,7 @@ function create_model(
     return ModelFit(
         model = model,
         population_model_type = population_model_type,
-        info = ModelFitInfo(parameter_names = parameter_names, session_ids = session_ids),
+        info = ModelFitInfo(estimated_parameters = estimated_parameters, session_ids = session_ids),
     )
 end
 
@@ -199,7 +199,7 @@ end
 ####################################################################
 @model function full_model(
     agent_model::Agent,
-    parameter_names::Vector{Symbol},
+    estimated_parameters::Vector{Symbol},
     population_model::DynamicPPL.Model,
     session_model::Function,
     session_ids::Vector{String},
@@ -214,7 +214,7 @@ end
     i ~ to_submodel(
         session_model(
             agent_model,
-            parameter_names,
+            estimated_parameters,
             session_ids,
             parameters_per_session,
             observations_per_session,
@@ -239,7 +239,7 @@ function check_model(
     observation_cols::NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
     action_cols::NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
     grouping_cols::Vector{Symbol},
-    parameter_names::Vector{Symbol},
+    estimated_parameters::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
 ) where {observation_names,action_names}
     #Check that user-specified columns exist in the dataset

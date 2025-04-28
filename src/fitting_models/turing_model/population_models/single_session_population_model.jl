@@ -3,7 +3,7 @@
 #############################################
 function create_model(
     action_model::ActionModel,
-    prior::Dict{Symbol,D},
+    prior::NamedTuple{prior_names, <:Tuple{Vararg{<:Distribution}}},
     observations::II,
     actions::AA;
     verbose::Bool = true,
@@ -14,6 +14,7 @@ function create_model(
     II<:Vector{I},
     A<:Union{<:Real, NTuple{N, <:Real} where N},
     AA<:Vector{A},
+    prior_names,
 }
     
     #Check population_model
@@ -66,17 +67,15 @@ end
 function check_population_model(
     model_type::SingleSessionPopulationModel,
     action_model::ActionModel,
-    prior::Dict{Symbol,D},
+    prior::NamedTuple{prior_names, <:Tuple{Vararg{<:Distribution}}},
     observations::II,
     actions::AA,
     verbose::Bool;
     kwargs...,
 ) where {
-    D<:Distribution,
-    I<:Union{<:Any, NTuple{N, <:Any} where N},
-    II<:Vector{I},
-    A<:Union{<:Real, NTuple{N, <:Real} where N},
-    AA<:Vector{A},
+    prior_names,
+    II <: Vector,
+    AA <: Vector,
 }
 
     if length(observations) != length(actions)
