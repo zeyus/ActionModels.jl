@@ -136,7 +136,7 @@ function create_model(
         ) for subdata in grouped_data
     ]
 
-    ## Extract observations and actions ## #TODO: make this work with the now namedtuple formatted cols
+    ## Extract observations and actions ##
     if length(observation_cols) == 1
         #observations are a vector of vectors of <:Any
         observations = [Vector(session_data[!, first(observation_cols)]) for session_data in grouped_data]

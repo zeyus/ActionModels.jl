@@ -307,9 +307,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_samples = n_samples,
                     n_chains = n_chains,
                 )
-
-            #TODO:
-
             end
 
             @testset "simple statistical model ($AD)" begin
@@ -901,7 +898,54 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
 
             @testset "depend on previous action, missing actions $(AD)" begin
-                #TODO:
+                
+                function dependent_action(agent::Agent, observation::Float64)
+
+                    noise = agent.parameters[:noise]
+
+                    prev_action = agent.states[:action]
+
+                    if ismissing(prev_action)
+                        prev_action = 0.0
+                    end
+
+                    actiondist = Normal(observation + prev_action, noise)
+
+                    return actiondist
+                end
+
+                #Create model
+                new_model = ActionModel(
+                    dependent_action,
+                    parameters = (; noise = Parameter(1.0, Real)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (; action_1 = Action(Normal)),
+                )
+
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, [:actions, :actions_2])
+                new_data[[2, 12], :actions] .= missing
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
             end
         end
     end
