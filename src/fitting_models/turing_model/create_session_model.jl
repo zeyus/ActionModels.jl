@@ -22,7 +22,7 @@ function create_session_model(
     #Create session model function with flattened actions included
     return @model function my_session_model(
         agent::Agent,
-        parameter_names::Vector{Symbol},
+        estimated_parameters::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{II}},
@@ -41,7 +41,7 @@ function create_session_model(
         action_distributions = [
             begin
                 #Set the agent parameters
-                set_parameters!(agent, parameter_names, session_parameters)
+                set_parameters!(agent, estimated_parameters, session_parameters)
                 reset!(agent)
                 [
                     begin
@@ -133,7 +133,7 @@ function create_session_model(
     #Create session model function
     return @model function session_model(
         agent::Agent,
-        parameter_names::Vector{Symbol},
+        estimated_parameters::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{II}},
@@ -156,7 +156,7 @@ function create_session_model(
                 prefix(
                     single_session_model(
                         agent,
-                        parameter_names,
+                        estimated_parameters,
                         session_parameters,
                         session_observations,
                         session_actions,
@@ -205,7 +205,7 @@ end
 #######################################
 @model function single_session_model(
     agent::Agent,
-    parameter_names::Vector{Symbol},
+    estimated_parameters::Vector{Symbol},
     session_parameters::T,
     session_observations::Vector{II},
     session_actions::Vector{AA},
@@ -220,7 +220,7 @@ end
     T<:Tuple,
 }
     #Prepare the agent
-    set_parameters!(agent, parameter_names, session_parameters)
+    set_parameters!(agent, estimated_parameters, session_parameters)
     reset!(agent)
 
     session_action_distributions = [
@@ -363,7 +363,7 @@ function create_session_model(
 
     return @model function session_model(
         agent::Agent,
-        parameter_names::Vector{Symbol},
+        estimated_parameters::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{II}},
@@ -381,7 +381,7 @@ function create_session_model(
         #Run the normal session model
         i ~ to_submodel(session_submodel(
             agent,
-            parameter_names,
+            estimated_parameters,
             session_ids,
             parameters_per_session,
             observations_per_session,

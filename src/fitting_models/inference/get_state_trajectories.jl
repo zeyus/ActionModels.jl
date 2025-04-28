@@ -21,10 +21,10 @@ function get_state_trajectories!(
     observations_per_session = model.args.observations_per_session
 
     #Extract dimension labels
-    session_ids, parameter_names, sample_idxs, chain_idxs = all_session_parameters.axes
+    session_ids, estimated_parameters, sample_idxs, chain_idxs = all_session_parameters.axes
 
     #Make parameter names into a vector
-    parameter_names = collect(parameter_names)
+    estimated_parameters = collect(estimated_parameters)
     session_ids = collect(session_ids)
 
 
@@ -67,7 +67,7 @@ function get_state_trajectories!(
                 parameter_sample = Tuple(session_parameters[:, sample_idx, chain_idx])
 
                 #Set parameters in agent
-                set_parameters!(agent, parameter_names, parameter_sample)
+                set_parameters!(agent, estimated_parameters, parameter_sample)
                 reset!(agent)
 
                 #Go through each observation

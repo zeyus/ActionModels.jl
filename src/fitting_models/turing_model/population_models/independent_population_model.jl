@@ -3,7 +3,7 @@
 #########################################################
 function create_model(
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{<:Distribution}}},
+    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
     data::DataFrame;
     observation_cols::Union{
         NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
@@ -98,7 +98,7 @@ end
 function check_population_model(
     model_type::IndependentPopulationModel,
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{<:Distribution}}},
+    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
     data::DataFrame,
     observation_cols::Union{
         NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},

@@ -3,13 +3,12 @@
 #############################################
 function create_model(
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{<:Distribution}}},
+    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
     observations::II,
     actions::AA;
     verbose::Bool = true,
     kwargs...,
 ) where {
-    D<:Distribution,
     I<:Union{<:Any, NTuple{N, <:Any} where N},
     II<:Vector{I},
     A<:Union{<:Real, NTuple{N, <:Real} where N},
@@ -67,7 +66,7 @@ end
 function check_population_model(
     model_type::SingleSessionPopulationModel,
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{<:Distribution}}},
+    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
     observations::II,
     actions::AA,
     verbose::Bool;

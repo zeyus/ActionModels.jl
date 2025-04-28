@@ -290,7 +290,26 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "single session with missing actions" begin
                 
+                #Extract observations and actions from data
+                observations = data[!, :observations]
+                actions = data[!, :actions]
+
+                #Add a missing action
+                actions[3] = missing
+
+                #Create model
+                model = create_model(action_model, prior, observations, actions)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
             #TODO:
+
             end
 
             @testset "simple statistical model ($AD)" begin
