@@ -82,12 +82,12 @@ function create_model(
         if !any(ismissing, Matrix(data[!, collect(action_cols)]))
             #Remove any potential Missing type
             disallowmissing!(data, collect(action_cols))
-            infer_missing_actions = nothing
+            infer_missing_actions = NoMissingActions()
         else
             if verbose
                 @warn """
                       There are missing values in the action columns, but infer_missing_actions is set to false. 
-                      These actions will not be used for fitting, but they will still be passed to the action model. 
+                      These actions will not be used to inform parameter estimation, but they will still be passed to the action model. 
                       Check that this is desired behaviour. This can especially be a problem for models which depend on their previous actions.
                       """
             end
@@ -101,7 +101,7 @@ function create_model(
             end
             #Remove any potential Missing type
             disallowmissing!(data, collect(action_cols))
-            infer_missing_actions = nothing
+            infer_missing_actions = NoMissingActions()
         else
             infer_missing_actions = InferMissingActions()
         end
@@ -153,7 +153,7 @@ function create_model(
     if length(action_cols) == 1
         #Actions are a vector of vectors of <:Real
         actions = [Vector(session_data[!, first(action_cols)]) for session_data in grouped_data]
-        multiple_actions = false
+        multiple_actions = SingleAction()
     else
         #Extract action types
         action_types = eltype.(eachcol(data[!, collect(action_cols)]))
@@ -163,13 +163,13 @@ function create_model(
             session_data in grouped_data
         ]
 
-        multiple_actions = true
+        multiple_actions = MultipleActions()
     end
 
     ## SELECT SESSION MODEL ##
     session_model = create_session_model(
         infer_missing_actions,
-        Val(multiple_actions),
+        multiple_actions,
         Val(check_parameter_rejections),
         actions,
     )

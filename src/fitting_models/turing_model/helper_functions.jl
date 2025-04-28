@@ -20,7 +20,7 @@ function evert(v::Vector{<:NTuple{N,Any}}) where N
 end
 
 ### DISPATCH FOR THE CASE WHEN IT IS REALS OR DISTS INSTEAD OF TUPLE ###
-function evert(v::Vector{T}) where T<:Union{<:Distribution, <:Real, <:Union{<:Real, Missing}}
+function evert(v::Vector{T}) where T
     return (v,)
 end
 

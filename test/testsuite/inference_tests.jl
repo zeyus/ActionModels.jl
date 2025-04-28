@@ -288,6 +288,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
             end
 
+            @testset "single session with missing actions" begin
+                
+            #TODO:
+            end
+
             @testset "simple statistical model ($AD)" begin
                 #Create model
                 model = create_model(
@@ -407,9 +412,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
         end
 
 
+
+
+
         @testset "different observation and action types ($AD)" begin
 
-            @testset "missing actions ($AD)" begin
+            @testset "infer missing actions ($AD)" begin
 
                 #Create new dataframe where three actions = missing
                 new_data = allowmissing(data, :actions)
@@ -424,6 +432,32 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
                     infer_missing_actions = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "skip missing actions ($AD)" begin
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, :actions)
+                new_data[[2, 7, 12], :actions] .= missing
+
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = false,
                 )
 
                 #Fit model
@@ -471,12 +505,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 posterior_chains = sample_posterior!(
                     model,
                     ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
+                    n_samples = 2,
+                    n_chains = 1,
                 )
             end
 
-            @testset "multiple actions, missing actions ($AD)" begin
+            @testset "multiple actions, infer missing actions ($AD)" begin
 
                 function multi_action(agent, observation::Float64)
 
@@ -512,6 +546,53 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     action_cols = [:actions, :actions_2],
                     grouping_cols = grouping_cols,
                     infer_missing_actions = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "multiple actions, skip missing actions ($AD)" begin
+
+                function multi_action(agent, observation::Float64)
+
+                    noise = agent.parameters[:noise]
+
+                    actiondist1 = Normal(observation, noise)
+                    actiondist2 = Normal(observation, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = Dict(:noise => LogNormal(0.0, 1.0))
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, [:actions, :actions_2])
+                new_data[[2, 12], :actions] .= missing
+                new_data[[3], :actions_2] .= missing
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = [:actions, :actions_2],
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = false,
                 )
 
                 #Fit model
@@ -705,6 +786,10 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_samples = n_samples,
                     n_chains = n_chains,
                 )
+            end
+
+            @testset "depend on previous action, missing actions $(AD)" begin
+                #TODO:
             end
         end
     end

@@ -1,8 +1,14 @@
 ### TYPES FOR TURING MODELS ###
 
 #Structs for setting missing actions to be either skipped or inferred
-struct SkipMissingActions end
-struct InferMissingActions end
+abstract type AbstractMissingActions end
+struct NoMissingActions <: AbstractMissingActions end 
+struct SkipMissingActions <: AbstractMissingActions end
+struct InferMissingActions <: AbstractMissingActions end
+
+abstract type AbstractMultipleActions end
+struct SingleAction <: AbstractMultipleActions end
+struct MultipleActions <: AbstractMultipleActions end
 
 #Abstract type for population models
 abstract type AbstractPopulationModel end
