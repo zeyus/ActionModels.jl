@@ -26,7 +26,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     println(output, "$population_model_type")
 
     #Get info
-    n_parameters = length(modelfit.info.estimated_parameters)
+    n_parameters = length(modelfit.info.estimated_parameter_names)
     n_sessions = length(modelfit.info.session_ids)
 
     println(output, "$n_parameters estimated action model parameters, $n_sessions sessions")
@@ -97,11 +97,11 @@ function Base.show(io::IO, ::MIME"text/plain", session_parameters::SessionParame
 
     println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
 
-    estimated_parameters = session_parameters.estimated_parameters
+    estimated_parameter_names = session_parameters.estimated_parameter_names
 
-    println(output, "$(length(estimated_parameters)) estimated parameters:")
+    println(output, "$(length(estimated_parameter_names)) estimated parameters:")
 
-    for parameter_name in session_parameters.estimated_parameters
+    for parameter_name in session_parameters.estimated_parameter_names
         println(output, "   $parameter_name")
     end
 

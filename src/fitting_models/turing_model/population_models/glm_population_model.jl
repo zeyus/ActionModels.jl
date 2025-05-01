@@ -97,7 +97,7 @@ function create_model(
 
     #Initialize vector of sinlge regression models
     regression_models = Vector{DynamicPPL.Model}(undef, length(regression_formulas))
-    estimated_parameters = Vector{Symbol}(undef, length(regression_formulas))
+    estimated_parameter_names = Vector{Symbol}(undef, length(regression_formulas))
 
     #For each formula in the regression formulas, and its corresponding prior and link function
     for (model_idx, (formula, prior, inv_link)) in
@@ -163,12 +163,12 @@ function create_model(
             linear_model(X, ranef_info, inv_link = inv_link, prior = internal_prior)
 
         #Store the parameter name from the formula
-        estimated_parameters[model_idx] = Symbol(formula.lhs)
+        estimated_parameter_names[model_idx] = Symbol(formula.lhs)
     end
 
     #Create the combined regression statistical model
     population_model =
-        regression_population_model(regression_models, estimated_parameters, n_agents)
+        regression_population_model(regression_models, estimated_parameter_names, n_agents)
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
@@ -178,7 +178,7 @@ function create_model(
         observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
-        estimated_parameters = estimated_parameters,
+        estimated_parameter_names = estimated_parameter_names,
         population_model_type = RegressionPopulationModel(),
         kwargs...,
     )
@@ -187,14 +187,14 @@ end
 ## Turing model ##
 @model function regression_population_model(
     linear_submodels::Vector{T},
-    estimated_parameters::Vector,
+    estimated_parameter_names::Vector,
     n_agents::Int,
 ) where {T<:DynamicPPL.Model}
 
     #Sample the parameters for each regression
     sampled_parameters = Tuple(
         p ~ to_submodel(prefix(linear_submodel, parameter_name), false) for
-        (linear_submodel, parameter_name) in zip(linear_submodels, estimated_parameters)
+        (linear_submodel, parameter_name) in zip(linear_submodels, estimated_parameter_names)
     )
 
     return zip(sampled_parameters...)

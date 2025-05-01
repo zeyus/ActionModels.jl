@@ -52,7 +52,7 @@
 #     end
 
 #     #Make a renamed dictionary with estimated parameter values
-#     estimated_parameters = Dict()
+#     estimated_parameter_names = Dict()
 #     #For each parameter
 #     for key in keys(posterior_medians)
 #         #Transform the tuple key to a string
@@ -60,13 +60,13 @@
 #         #Add prefix to show that it is an estimate
 #         new_key = "estimated" * id_separator * new_key
 #         #Save in the new dict
-#         estimated_parameters[new_key] = posterior_medians[key]
+#         estimated_parameter_names[new_key] = posterior_medians[key]
 #     end
 
 #     #Gather into a dataframe row
 #     dataframe_row = hcat(
 #         DataFrame(true_parameters),
-#         DataFrame(estimated_parameters),
+#         DataFrame(estimated_parameter_names),
 #         DataFrame(
 #             prior_idx = prior_idx,
 #             input_sequence_idx = input_sequence_idx,

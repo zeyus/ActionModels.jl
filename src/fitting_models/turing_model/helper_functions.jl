@@ -26,6 +26,28 @@ end
 
 
 
+#####################################################################################################################################################
+####### FUNCTION FOR LOADING TYPE FROM THE TURING MODEL HEADER, NECESSARY FOR FORWARDDIFF AND REVERSEDIFF FOR THE AUTODIFFERENTIATION BACKEND #######
+#####################################################################################################################################################
+function load_type(
+    ::Type{T},
+    ::Type{TF} = Float64,
+    ::Type{TI} = Int64,
+) where {T<:AbstractFloat,TF,TI}
+    return TF
+end
+function load_type(
+    ::Type{T},
+    ::Type{TF} = Float64,
+    ::Type{TI} = Int64,
+) where {T<:Integer,TF,TI}
+    return TI
+end
+function load_type(::Type{T}, ::Type{TF} = Float64, ::Type{TI} = Int64) where {T,TF,TI}
+    return T
+end
+
+
 #####################################################################################################
 ####### FUNCTIONS FOR EXTRACTING A VALUE WHICH WORKS WITH DIFFERENT AUTODIFFERENTIATION BACKENDS ####
 #####################################################################################################

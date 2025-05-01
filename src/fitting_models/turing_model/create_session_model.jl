@@ -6,7 +6,7 @@ function create_session_model(
     multiple_actions::AbstractMultipleActions,  #Single or multiple actions
     check_parameter_rejections::Val{false},     #No parameter rejections
     actions::Vector{Vector{A}},
-) where {A}
+) where {A<:Tuple{Vararg{Real}}}
 
     #Create flattened actions
     flattened_actions = evert(collect(Iterators.flatten(actions)))
@@ -22,26 +22,24 @@ function create_session_model(
     #Create session model function with flattened actions included
     return @model function my_session_model(
         agent::Agent,
-        estimated_parameters::Vector{Symbol},
+        estimated_parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
-        observations_per_session::Vector{Vector{II}},
-        actions_per_session::Vector{Vector{AA}};
+        observations_per_session::Vector{Vector{O}},
+        actions_per_session::Vector{Vector{A}};
         flattened_actions::FA = flattened_actions,
     ) where {
-        I<:Any,
-        II<:Union{I,Tuple{Vararg{I}}},
-        A<:Real,
-        AA<:Union{A,Tuple{Vararg{A}}},
-        FA<:Tuple,
-        T<:Any,
+        O<:Tuple{Vararg{Any}},
+        A<:Tuple{Vararg{Real}},
+        FA<:Tuple, #TODO: make this better
+        T,
     }
 
         ## Run forwards to get the action distributions ##
         action_distributions = [
             begin
                 #Set the agent parameters
-                set_parameters!(agent, estimated_parameters, session_parameters)
+                set_parameters!(agent, estimated_parameter_names, session_parameters)
                 reset!(agent)
                 [
                     begin
@@ -78,7 +76,7 @@ function create_session_model(
     multiple_actions::AbstractMultipleActions,
     check_parameter_rejections::Val{false},
     actions::Vector{Vector{A}},
-) where {A}
+) where {A<:Tuple{Vararg{Real}}}
 
     ## Submodel for sampling all actions of a single action idx as an arraydist ##
     @model function sample_actions_one_idx(
@@ -133,7 +131,7 @@ function create_session_model(
     #Create session model function
     return @model function session_model(
         agent::Agent,
-        estimated_parameters::Vector{Symbol},
+        estimated_parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{II}},
@@ -156,7 +154,7 @@ function create_session_model(
                 prefix(
                     single_session_model(
                         agent,
-                        estimated_parameters,
+                        estimated_parameter_names,
                         session_parameters,
                         session_observations,
                         session_actions,
@@ -205,7 +203,7 @@ end
 #######################################
 @model function single_session_model(
     agent::Agent,
-    estimated_parameters::Vector{Symbol},
+    estimated_parameter_names::Vector{Symbol},
     session_parameters::T,
     session_observations::Vector{II},
     session_actions::Vector{AA},
@@ -220,7 +218,7 @@ end
     T<:Tuple,
 }
     #Prepare the agent
-    set_parameters!(agent, estimated_parameters, session_parameters)
+    set_parameters!(agent, estimated_parameter_names, session_parameters)
     reset!(agent)
 
     session_action_distributions = [
@@ -363,7 +361,7 @@ function create_session_model(
 
     return @model function session_model(
         agent::Agent,
-        estimated_parameters::Vector{Symbol},
+        estimated_parameter_names::Vector{Symbol},
         session_ids::Vector{String},
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{II}},
@@ -381,7 +379,7 @@ function create_session_model(
         #Run the normal session model
         i ~ to_submodel(session_submodel(
             agent,
-            estimated_parameters,
+            estimated_parameter_names,
             session_ids,
             parameters_per_session,
             observations_per_session,

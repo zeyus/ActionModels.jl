@@ -406,7 +406,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     return [control_params; treatment_params]
                 end
 
-                estimated_parameters = [:learning_rate, :action_noise, :initial_value]
+                estimated_parameter_names = [:learning_rate, :action_noise, :initial_value]
 
                 model = create_model(
                     action_model,
@@ -415,7 +415,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
-                    estimated_parameters = estimated_parameters,
+                    estimated_parameter_names = estimated_parameter_names,
                 )
 
                 posterior_chains = sample_posterior!(

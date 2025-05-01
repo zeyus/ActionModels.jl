@@ -50,10 +50,10 @@ function set_parameters!(agent::Agent, parameter_values::Dict{Symbol, R}) where 
 end
 
 ### Function for setting multiple parameters with a vector of parmaeter names, and a vector, subarray or tuple of parameter values ###
-function set_parameters!(agent::Agent, estimated_parameters::Vector{Symbol}, parameter_values::P) where {R<:Real, P<:Union{Vector{R}, NTuple{N,R} where N}}
+function set_parameters!(agent::Agent, parameter_names::Vector{Symbol}, parameter_values::P) where {R<:Real, P<:Union{Vector{R}, NTuple{N,R} where N}}
 
     #For each parameter to set
-    for (param_key, param_value) in zip(estimated_parameters, parameter_values)
+    for (param_key, param_value) in zip(parameter_names, parameter_values)
         #Set that parameter
         set_parameters!(agent, param_key, param_value)
     end

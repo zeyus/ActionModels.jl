@@ -42,8 +42,8 @@ function get_session_parameters!(
     returned_values = returned(model.args.population_model, chains)
 
     #Extract info
-    estimated_parameters = modelfit.info.estimated_parameters
-    n_parameters = length(estimated_parameters)
+    estimated_parameter_names = modelfit.info.estimated_parameter_names
+    n_parameters = length(estimated_parameter_names)
     session_ids = modelfit.info.session_ids
     n_sessions = length(session_ids)
     n_samples, n_chains = size(returned_values)
@@ -54,7 +54,7 @@ function get_session_parameters!(
     session_parameters = AxisArray(
         session_parameters,
         Axis{:session}(session_ids),
-        Axis{:parameter}(estimated_parameters),
+        Axis{:parameter}(estimated_parameter_names),
         Axis{:sample}(1:n_samples),
         Axis{:chain}(1:n_chains),
     )
@@ -83,7 +83,7 @@ function get_session_parameters!(
 
     #Store as SessionParameters struct
     session_parameters = SessionParameters(
-        estimated_parameters,
+        estimated_parameter_names,
         session_ids,
         session_parameters,
     )

@@ -42,7 +42,7 @@ function create_model(
     n_sessions = length(groupby(data, grouping_cols))
 
     #Get the names of the estimated parameters
-    estimated_parameters = collect(Symbol.(keys(prior)))
+    parameters_to_estimate = collect(Symbol.(keys(prior)))
 
     #Create a filldist for each parameter
     priors_per_parameter = Tuple([
@@ -50,7 +50,7 @@ function create_model(
     ])
 
     #Create a statistical model where the agents are independent and sampled from the same prior
-    population_model = independent_population_model(priors_per_parameter, estimated_parameters)
+    population_model = independent_population_model(priors_per_parameter, parameters_to_estimate)
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
@@ -60,7 +60,7 @@ function create_model(
         observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
-        estimated_parameters = estimated_parameters,
+        parameters_to_estimate = parameters_to_estimate,
         population_model_type = population_model_type,
         kwargs...,
     )
@@ -69,14 +69,14 @@ end
 #Turing model for sampling all sessions for all parameters
 @model function independent_population_model(
     priors_per_parameter::T,
-    estimated_parameters::Vector{Symbol},
+    parameters_to_estimate::Vector{Symbol},
 ) where {T<:Tuple}
 
     sampled_parameters = Tuple(
         i ~ to_submodel(
             prefix(sample_parameters_all_session(prior), parameter_name),
             false,
-        ) for (prior, parameter_name) in zip(priors_per_parameter, estimated_parameters)
+        ) for (prior, parameter_name) in zip(priors_per_parameter, parameters_to_estimate)
     )
 
     return zip(sampled_parameters...)
