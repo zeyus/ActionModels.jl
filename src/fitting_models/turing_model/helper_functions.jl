@@ -33,6 +33,18 @@ function load_type(
     ::Type{T},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
+) where {ST, T<:Array{ST},TF,TI}
+    
+    NT = load_type(ST, TF, TI)
+
+    return Array{NT}
+end
+
+#For returning a single type
+function load_type(
+    ::Type{T},
+    ::Type{TF} = Float64,
+    ::Type{TI} = Int64,
 ) where {T<:AbstractFloat,TF,TI}
     return TF
 end
@@ -46,7 +58,6 @@ end
 function load_type(::Type{T}, ::Type{TF} = Float64, ::Type{TI} = Int64) where {T,TF,TI}
     return T
 end
-
 
 #####################################################################################################
 ####### FUNCTIONS FOR EXTRACTING A VALUE WHICH WORKS WITH DIFFERENT AUTODIFFERENTIATION BACKENDS ####

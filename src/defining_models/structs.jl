@@ -5,42 +5,48 @@
 ## For creating parameters ##
 abstract type AbstractParameter end
 
-mutable struct Parameter{T<:Real} <: AbstractParameter
+mutable struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     value::T
     type::Type{T}
 
-    function Parameter(value::T) where {T<:Real}
-        new{Float64}(value, Float64)
-    end
-    function Parameter(value::T, ::Type{T}) where {T<:Real}
-        new{T}(value, T)
-    end
-    function Parameter(::Type{T}, value::T) where {T<:Real}
-        new{T}(value, T)
+    function Parameter(
+        value::T;
+        discrete::Bool = false,
+    ) where {T<:Union{Real,Array{<:Real}}}
+        if discrete
+            if value isa Array
+                new{Array{Int64}}(value, Array{Int64})
+            else
+                new{Int64}(value, Int64)
+            end
+        else
+            if value isa Array
+                new{Array{Float64}}(value, Array{Float64})
+            else
+                new{Float64}(value, Float64)
+            end
+        end
     end
 end
 
-mutable struct InitialStateParameter{T<:Real} <: AbstractParameter
+mutable struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     state::Symbol
     value::T
     type::Type{T}
-    function InitialStateParameter(value::T, state_name::Symbol) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(value::T, state_name::Symbol, ::Type{T}) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(value::T, ::Type{T}, state_name::Symbol) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(state_name::Symbol, ::Type{T}, value::T) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(::Type{T}, value::T, state_name::Symbol) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(::Type{T}, state_name::Symbol, value::T) where {T<:Real}
-        new{T}(state_name, value, T)
+    function InitialStateParameter(value::T, state_name::Symbol; discrete::Bool = false) where {T<:Union{Real,Array{<:Real}}}  
+        if discrete
+            if value isa Array
+                new{Array{Int64}}(state_name, value, Array{Int64})
+            else
+                new{Int64}(state_name, value, Int64)
+            end
+        else
+            if value isa Array
+                new{Array{Float64}}(state_name, value, Array{Float64})
+            else
+                new{Float64}(state_name, value, Float64)
+            end
+        end
     end
 end
 
@@ -50,14 +56,11 @@ mutable struct State{T} <: AbstractState
     initial_value::Union{Missing,T}
     type::Type{T}
 
-    function State(value::T) where {T}
-        new{T}(value, T)
+    function State(initial_value::T) where {T}
+        new{T}(initial_value, T)
     end
-    function State(value, ::Type{T}) where {T}
-        new{T}(value, T)
-    end
-    function State(::Type{T}, value) where {T}
-        new{T}(value, T)
+    function State(initial_value, ::Type{T}) where {T}
+        new{T}(initial_value, T)
     end
     function State(::Type{T}) where {T}
         new{T}(missing, T)
@@ -74,7 +77,6 @@ struct Observation{T} <: AbstractObservation
     end
 end
 
-
 ## For creating actions ##
 abstract type AbstractAction end
 struct Action{T,TD} <: AbstractAction
@@ -84,10 +86,10 @@ struct Action{T,TD} <: AbstractAction
     function Action(
         action_type::Type{T},
         distribution_type::Type{TD},
-    ) where {T<:Real,TD<:Distribution}
+    ) where {T<:Union{Real,Array{<:Real}},TD<:Distribution}
 
-        if T != get_action_type(TD)
-            @warn "Action type $T is different from the the action type $(get_action_type(TD)) which should match the distribution type $TD. Check that everything is in order"
+        if !(get_action_type(TD) <: T)
+            @warn "Action type $T is not a supertype of $(get_action_type(TD)), which is the type that matches the chosen distribution type $TD. Check that everything is in order"
         end
         new{T,TD}(action_type, distribution_type)
     end
@@ -100,12 +102,7 @@ struct Action{T,TD} <: AbstractAction
 
         new{T,TD}(action_type, distribution_type)
     end
-
-    function Action(action_type::Type{T}) where {T<:Real}
-        new{T,Nothing}(action_type, Nothing)
-    end
 end
-
 function get_action_type(
     action_dist_type::Type{T},
 ) where {T<:Distribution{Univariate,Continuous}}
@@ -125,9 +122,6 @@ function get_action_type(
     action_dist_type::Type{T},
 ) where {T<:Distribution{Multivariate,Discrete}}
     return Array{Int64}
-end
-function get_action_type(action_dist_type::Type{T}) where {T<:Distribution}
-    return Nothing
 end
 
 
