@@ -1,8 +1,3 @@
-
-
-"""
-Agent struct
-"""
 Base.@kwdef mutable struct Agent
     action_model::Function
     submodel::Any

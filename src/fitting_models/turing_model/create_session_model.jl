@@ -6,7 +6,9 @@ function create_session_model(
     multiple_actions::AbstractMultipleActions,  #Single or multiple actions
     check_parameter_rejections::Val{false},     #No parameter rejections
     actions::Vector{Vector{A}},
-) where {A<:Tuple{Vararg{Real}}}
+    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
+    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
+) where {A<:Tuple{Vararg{Real}},attribute_name_keys,attribute_type_keys}
 
     #Create flattened actions
     flattened_actions = evert(collect(Iterators.flatten(actions)))
@@ -76,7 +78,9 @@ function create_session_model(
     multiple_actions::AbstractMultipleActions,
     check_parameter_rejections::Val{false},
     actions::Vector{Vector{A}},
-) where {A<:Tuple{Vararg{Real}}}
+    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
+    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
+) where {A<:Tuple{Vararg{Real}},attribute_name_keys,attribute_type_keys}
 
     ## Submodel for sampling all actions of a single action idx as an arraydist ##
     @model function sample_actions_one_idx(
@@ -118,9 +122,9 @@ function create_session_model(
     flattened_actions = collect(Iterators.flatten(actions))
     #Find the missing action markers
     flattened_actions = [
-        marker isa NoMissingActions ? action : nothing for (action, marker) in zip(
-            flattened_actions, flattened_missing_action_markers
-        )]
+        marker isa NoMissingActions ? action : nothing for
+        (action, marker) in zip(flattened_actions, flattened_missing_action_markers)
+    ]
     #Filter out the missing actions and evert
     flattened_actions = filter(x -> !isnothing(x), flattened_actions)
     #Ensure type stability (TODO: once types are pre-inferred we can make this smarter)
@@ -183,7 +187,8 @@ function create_session_model(
         ]
 
         #Remove missing action distributions
-        flattened_distributions = filter(x -> !isnothing(x), collect(Iterators.flatten(action_distributions)))
+        flattened_distributions =
+            filter(x -> !isnothing(x), collect(Iterators.flatten(action_distributions)))
 
         #Ensure type stability (TODO: once types are pre-inferred we can make this smarter)
         flattened_distributions = [distribution for distribution in flattened_distributions]
@@ -345,19 +350,17 @@ end
 ####### PARAMETER REJECTIONS #######
 ####################################
 function create_session_model(
-    infer_missing_actions::AbstractMissingActions,  
-    multiple_actions::AbstractMultipleActions,     
-    check_parameter_rejections::Val{true},               #No parameter rejections
+    infer_missing_actions::AbstractMissingActions,
+    multiple_actions::AbstractMultipleActions,
+    check_parameter_rejections::Val{true},               #With parmaeter rejections
     actions::Vector{Vector{A}},
-) where {A}
+    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
+    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
+) where {A<:Tuple{Vararg{Real}},attribute_name_keys,attribute_type_keys}
 
     #Get normal session model
-    session_submodel = create_session_model(
-        infer_missing_actions,
-        multiple_actions,
-        Val{false}(),
-        actions,
-    )
+    session_submodel =
+        create_session_model(infer_missing_actions, multiple_actions, Val{false}(), actions)
 
     return @model function session_model(
         agent::Agent,
@@ -374,17 +377,20 @@ function create_session_model(
         T<:Any,
     }
 
-        try 
+        try
 
-        #Run the normal session model
-        i ~ to_submodel(session_submodel(
-            agent,
-            estimated_parameter_names,
-            session_ids,
-            parameters_per_session,
-            observations_per_session,
-            actions_per_session,
-        ), false)
+            #Run the normal session model
+            i ~ to_submodel(
+                session_submodel(
+                    agent,
+                    estimated_parameter_names,
+                    session_ids,
+                    parameters_per_session,
+                    observations_per_session,
+                    actions_per_session,
+                ),
+                false,
+            )
 
         catch e
             #If there is a parameter rejection, reject the sample

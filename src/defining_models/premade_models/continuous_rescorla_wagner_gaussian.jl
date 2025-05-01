@@ -38,13 +38,13 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
     ## Create model 
     parameters = (
-        learning_rate = Parameter(config.learning_rate, Real),
-        action_noise = Parameter(config.action_noise, Real),
-        initial_value = InitialStateParameter(config.initial_value, :value, Real),
+        learning_rate = Parameter(config.learning_rate),
+        action_noise = Parameter(config.action_noise),
+        initial_value = InitialStateParameter(config.initial_value, :value),
     )
     states = (
-        value = State(Real),
-        observation = State(Real),
+        value = State(Float64),
+        observation = State(Float64),
     )
 
     observations = (;

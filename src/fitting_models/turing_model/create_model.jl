@@ -128,20 +128,30 @@ function create_model(
     ]
     action_names = collect(keys(action_model.actions))
     action_types = [action_model.actions[action_name].type for action_name in action_names]
-    action_dist_types =
-        [action_model.actions[action_name].distribution_type for action_name in action_names]
-
-    attribute_types = (
-        parameter_types = parameter_types,
-        state_types = state_types,
-        observation_types = observation_types,
-        action_types = action_types,
-        action_dist_types = action_dist_types,
-    )
+    action_dist_types = [
+        action_model.actions[action_name].distribution_type for action_name in action_names
+    ]
 
     #Extract action and observation types from the data
     observation_types_data = eltype.(eachcol(data[!, collect(observation_cols)]))
     action_types_data = eltype.(eachcol(data[!, collect(action_cols)]))
+
+    #Create input tuples for the model
+    attribute_names = (
+        parameter_names = parameter_names,
+        state_names = state_names,
+        observation_names = observation_names,
+        action_names = action_names,
+    )
+    attribute_types = (
+        parameter_types = parameter_types,
+        state_types = state_types,
+        observation_types = observation_types,
+        observation_types_data = observation_types_data,
+        action_dist_types = action_dist_types,
+        action_types = action_types,
+        action_types_data = action_types_data,
+    )
 
     #TODO: extract by running the model forward
 
@@ -154,21 +164,13 @@ function create_model(
         action_cols,
         grouping_cols,
         population_model_type,
-        parameters_to_estimate;
-        parameter_names = parameter_names,
-        parameter_types = parameter_types,
-        state_names = state_names,
-        state_types = state_types,
-        observation_names = observation_names,
-        observation_types = observation_types,
-        action_names = action_names,
-        action_types = action_types,
-        action_dist_types = action_dist_types,
+        parameters_to_estimate,
+        attribute_names,
+        attribute_types,
     )
 
 
     ###s PREPARE DATA ###
-
     ## Initialize an agent ##
     agent_model = init_agent(action_model, save_history = false)
 
@@ -203,6 +205,8 @@ function create_model(
         multiple_actions,
         Val(check_parameter_rejections),
         actions,
+        attribute_names,
+        attribute_types,
     )
 
     ## Create a full model ##
@@ -240,12 +244,7 @@ end
     actions_per_session::Vector{Vector{A}},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
-) where {
-    O<:Tuple{Vararg{Any}},
-    A<:Tuple{Vararg{Real}},
-    TF,
-    TI,
-}
+) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Real}},TF,TI}
 
     #Generate session parameters with the population submodel
     parameters_per_session ~ to_submodel(population_model, false)
@@ -267,8 +266,6 @@ end
 
 
 
-
-
 #########################################
 #### FUNCTION FOR CHECKING THE MODEL ####
 #########################################
@@ -280,17 +277,10 @@ function check_model(
     action_cols::NamedTuple{action_names_cols,<:Tuple{Vararg{Symbol}}},
     grouping_cols::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
-    parameters_to_estimate::Vector{Symbol};
-    parameter_names::Vector{Symbol},
-    parameter_types::Vector{DataType},
-    state_names::Vector{Symbol},
-    state_types::Vector{DataType},
-    observation_names::Vector{Symbol},
-    observation_types::Vector{DataType},
-    action_names::Vector{Symbol},
-    action_types::Vector{DataType},
-    action_dist_types::Vector{<:Type},
-) where {observation_names_cols,action_names_cols}
+    parameters_to_estimate::Vector{Symbol},
+    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
+    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
+) where {observation_names_cols,action_names_cols,attribute_name_keys,attribute_type_keys}
 
     #Check that user-specified columns exist in the dataset
     if any(grouping_cols .∉ Ref(Symbol.(names(data))))
@@ -315,7 +305,7 @@ function check_model(
 
     #Check that observation and action column names exist in the action model
     for (observation_name_col, observation_col) in pairs(observation_cols)
-        if !(observation_name_col in observation_names)
+        if !(observation_name_col in attribute_names.observation_names)
             throw(
                 ArgumentError(
                     "The observation column $observation_col does not exist in the action model",
@@ -324,7 +314,7 @@ function check_model(
         end
     end
     for (action_name_col, action_col) in pairs(action_cols)
-        if !(action_name_col in action_names)
+        if !(action_name_col in attribute_names.action_names)
             throw(
                 ArgumentError(
                     "The action column $action_col does not exist in the action model",

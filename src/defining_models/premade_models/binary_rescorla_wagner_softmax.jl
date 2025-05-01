@@ -9,7 +9,7 @@ end
 function ActionModel(config::BinaryRescorlaWagnerSoftmax)
 
     #Create function
-    function binary_rescorla_wagner_softmax(agent::Agent, observation::Union{Bool,Int64})
+    function binary_rescorla_wagner_softmax(agent::Agent, observation::Int64)
 
         #Read in parameters
         learning_rate = agent.parameters[:learning_rate]
@@ -39,16 +39,16 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
 
     ## Create model 
     parameters = (
-        learning_rate = Parameter(config.learning_rate, Real),
-        action_noise = Parameter(config.action_noise, Real),
-        initial_value = InitialStateParameter(config.initial_value, :value, Real),
+        learning_rate = Parameter(config.learning_rate),
+        action_noise = Parameter(config.action_noise),
+        initial_value = InitialStateParameter(config.initial_value, :value),
     )
     states = (
-        value = State(Real),
-        observation = State(Real),
+        value = State(Float64),
+        observation = State(Float64),
     )
     observations = (;
-        observation = Observation(Bool)
+        observation = Observation(Int64)
     )
     actions = (;
         report = Action(Bernoulli)
