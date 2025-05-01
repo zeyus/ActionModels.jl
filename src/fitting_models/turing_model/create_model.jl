@@ -131,6 +131,14 @@ function create_model(
     action_dist_types =
         [action_model.actions[action_name].distribution_type for action_name in action_names]
 
+    attribute_types = (
+        parameter_types = parameter_types,
+        state_types = state_types,
+        observation_types = observation_types,
+        action_types = action_types,
+        action_dist_types = action_dist_types,
+    )
+
     #Extract action and observation types from the data
     observation_types_data = eltype.(eachcol(data[!, collect(observation_cols)]))
     action_types_data = eltype.(eachcol(data[!, collect(action_cols)]))
