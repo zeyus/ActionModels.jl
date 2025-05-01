@@ -47,7 +47,7 @@ end
 ## For creating states ##
 abstract type AbstractState end
 mutable struct State{T} <: AbstractState
-    value::T
+    initial_value::Union{Missing,T}
     type::Type{T}
 
     function State(value::T) where {T}
@@ -60,7 +60,7 @@ mutable struct State{T} <: AbstractState
         new{T}(value, T)
     end
     function State(::Type{T}) where {T}
-        new{Union{T,Missing}}(missing, Union{T,Missing})
+        new{T}(missing, T)
     end
 end
 

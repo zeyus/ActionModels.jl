@@ -119,17 +119,17 @@ function create_model(
     parameter_names = parameters_to_estimate
     parameter_types =
         [action_model.parameters[parameter_name].type for parameter_name in parameter_names]
-    state_names = keys(action_model.states)
+    state_names = collect(keys(action_model.states))
     state_types = [action_model.states[state_name].type for state_name in state_names]
-    observation_names = keys(action_model.observations)
+    observation_names = collect(keys(action_model.observations))
     observation_types = [
         action_model.observations[observation_name].type for
         observation_name in observation_names
     ]
-    action_names = keys(action_model.actions)
+    action_names = collect(keys(action_model.actions))
     action_types = [action_model.actions[action_name].type for action_name in action_names]
     action_dist_types =
-        [action_model.actions[action_name].dist_type for action_name in action_names]
+        [action_model.actions[action_name].distribution_type for action_name in action_names]
 
     #Extract action and observation types from the data
     observation_types_data = eltype.(eachcol(data[!, collect(observation_cols)]))
@@ -145,8 +145,8 @@ function create_model(
         observation_cols,
         action_cols,
         grouping_cols,
-        population_model_type;
-        parameters_to_estimate,
+        population_model_type,
+        parameters_to_estimate;
         parameter_names = parameter_names,
         parameter_types = parameter_types,
         state_names = state_names,
@@ -268,21 +268,21 @@ function check_model(
     action_model::ActionModel,
     population_model::DynamicPPL.Model,
     data::DataFrame,
-    observation_cols::NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
-    action_cols::NamedTuple{action_names,<:Tuple{Vararg{Symbol}}},
+    observation_cols::NamedTuple{observation_names_cols,<:Tuple{Vararg{Symbol}}},
+    action_cols::NamedTuple{action_names_cols,<:Tuple{Vararg{Symbol}}},
     grouping_cols::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
     parameters_to_estimate::Vector{Symbol};
     parameter_names::Vector{Symbol},
-    parameter_types::Vector{Type},
+    parameter_types::Vector{DataType},
     state_names::Vector{Symbol},
-    state_types::Vector{Type},
+    state_types::Vector{DataType},
     observation_names::Vector{Symbol},
-    observation_types::Vector{Type},
+    observation_types::Vector{DataType},
     action_names::Vector{Symbol},
-    action_types::Vector{Type},
-    action_dist_types::Vector{Type},
-) where {observation_names,action_names}
+    action_types::Vector{DataType},
+    action_dist_types::Vector{<:Type},
+) where {observation_names_cols,action_names_cols}
 
     #Check that user-specified columns exist in the dataset
     if any(grouping_cols .∉ Ref(Symbol.(names(data))))

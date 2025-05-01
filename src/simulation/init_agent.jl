@@ -33,7 +33,7 @@ function init_agent(
     ##Add states
     if !isnothing(action_model.states)
         for (state_key, state_value) in pairs(action_model.states)
-            agent.states[state_key] = state_value.value
+            agent.states[state_key] = state_value.initial_value
         end
     end
 

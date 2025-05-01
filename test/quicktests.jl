@@ -56,9 +56,9 @@ grouping_cols = [:id, :treatment]
 
 #Create and fit model
 prior = (
-        learning_rate => LogitNormal(),
-        action_noise => LogNormal(),
-        initial_value => Normal(),
+        learning_rate = LogitNormal(),
+        action_noise = LogNormal(),
+        initial_value = Normal(),
     )
 
 #Create model
