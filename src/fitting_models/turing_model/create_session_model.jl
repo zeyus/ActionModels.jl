@@ -48,7 +48,7 @@ function create_session_model(
                     begin
                         #Get the action probability (either a distribution, or a tuple of distributions) 
                         action_distribution = action_model.action_model(model_attributes, observation...)
-                        #Save the action
+                        #Save the action (either a single real, or a tuple of reals)
                         store_action!(model_attributes, action)
 
                         #Return the action probability distribution
