@@ -12,11 +12,11 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     function continuous_rescorla_wagner_gaussian(attributes::ModelAttributes, observation::Float64)
 
         ## Read in parameters from the agent
-        learning_rate = attributes.parameters.learning_rate
-        action_noise = attributes.parameters.action_noise
+        learning_rate = attributes.parameters.learning_rate.value
+        action_noise = attributes.parameters.action_noise.value
     
         ## Read in states with an initial value
-        old_value = attributes.states.value
+        old_value = attributes.states.value.value
     
         ##We dont have any settings in this model. If we had, we would read them in as well.
         ##-----This is where the update step starts -------

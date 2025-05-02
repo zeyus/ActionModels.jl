@@ -1,7 +1,6 @@
 ############################################
 ### TYPE FOR INITIALIZING AN ACTIONMODEL ###
 ############################################
-
 ## For creating parameters ##
 abstract type AbstractParameter end
 
@@ -225,27 +224,23 @@ end
 #########################################
 ### TYPES FOR USE IN THE ACTION MODEL ###
 #########################################
-#Model attributes type which contains the information apssed to the action model
-struct ModelAttributes{TP<:NamedTuple, TS<:NamedTuple, TA<:NamedTuple}
+## Model attributes type which contains the information apssed to the action model ##
+struct ModelAttributes{TP<:NamedTuple, TS<:NamedTuple, TA<:NamedTuple, IS<:NamedTuple}
     parameters::TP
     states::TS
     actions::TA
-    #submodel
+    initial_states::IS
 end
 
-#Type for instantiating a variable with a type that can vary
+## Type for instantiating a variable with a type that can vary ##
 mutable struct Variable{T}
     value::T
-    function Variable(value::T, ::Type{T}) where {T}
-        new{T}(value)
-    end
 end
 
-#Struct for denoting an initial state as depending on a parameter
+## Struct for denoting an initial state as depending on a parameter ##
 struct ParameterDependentState
-    parameter::Symbol
+    parameter_name::Symbol
 end
-
 
 
 """
@@ -255,7 +250,10 @@ struct RejectParameters <: Exception
     errortext::Any
 end
 
+
+
+###################
+### OTHER TYPES ###
+###################
+## Supertype for premade models ##
 abstract type AbstractPremadeModel end
-
-
-

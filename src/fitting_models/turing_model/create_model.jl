@@ -139,7 +139,7 @@ function create_model(
         (parameter_name, parameter) in pairs(action_model.parameters) if
         parameter isa InitialStateParameter
     )
-    initial_states = Tuple(
+    initial_states = NamedTuple(
         state_name in keys(initial_state_parameter_state_names) ?
         state_name => initial_state_parameter_state_names[state_name] :
         state_name => state.initial_value for
@@ -177,13 +177,11 @@ function create_model(
         multiple_actions,
         Val(check_parameter_rejections),
         actions,
-        attribute_names,
-        attribute_types,
     )
 
     ## Create a full model ##
     model = full_model(
-        action_model.action_model,
+        action_model,
         population_model,
         session_model,
         observations,
@@ -267,7 +265,7 @@ function check_model(
     grouping_cols::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
     parameters_to_estimate::Vector{Symbol},
-) where {observation_names_cols,action_names_cols,attribute_name_keys,attribute_type_keys}
+) where {observation_names_cols,action_names_cols}
 
     #Check that user-specified columns exist in the dataset
     if any(grouping_cols .∉ Ref(Symbol.(names(data))))
@@ -292,7 +290,7 @@ function check_model(
 
     #Check that observation and action column names exist in the action model
     for (observation_name_col, observation_col) in pairs(observation_cols)
-        if !(observation_name_col in attribute_names.observation_names)
+        if !(observation_name_col in keys(action_model.observations))
             throw(
                 ArgumentError(
                     "The observation column $observation_col does not exist in the action model",
@@ -301,7 +299,7 @@ function check_model(
         end
     end
     for (action_name_col, action_col) in pairs(action_cols)
-        if !(action_name_col in attribute_names.action_names)
+        if !(action_name_col in keys(action_model.actions))
             throw(
                 ArgumentError(
                     "The action column $action_col does not exist in the action model",

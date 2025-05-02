@@ -4,28 +4,22 @@
 
 function initialize_attributes(
     action_model::ActionModel,
-    initial_states::NamedTuple{initial_state_keys,<:Tuple},
+    initial_states::NamedTuple{initial_state_keys,<:Tuple{Vararg{Any}}},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {initial_state_keys,TF,TI}
 
-    parameters = NamedTuple{keys(action_model.parameters),<:Tuple{Vararg{Variable}}}(
-        initialize_variables(attribute_types.parameters, TF, TI),
-    )
-    states = NamedTuple{attribute_names.states,<:Tuple{Vararg{Variable}}}(
-        initialize_variables(attribute_types.states, TF, TI),
-    )
-    actions = NamedTuple{attribute_names.actions,<:Tuple{Vararg{Variable}}}(
-        initialize_variables(attribute_types.actions, TF, TI),
-    )
+    parameters = initialize_variables(action_model.parameters, TF, TI)
 
-    initial_states = NamedTuple{keys(action_model.states),<:Tuple}(
-        map(
-            state ->
-                state isa ParameterDependentState ? parameters[state.parameter_name] :
-                state.initial_value,
-            initial_states,
-        ),
+    states = initialize_variables(action_model.states, TF, TI)
+
+    actions = initialize_variables(action_model.actions, TF, TI)
+
+    initial_states = map(
+        state ->
+            state isa ParameterDependentState ? parameters[state.parameter_name] :
+            state,
+        initial_states,
     )
 
     #TODO: intiialize submodel's attributes
@@ -39,33 +33,34 @@ end
 ######################################################################
 ## Intializing variables with correct types for an attribute set ##
 function initialize_variables(
-    parameters::Tuple{Vararg{AbstractParameter}},
+    parameters::NamedTuple{names,<:Tuple{Vararg{AbstractParameter}}},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
-) where {TF,TI}
+) where {names,TF,TI}
+
     return map(
-        parameter -> Variable(parameter.value, load_type(parameter.type, TF, TI)),
+        parameter -> Variable{load_type(parameter.type, TF, TI)}(parameter.value),
         parameters,
     )
 end
 function initialize_variables(
-    states::Tuple{Vararg{AbstractState}},
+    states::NamedTuple{names,<:Tuple{Vararg{AbstractState}}},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
-) where {TF,TI}
+) where {names,TF,TI}
     return map(
         state ->
-            Variable(state.initial_value, Union{Missing,load_type(states.type, TF, TI)}),
+            Variable{Union{Missing,load_type(state.type, TF, TI)}}(state.initial_value),
         states,
     ) #TODO: only allow missing for states with missing initial values?
 end
 function initialize_variables(
-    actions::Tuple{Vararg{AbstractAction}},
+    actions::NamedTuple{names,<:Tuple{Vararg{AbstractAction}}},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
-) where {TF,TI}
+) where {names,TF,TI}
     return map(
-        action -> Variable(missing, Union{Missing,load_type(action.type, TF, TI)}),
+        action -> Variable{Union{Missing,load_type(action.type, TF, TI)}}(missing),
         actions,
     )
 end
@@ -127,7 +122,7 @@ function set_parameters!(
     model_attributes::ModelAttributes,
     parameter_names::Vector{Symbol},
     parameters::Tuple{Vararg{Real}},
-) 
+)
     #For each parameter name and value
     for (parameter_name, parameter_value) in zip(parameter_names, parameters)
         #Set the parameter to the value
@@ -159,10 +154,7 @@ function store_action!(
 end
 
 #For single action
-function store_action!(
-    model_attributes::ModelAttributes,
-    sampled_action::A,
-) where {A<:Real}
+function store_action!(model_attributes::ModelAttributes, sampled_action::A) where {A<:Real}
     #Set the action to the value
     first(model_attributes.actions).value = sampled_action
 end

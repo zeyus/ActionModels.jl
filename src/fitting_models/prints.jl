@@ -9,7 +9,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     println(output, "-- ModelFit object --")
 
     #Get name of action model
-    action_model_name = string(modelfit.model.args.agent_model.action_model)
+    action_model_name = string(modelfit.model.args.action_model.action_model)
 
     println(output, "Action model: $action_model_name")
 

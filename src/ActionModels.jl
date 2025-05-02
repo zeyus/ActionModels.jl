@@ -51,7 +51,6 @@ include(joinpath("fitting_models", "structs.jl"))
 
 ### Functions for model definition ###
 include(joinpath("defining_models", "model_attributes.jl"))
-include(joinpath("defining_models", "update_states.jl"))
 include(joinpath("defining_models", "prints.jl"))
 #Read in all premade models
 for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
@@ -65,6 +64,7 @@ include(joinpath("simulation", "init_agent.jl"))
 include(joinpath("simulation", "give_observations.jl"))
 include(joinpath("simulation", "reset.jl"))
 include(joinpath("simulation", "prints.jl"))
+include(joinpath("simulation", "update_states.jl"))
 include(joinpath("simulation", "get_and_set", "set_parameters.jl"))
 include(joinpath("simulation", "get_and_set", "set_save_history.jl"))
 include(joinpath("simulation", "get_and_set", "get_parameters.jl"))

@@ -6,9 +6,7 @@ function create_session_model(
     multiple_actions::AbstractMultipleActions,  #Single or multiple actions
     check_parameter_rejections::Val{false},     #No parameter rejections
     actions::Vector{Vector{A}},
-    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
-    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
-) where {A<:Tuple{Vararg{Real}},attribute_name_keys,attribute_type_keys}
+) where {A<:Tuple{Vararg{Real}}}
 
     #Create flattened actions
     flattened_actions = evert(collect(Iterators.flatten(actions)))
