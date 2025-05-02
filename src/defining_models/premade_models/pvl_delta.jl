@@ -11,14 +11,14 @@ end
 
 function ActionModel(config::PVLDelta)
 
-    function pvl_delta(agent::Agent, deck::Int64, reward::Float64)
+    function pvl_delta(attributes::ModelAttributes, deck::Int64, reward::Float64)
 
-        learning_rate = agent.parameters[:learning_rate]
-        reward_sensitivity = agent.parameters[:reward_sensitivity]
-        loss_aversion = agent.parameters[:loss_aversion]
-        action_precision = agent.parameters[:action_precision]
+        learning_rate = attributes.parameters.learning_rate
+        reward_sensitivity = attributes.parameters.reward_sensitivity
+        loss_aversion = attributes.parameters.loss_aversion
+        action_precision = attributes.parameters.action_precision
 
-        expected_value = agent.states[:expected_value]
+        expected_value = agent.states.expected_value
 
         #Get action probabilities by softmaxing expected values for each deck
         action_probabilities = softmax(expected_value * action_precision)
@@ -41,20 +41,20 @@ function ActionModel(config::PVLDelta)
             learning_rate * prediction_error * (deck == deck_idx) for deck_idx = 1:n_decks
         ]
 
-        update_states!(agent, :expected_value, new_expected_value)
+        update_state!(attributes, :expected_value, new_expected_value)
 
         return Categorical(action_probabilities)
     end
 
     parameters = (
-            learning_rate = Parameter(config.learning_rate, Real),
-            reward_sensitivity = Parameter(config.reward_sensitivity, Real),
-            action_precision = Parameter(config.action_precision, Real),
-            loss_aversion = Parameter(config.loss_aversion, Real),
-            initial_value = InitialStateParameter(config.initial_value, :expected_value, Array{Real}),
+            learning_rate = Parameter(config.learning_rate),
+            reward_sensitivity = Parameter(config.reward_sensitivity),
+            action_precision = Parameter(config.action_precision),
+            loss_aversion = Parameter(config.loss_aversion),
+            initial_value = InitialStateParameter(config.initial_value, :expected_value),
         )
 
-    states = (; expected_value = State(zeros(Float64, 4)))
+    states = (; expected_value = State(config.initial_value))
 
     observations = (;
         deck = Observation(Int64),

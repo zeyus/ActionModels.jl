@@ -246,12 +246,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             @testset "single session with multiple observations and actions ($AD)" begin
 
                 function multi_observation_action(
-                    agent,
+                    attributes::ModelAttributes,
                     observation1::Float64,
                     observation2::Float64,
                 )
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     actiondist1 = Normal(observation1, noise)
                     actiondist2 = Normal(observation2, noise)
@@ -449,9 +449,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "check for parameter rejections, with rejections $(AD)" begin
                 
-                function rejected_params(agent, observation::Float64)
+                function rejected_params(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     if observation * noise > 5.0
                         throw(RejectParameters("This parameter is rejected"))
@@ -580,9 +580,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "multiple actions ($AD)" begin
 
-                function multi_action(agent, observation::Float64)
+                function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     actiondist1 = Normal(observation, noise)
                     actiondist2 = Normal(observation, noise)
@@ -621,9 +621,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "multiple actions, infer missing actions ($AD)" begin
 
-                function multi_action(agent, observation::Float64)
+                function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     actiondist1 = Normal(observation, noise)
                     actiondist2 = Normal(observation, noise)
@@ -668,9 +668,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "multiple actions, skip missing actions ($AD)" begin
 
-                function multi_action(agent, observation::Float64)
+                function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     actiondist1 = Normal(observation, noise)
                     actiondist2 = Normal(observation, noise)
@@ -716,12 +716,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             @testset "multiple observations ($AD)" begin
 
                 function multi_observation(
-                    agent,
+                    attributes::ModelAttributes,
                     observation1::Float64,
                     observation2::Float64,
                 )
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     actiondist = Normal(observation1, noise)
 
@@ -762,12 +762,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             @testset "multiple observations and multiple actions ($AD)" begin
 
                 function multi_observation_action(
-                    agent,
+                    attributes::ModelAttributes,
                     observation1::Float64,
                     observation2::Float64,
                 )
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
                     actiondist1 = Normal(observation1, noise)
                     actiondist2 = Normal(observation2, noise)
@@ -808,11 +808,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "depend on previous action ($AD)" begin
 
-                function dependent_action(agent::Agent, observation::Float64)
+                function dependent_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
-                    prev_action = agent.states[:action]
+                    prev_action = attributes.actions.action_1
 
                     if ismissing(prev_action)
                         prev_action = 0.0
@@ -853,11 +853,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "depend on previous action, multiple actions ($AD)" begin
 
-                function dependent_multi_action(agent::Agent, observation::Float64)
+                function dependent_multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
-                    prev_action = agent.states[:action]
+                    prev_action = attributes.actions.action_1
 
                     if ismissing(prev_action)
                         prev_action = (0.0, 0.0)
@@ -899,11 +899,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "depend on previous action, missing actions $(AD)" begin
                 
-                function dependent_action(agent::Agent, observation::Float64)
+                function dependent_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = agent.parameters[:noise]
+                    noise = attributes.parameters.noise
 
-                    prev_action = agent.states[:action]
+                    prev_action = attributes.actions.action_1
 
                     if ismissing(prev_action)
                         prev_action = 0.0

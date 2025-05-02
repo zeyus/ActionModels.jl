@@ -9,14 +9,14 @@ end
 
 function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
-    function continuous_rescorla_wagner_gaussian(agent::Agent, observation::Float64)
+    function continuous_rescorla_wagner_gaussian(attributes::ModelAttributes, observation::Float64)
 
         ## Read in parameters from the agent
-        learning_rate = agent.parameters[:learning_rate]
-        action_noise = agent.parameters[:action_noise]
+        learning_rate = attributes.parameters.learning_rate
+        action_noise = attributes.parameters.action_noise
     
         ## Read in states with an initial value
-        old_value = agent.states[:value]
+        old_value = attributes.states.value
     
         ##We dont have any settings in this model. If we had, we would read them in as well.
         ##-----This is where the update step starts -------
@@ -29,8 +29,8 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
         action_distribution = Distributions.Normal(new_value, action_noise)
     
         ##Update the states and save them to agent's history
-        update_states!(agent, :value, new_value)
-        update_states!(agent, :observation, observation)
+        update_state!(attributes, :value, new_value)
+        update_state!(attributes, :observation, observation)
     
         ## return the action distribution to sample actions from
         return action_distribution
