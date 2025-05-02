@@ -53,6 +53,14 @@ function initialize_variables(
         states,
     ) #TODO: only allow missing for states with missing initial values?
 end
+#And if there are not states
+function initialize_variables(
+    states::NamedTuple,
+    ::Type{TF} = Float64,
+    ::Type{TI} = Int64,
+) where {TF,TI}
+    return (;)
+end
 function initialize_variables(
     actions::NamedTuple{names,<:Tuple{Vararg{AbstractAction}}},
     ::Type{TF} = Float64,
@@ -63,6 +71,7 @@ function initialize_variables(
         actions,
     )
 end
+
 
 ## Load the correct type for a single attribute ##
 #For returning an array type

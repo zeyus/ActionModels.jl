@@ -107,13 +107,6 @@ function create_model(
         end
     end
 
-    ## Decide if there are multiple actions ##
-    if length(action_cols) == 1
-        multiple_actions = SingleAction()
-    else
-        multiple_actions = MultipleActions()
-    end
-
     ## Run checks for the model specifications ##
     check_model(
         action_model,
@@ -174,7 +167,6 @@ function create_model(
     ## Create the session model ##
     session_model = create_session_model(
         infer_missing_actions,
-        multiple_actions,
         Val(check_parameter_rejections),
         actions,
     )

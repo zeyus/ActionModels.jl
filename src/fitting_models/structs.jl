@@ -8,10 +8,6 @@ struct NoMissingActions <: AbstractMissingActions end
 struct SkipMissingActions <: AbstractMissingActions end
 struct InferMissingActions <: AbstractMissingActions end
 
-abstract type AbstractMultipleActions end
-struct SingleAction <: AbstractMultipleActions end
-struct MultipleActions <: AbstractMultipleActions end
-
 #Abstract type for population models
 abstract type AbstractPopulationModel end
 #Type for custom population models

@@ -262,7 +262,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 #Create action_model
                 new_model = ActionModel(
                     multi_observation_action,
-                    parameters = (; noise = Parameter(1.0, Float64)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (;
                         observation_1 = Observation(Float64),
                         observation_2 = Observation(Float64),
