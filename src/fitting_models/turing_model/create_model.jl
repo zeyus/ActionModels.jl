@@ -114,47 +114,6 @@ function create_model(
         multiple_actions = MultipleActions()
     end
 
-    ## Extract names and types ##
-    #Extract from the action model
-    parameter_names = parameters_to_estimate
-    parameter_types =
-        [action_model.parameters[parameter_name].type for parameter_name in parameter_names]
-    state_names = collect(keys(action_model.states))
-    state_types = [action_model.states[state_name].type for state_name in state_names]
-    observation_names = collect(keys(action_model.observations))
-    observation_types = [
-        action_model.observations[observation_name].type for
-        observation_name in observation_names
-    ]
-    action_names = collect(keys(action_model.actions))
-    action_types = [action_model.actions[action_name].type for action_name in action_names]
-    action_dist_types = [
-        action_model.actions[action_name].distribution_type for action_name in action_names
-    ]
-
-    #Extract action and observation types from the data
-    observation_types_data = eltype.(eachcol(data[!, collect(observation_cols)]))
-    action_types_data = eltype.(eachcol(data[!, collect(action_cols)]))
-
-    #Create input tuples for the model
-    attribute_names = (
-        parameter_names = parameter_names,
-        state_names = state_names,
-        observation_names = observation_names,
-        action_names = action_names,
-    )
-    attribute_types = (
-        parameter_types = parameter_types,
-        state_types = state_types,
-        observation_types = observation_types,
-        observation_types_data = observation_types_data,
-        action_dist_types = action_dist_types,
-        action_types = action_types,
-        action_types_data = action_types_data,
-    )
-
-    #TODO: extract by running the model forward
-
     ## Run checks for the model specifications ##
     check_model(
         action_model,
@@ -165,14 +124,27 @@ function create_model(
         grouping_cols,
         population_model_type,
         parameters_to_estimate,
-        attribute_names,
-        attribute_types,
     )
 
 
-    ###s PREPARE DATA ###
-    ## Initialize an agent ##
-    agent_model = init_agent(action_model, save_history = false)
+    ### PREPARE DATA ###
+
+    ## Extract action and observation types from the data ##
+    observation_types_data = eltype.(eachcol(data[!, collect(observation_cols)]))
+    action_types_data = eltype.(eachcol(data[!, collect(action_cols)]))
+
+    ## Create list of initial states ##
+    initial_state_parameter_state_names = NamedTuple(
+        parameter.state => ParameterDependentState(parameter_name) for
+        (parameter_name, parameter) in pairs(action_model.parameters) if
+        parameter isa InitialStateParameter
+    )
+    initial_states = Tuple(
+        state_name in keys(initial_state_parameter_state_names) ?
+        state_name => initial_state_parameter_state_names[state_name] :
+        state_name => state.initial_value for
+        (state_name, state) in pairs(action_model.states)
+    )
 
     ## Group data by sessions ##
     grouped_data = groupby(data, grouping_cols)
@@ -193,7 +165,7 @@ function create_model(
             eachrow(session_data[!, collect(observation_cols)]),
         ) for session_data in grouped_data
     ]
-    actions = Vector{Tuple{action_types...}}[
+    actions = Vector{Tuple{action_types_data...}}[
         Tuple{action_types_data...}.(eachrow(session_data[!, collect(action_cols)])) for
         session_data in grouped_data
     ]
@@ -211,13 +183,15 @@ function create_model(
 
     ## Create a full model ##
     model = full_model(
-        agent_model,
-        parameters_to_estimate,
+        action_model.action_model,
         population_model,
         session_model,
         session_ids,
         observations,
         actions,
+        attribute_names,
+        attribute_types,
+        initial_states,
     )
 
     return ModelFit(
@@ -231,20 +205,32 @@ function create_model(
 end
 
 
-####################################################################
-### FUNCTION FOR DOING FULL AGENT AND STATISTICAL MODEL COMBINED ###
-####################################################################
+
+
+
+###########################
+#### FULL TURING MODEL ####
+###########################
 @model function full_model(
-    agent_model::Agent,
-    parameters_to_estimate::Vector{Symbol},
+    action_model::Function,
     population_model::DynamicPPL.Model,
     session_model::Function,
     session_ids::Vector{String},
     observations_per_session::Vector{Vector{O}},
     actions_per_session::Vector{Vector{A}},
+    initial_states::NamedTuple{initial_state_keys,<:Tuple},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
-) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Real}},TF,TI}
+) where {
+    O<:Tuple{Vararg{Any}},
+    A<:Tuple{Vararg{Real}},
+    initial_state_keys,
+    TF,
+    TI,
+}
+
+    #Initialize the model with the correct types
+    model_attributes, initial_states = initialize_attributes(action_model, initial_states, TF, TI)
 
     #Generate session parameters with the population submodel
     parameters_per_session ~ to_submodel(population_model, false)
@@ -266,6 +252,11 @@ end
 
 
 
+
+
+
+
+
 #########################################
 #### FUNCTION FOR CHECKING THE MODEL ####
 #########################################
@@ -278,8 +269,6 @@ function check_model(
     grouping_cols::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
     parameters_to_estimate::Vector{Symbol},
-    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
-    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
 ) where {observation_names_cols,action_names_cols,attribute_name_keys,attribute_type_keys}
 
     #Check that user-specified columns exist in the dataset

@@ -1,6 +1,6 @@
 export BinaryRescorlaWagnerSoftmax
 
-@Base.kwdef struct BinaryRescorlaWagnerSoftmax <: AbstractPremadeModel
+Base.@kwdef struct BinaryRescorlaWagnerSoftmax <: AbstractPremadeModel
     learning_rate::Float64 = 0.1
     action_noise::Float64 = 1
     initial_value::Float64 = 0
@@ -14,26 +14,26 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
         #Read in parameters
         learning_rate = agent.parameters[:learning_rate]
         action_precision = 1 / agent.parameters[:action_noise]
-    
+
         #Read in states
         old_value = agent.states[:value]
-    
+
         #Sigmoid transform the value
         old_value_probability = 1 / (1 + exp(-old_value))
-    
+
         #Get new value state
         new_value = old_value + learning_rate * (observation - old_value_probability)
-    
+
         #Pass through softmax to get action probability
         action_probability = 1 / (1 + exp(-action_precision * new_value))
-    
+
         #Create Bernoulli normal distribution with mean of the target value and a standard deviation from parameters
         action_distribution = Distributions.Bernoulli(action_probability)
-    
+
         #Update states
         update_states!(agent, :value, new_value)
         update_states!(agent, :observation, observation)
-    
+
         return action_distribution
     end
 
@@ -43,16 +43,9 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
         action_noise = Parameter(config.action_noise),
         initial_value = InitialStateParameter(config.initial_value, :value),
     )
-    states = (
-        value = State(Float64),
-        observation = State(Float64),
-    )
-    observations = (;
-        observation = Observation(Int64)
-    )
-    actions = (;
-        report = Action(Bernoulli)
-    )
+    states = (value = State(Float64), observation = State(Float64))
+    observations = (; observation = Observation(Int64))
+    actions = (; report = Action(Bernoulli))
 
     return ActionModel(
         binary_rescorla_wagner_softmax,

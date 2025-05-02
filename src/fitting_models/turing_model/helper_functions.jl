@@ -26,51 +26,6 @@ end
 
 
 
-#####################################################################################################################################################
-####### FUNCTION FOR LOADING TYPE FROM THE TURING MODEL HEADER, NECESSARY FOR FORWARDDIFF AND REVERSEDIFF FOR THE AUTODIFFERENTIATION BACKEND #######
-#####################################################################################################################################################
-#For returning a vector of different types
-function load_types(
-    types::Vector{T},
-    ::Type{TF} = Float64,
-    ::Type{TI} = Int64,
-) where {T<:Type,TF,TI}
-
-    return map(x -> load_type(x, TF, TI), types)
-end
-
-#For returning an array type
-function load_type(
-    ::Type{T},
-    ::Type{TF} = Float64,
-    ::Type{TI} = Int64,
-) where {ST,T<:Array{ST},TF,TI}
-
-    NT = load_type(ST, TF, TI)
-
-    return Array{NT}
-end
-
-#For returning a single type
-function load_type(
-    ::Type{T},
-    ::Type{TF} = Float64,
-    ::Type{TI} = Int64,
-) where {T<:AbstractFloat,TF,TI}
-    return TF
-end
-function load_type(
-    ::Type{T},
-    ::Type{TF} = Float64,
-    ::Type{TI} = Int64,
-) where {T<:Integer,TF,TI}
-    return TI
-end
-function load_type(::Type{T}, ::Type{TF} = Float64, ::Type{TI} = Int64) where {T,TF,TI}
-    return T
-end
-
-
 #####################################################################################################
 ####### FUNCTIONS FOR EXTRACTING A VALUE WHICH WORKS WITH DIFFERENT AUTODIFFERENTIATION BACKENDS ####
 #####################################################################################################
@@ -86,9 +41,6 @@ end
 function ad_val(x::Real)
     return x
 end
-
-
-
 
 
 

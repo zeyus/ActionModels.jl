@@ -60,10 +60,43 @@ struct Regression
     end
 end
 
-
 #########################################
 ### TYPES FOR MODEL FITTING AND TOOLS ###
 #########################################
+### Structs for storing results of model fitting ###
+Base.@kwdef struct ModelFitInfo
+    session_ids::Vector{String}
+    estimated_parameter_names::Vector{Symbol}
+end
+
+Base.@kwdef mutable struct ModelFitResult
+    chains::Chains
+    session_parameters::Union{Nothing,SessionParameters} = nothing
+end
+
+Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
+    model::DynamicPPL.Model
+    population_model_type::T
+    info::ModelFitInfo
+    prior::Union{ModelFitResult,Nothing} = nothing
+    posterior::Union{ModelFitResult,Nothing} = nothing
+end
+
+
+### Type for the save-resume functionality ###
+struct SampleSaveResume
+    save_every::Int
+    path::String
+    plot_progress::Bool
+    chain_prefix::String
+end
+
+SampleSaveResume(;
+    save_every::Int = 100,
+    path = "./.samplingstate",
+    plot_progress::Bool = false,
+    chain_prefix = "ActionModels_chain_link",
+) = SampleSaveResume(save_every, path, plot_progress, chain_prefix)
 
 
 ### Structs for containing outputted session parameters and state trajectories ###
@@ -101,41 +134,3 @@ struct StateTrajectories{T}
     }
 
 end
-
-
-### Structs for storing results of model fitting ###
-Base.@kwdef struct ModelFitInfo
-    session_ids::Vector{String}
-    estimated_parameter_names::Vector{Symbol}
-end
-
-Base.@kwdef mutable struct ModelFitResult
-    chains::Chains
-    session_parameters::Union{Nothing,SessionParameters} = nothing
-end
-
-Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
-    model::DynamicPPL.Model
-    population_model_type::T
-    info::ModelFitInfo
-    prior::Union{ModelFitResult,Nothing} = nothing
-    posterior::Union{ModelFitResult,Nothing} = nothing
-end
-
-
-### Type for the save-resume functionality ###
-struct SampleSaveResume
-    save_every::Int
-    path::String
-    plot_progress::Bool
-    chain_prefix::String
-end
-
-SampleSaveResume(;
-    save_every::Int = 100,
-    path = "./.samplingstate",
-    plot_progress::Bool = false,
-    chain_prefix = "ActionModels_chain_link",
-) = SampleSaveResume(save_every, path, plot_progress, chain_prefix)
-
-
