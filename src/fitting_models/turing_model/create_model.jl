@@ -88,7 +88,7 @@ function create_model(
                 @warn """
                       There are missing values in the action columns, but infer_missing_actions is set to false. 
                       These actions will not be used to inform parameter estimation, but they will still be passed to the action model. 
-                      Check that this is desired behaviour. This can especially be a problem for models which depend on their previous actions.
+                      Check that this is desired behaviour. This can be a problem for models which depend on their previous actions.
                       """
             end
             infer_missing_actions = SkipMissingActions()
@@ -211,7 +211,7 @@ end
     ::Type{TI} = Int64,
 ) where {
     O<:Tuple{Vararg{Any}},
-    A<:Tuple{Vararg{Real}},
+    A<:Tuple{Vararg{Union{Missing,Real}}},
     initial_state_keys,
     TF,
     TI,

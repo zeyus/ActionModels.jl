@@ -80,7 +80,7 @@ function create_session_model(
     infer_missing_actions::AbstractMissingActions,
     check_parameter_rejections::Val{false},
     actions::Vector{Vector{A}},
-) where {A<:Tuple{Vararg{Real}}}
+) where {A<:Tuple{Vararg{Union{Missing,Real}}}}
 
     ## Submodel for sampling all actions of a single action idx as an arraydist ##
     @model function sample_actions_one_idx(
@@ -144,7 +144,7 @@ function create_session_model(
         timestep_prefixes_per_session::Vector{Vector{Symbol}} = timestep_prefixes,
         missing_action_markers_per_session::Vector{Vector{AbstractMissingActions}} = missing_action_markers,
         flattened_actions::FA = flattened_actions,
-    ) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Real}},T<:Any,FA<:Tuple}
+    ) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Union{Missing,Real}}},T<:Any,FA<:Tuple}
         ## Run forwards to get the action distributions ##
         action_distributions = [
             i ~ to_submodel(
@@ -208,7 +208,7 @@ end
     session_actions::Vector{A},
     session_timestep_prefixes::Vector{Symbol},
     session_missing_action_markers::Vector{AbstractMissingActions},
-) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Real}},T<:Tuple}
+) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Union{Missing,Real}}},T<:Tuple}
     #Prepare the agent
     set_parameters!(model_attributes, estimated_parameter_names, session_parameters)
     reset!(model_attributes)
@@ -246,10 +246,10 @@ end
     missing_actions::NoMissingActions,      #No missing actions
 ) where {O}
     #Give observation and get action distribution
-    action_distribution = agent.action_model(agent, observation...)
+    action_distribution = action_model.action_model(model_attributes, observation...)
 
     #Store the action
-    store_action!(agent, action)
+    store_action!(model_attributes, action)
 
     #Return action distribution
     return action_distribution
@@ -263,10 +263,7 @@ end
     missing_actions::SkipMissingActions,    #Skip missing actions
 ) where {O}
     #Give observation and get action distribution
-    action_distribution = agent.action_model(agent, observation...)
-
-    #Store the action
-    store_action!(agent, action)
+    action_distribution = action_model.action_model(model_attributes, observation...)
 
     #Return nothing
     return nothing
@@ -281,7 +278,13 @@ end
 ) where {O}
 
     #Get the tuple of action distributions from the action model
-    action_distributions = agent.action_model(agent, observation...)
+    action_distributions = action_model.action_model(model_attributes, observation...)
+
+    #TODO: Get rid of this when using pre-specified arrays
+    if !(action_distributions isa Tuple)
+        #If the action distributions are not a tuple, make them into a tuple
+        action_distributions = (action_distributions,)
+    end
 
     #Sample the actions separately from the probability distributions
     action = Tuple(
@@ -293,7 +296,7 @@ end
     )
 
     #Store the action
-    store_action!(agent, action)
+    store_action!(model_attributes, action)
 
     return nothing
 end
@@ -317,26 +320,23 @@ function create_session_model(
     infer_missing_actions::AbstractMissingActions,
     check_parameter_rejections::Val{true},         #With parameter rejections
     actions::Vector{Vector{A}},
-    attribute_names::NamedTuple{attribute_name_keys,<:Tuple{Vararg{Vector{Symbol}}}},
-    attribute_types::NamedTuple{attribute_type_keys,<:Tuple{Vararg{Vector{<:Type}}}},
-) where {A<:Tuple{Vararg{Real}},attribute_name_keys,attribute_type_keys}
+) where {A<:Tuple{Vararg{Real}}}
 
     #Get normal session model
     session_submodel =
         create_session_model(infer_missing_actions, Val{false}(), actions)
 
     return @model function session_model(
-        agent::Agent,
+        action_model::ActionModel,
+        model_attributes::ModelAttributes,
+        parameters_per_session::T, #No way to type for an iterator
+        observations_per_session::Vector{Vector{O}},
+        actions_per_session::Vector{Vector{A}},
         estimated_parameter_names::Vector{Symbol},
         session_ids::Vector{String},
-        parameters_per_session::T, #No way to type for an iterator
-        observations_per_session::Vector{Vector{II}},
-        actions_per_session::Vector{Vector{AA}};
     ) where {
-        I<:Any,
-        II<:Union{I,Tuple{Vararg{I}}},
-        A<:Real,
-        AA<:Union{A,Tuple{Vararg{A}}},
+        O<:Tuple{Vararg{Any}},
+        A<:Tuple{Vararg{Real}},
         T<:Any,
     }
 
@@ -345,12 +345,13 @@ function create_session_model(
             #Run the normal session model
             i ~ to_submodel(
                 session_submodel(
-                    agent,
-                    estimated_parameter_names,
-                    session_ids,
+                    action_model,
+                    model_attributes,
                     parameters_per_session,
                     observations_per_session,
                     actions_per_session,
+                    estimated_parameter_names,
+                    session_ids,
                 ),
                 false,
             )

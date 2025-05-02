@@ -4,15 +4,14 @@
 function create_model(
     action_model::ActionModel,
     prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
-    observations::II,
-    actions::AA;
+    observations::Vector{O},
+    actions::Vector{AA};
     verbose::Bool = true,
     kwargs...,
 ) where {
-    I<:Union{<:Any, NTuple{N, <:Any} where N},
-    II<:Vector{I},
-    A<:Union{<:Real, NTuple{N, <:Real} where N},
-    AA<:Vector{A},
+    O<:Union{<:Any, NTuple{N, <:Any} where N},
+    A <:Union{Missing, Real},
+    AA<:Union{A, NTuple{N, A} where N},
     prior_names,
 }
     
@@ -79,14 +78,6 @@ function check_population_model(
 
     if length(observations) != length(actions)
         throw(ArgumentError("The observations and actions vectors must have the same length."))
-    end
-
-    if !all(y->y==length.(observations)[1],length.(observations))
-        throw(ArgumentError("All tuples in the observations vector must have the same length."))
-    end
-
-    if !all(y->y==length.(actions)[1],length.(actions))
-        throw(ArgumentError("All tuples in the actions vector must have the same length."))
     end
 end
 

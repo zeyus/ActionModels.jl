@@ -53,14 +53,6 @@ function initialize_variables(
         states,
     ) #TODO: only allow missing for states with missing initial values?
 end
-#And if there are not states
-function initialize_variables(
-    states::NamedTuple,
-    ::Type{TF} = Float64,
-    ::Type{TI} = Int64,
-) where {TF,TI}
-    return (;)
-end
 function initialize_variables(
     actions::NamedTuple{names,<:Tuple{Vararg{AbstractAction}}},
     ::Type{TF} = Float64,
@@ -70,6 +62,14 @@ function initialize_variables(
         action -> Variable{Union{Missing,load_type(action.type, TF, TI)}}(missing),
         actions,
     )
+end
+#And if it is an empty collection
+function initialize_variables(
+    states::NamedTuple{names, <:Tuple{}},
+    ::Type{TF} = Float64,
+    ::Type{TI} = Int64,
+) where {names, TF,TI}
+    return (;)
 end
 
 

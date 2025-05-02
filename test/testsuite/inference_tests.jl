@@ -244,14 +244,13 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
 
             @testset "single session with multiple observations and actions ($AD)" begin
-
                 function multi_observation_action(
                     attributes::ModelAttributes,
                     observation1::Float64,
                     observation2::Float64,
                 )
-
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     actiondist1 = Normal(observation1, noise)
                     actiondist2 = Normal(observation2, noise)
@@ -289,13 +288,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
 
             @testset "single session with missing actions" begin
-                
-                #Extract observations and actions from data
-                observations = data[!, :observations]
-                actions = data[!, :actions]
 
-                #Add a missing action
-                actions[3] = missing
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, :actions)
+                new_data[[2, 7, 12], :actions] .= missing
+
+                #Extract observations and actions from data
+                observations = new_data[!, :observations]
+                actions = new_data[!, :actions]
 
                 #Create model
                 model = create_model(action_model, prior, observations, actions)
@@ -406,8 +406,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     return [control_params; treatment_params]
                 end
 
-                estimated_parameter_names = [:learning_rate, :action_noise, :initial_value]
-
                 model = create_model(
                     action_model,
                     custom_population_model(),
@@ -415,7 +413,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
-                    estimated_parameter_names = estimated_parameter_names,
+                    parameters_to_estimate = [:learning_rate, :action_noise, :initial_value],
                 )
 
                 posterior_chains = sample_posterior!(
@@ -448,10 +446,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
 
             @testset "check for parameter rejections, with rejections $(AD)" begin
-                
+
                 function rejected_params(attributes::ModelAttributes, observation::Float64)
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     if observation * noise > 5.0
                         throw(RejectParameters("This parameter is rejected"))
@@ -462,14 +461,14 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 #Create model
                 new_model = ActionModel(
                     rejected_params,
-                    parameters = (; noise = Parameter(1.0, Real)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (; observation = Observation(Float64)),
                     actions = (; action = Action(Normal)),
                 )
 
                 #Set prior
                 new_prior = (; noise = LogNormal(0.0, 1.0))
-                
+
                 #Create model
                 model = create_model(
                     new_model,
@@ -498,9 +497,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
 
             @testset "varying session lengths $(AD)" begin
-            
+
                 #Remove last two rows from the data
-                new_data = data[1:end-2, :]
+                new_data = data[1:(end-2), :]
 
                 #Create model
                 model = create_model(
@@ -512,7 +511,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     grouping_cols = grouping_cols,
                     check_parameter_rejections = true,
                 )
-            
+
                 #Fit model
                 posterior_chains = sample_posterior!(
                     model,
@@ -522,7 +521,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 get_session_parameters!(model, :posterior)
-                state_trajectories = get_state_trajectories!(model, [:observation, :value], :posterior)
+                state_trajectories =
+                    get_state_trajectories!(model, [:observation, :value], :posterior)
                 summarize(state_trajectories)
             end
 
@@ -582,7 +582,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     actiondist1 = Normal(observation, noise)
                     actiondist2 = Normal(observation, noise)
@@ -592,7 +593,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 #Create model
                 new_model = ActionModel(
                     multi_action,
-                    parameters = (; noise = Parameter(1.0, Real)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (; observation = Observation(Float64)),
                     actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
                 )
@@ -611,19 +612,16 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
 
                 #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = 2,
-                    n_chains = 1,
-                )
+                posterior_chains =
+                    sample_posterior!(model, ad_type = ad_type, n_samples = n_samples, n_chains = n_chains)
             end
 
             @testset "multiple actions, infer missing actions ($AD)" begin
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     actiondist1 = Normal(observation, noise)
                     actiondist2 = Normal(observation, noise)
@@ -670,7 +668,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     actiondist1 = Normal(observation, noise)
                     actiondist2 = Normal(observation, noise)
@@ -721,7 +720,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation2::Float64,
                 )
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     actiondist = Normal(observation1, noise)
 
@@ -730,7 +730,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 #Create model
                 new_model = ActionModel(
                     multi_observation,
-                    parameters = (; noise = Parameter(1.0, Float64)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (;
                         observation_1 = Observation(Float64),
                         observation_2 = Observation(Float64),
@@ -767,7 +767,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation2::Float64,
                 )
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
 
                     actiondist1 = Normal(observation1, noise)
                     actiondist2 = Normal(observation2, noise)
@@ -777,7 +778,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 #Create action_model
                 new_model = ActionModel(
                     multi_observation_action,
-                    parameters = (; noise = Parameter(1.0, Float64)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (;
                         observation_1 = Observation(Float64),
                         observation_2 = Observation(Float64),
@@ -810,22 +811,24 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function dependent_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    previous_action = get_actions(attributes)
+                    noise = parameters.noise
 
-                    prev_action = attributes.actions.action_1
+                    previous_action = previous_action.action_1
 
-                    if ismissing(prev_action)
-                        prev_action = 0.0
+                    if ismissing(previous_action)
+                        previous_action = 0.0
                     end
 
-                    actiondist = Normal(observation + prev_action, noise)
+                    actiondist = Normal(observation + previous_action, noise)
 
                     return actiondist
                 end
                 #Create model
                 new_model = ActionModel(
                     dependent_action,
-                    parameters = (; noise = Parameter(1.0, Real)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (; observation = Observation(Float64)),
                     actions = (; action_1 = Action(Normal)),
                 )
@@ -853,25 +856,30 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             @testset "depend on previous action, multiple actions ($AD)" begin
 
-                function dependent_multi_action(attributes::ModelAttributes, observation::Float64)
+                function dependent_multi_action(
+                    attributes::ModelAttributes,
+                    observation::Float64,
+                )
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
 
-                    prev_action = attributes.actions.action_1
+                    noise = parameters.noise
 
-                    if ismissing(prev_action)
-                        prev_action = (0.0, 0.0)
+                    previous_action = get_actions(attributes)
+
+                    if ismissing(previous_action[1])
+                        previous_action = (0.0, 0.0)
                     end
 
-                    actiondist1 = Normal(observation + prev_action[1], noise)
-                    actiondist2 = Normal(observation - prev_action[2], noise)
+                    actiondist1 = Normal(observation + previous_action[1], noise)
+                    actiondist2 = Normal(observation - previous_action[2], noise)
 
                     return (actiondist1, actiondist2)
                 end
                 #Create model
                 new_model = ActionModel(
                     dependent_multi_action,
-                    parameters = (; noise = Parameter(1.0, Real)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (; observation = Observation(Float64)),
                     actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
                 )
@@ -898,18 +906,20 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
 
             @testset "depend on previous action, missing actions $(AD)" begin
-                
+
                 function dependent_action(attributes::ModelAttributes, observation::Float64)
 
-                    noise = attributes.parameters.noise
+                    parameters = get_parameters(attributes)
+                    previous_action = get_actions(attributes)
+                    noise = parameters.noise
 
-                    prev_action = attributes.actions.action_1
+                    previous_action = previous_action.action_1
 
-                    if ismissing(prev_action)
-                        prev_action = 0.0
+                    if ismissing(previous_action)
+                        previous_action = 0.0
                     end
 
-                    actiondist = Normal(observation + prev_action, noise)
+                    actiondist = Normal(observation + previous_action, noise)
 
                     return actiondist
                 end
@@ -917,7 +927,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 #Create model
                 new_model = ActionModel(
                     dependent_action,
-                    parameters = (; noise = Parameter(1.0, Real)),
+                    parameters = (; noise = Parameter(1.0)),
                     observations = (; observation = Observation(Float64)),
                     actions = (; action_1 = Action(Normal)),
                 )
