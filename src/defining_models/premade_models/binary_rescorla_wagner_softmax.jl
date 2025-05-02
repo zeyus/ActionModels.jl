@@ -10,19 +10,19 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
 
     #Create function
     function binary_rescorla_wagner_softmax(attributes::ModelAttributes, observation::Int64)
+        #Read in parameters and states
+        parameters = get_parameters(attributes)
+        states = get_states(attributes)
 
-        #Read in parameters
-        learning_rate = attributes.parameters.learning_rate
-        action_precision = 1 / attributes.parameters.action_noise
-
-        #Read in states
-        old_value = attributes.states.value
+        learning_rate = parameters.learning_rate
+        action_precision = 1 / parameters.action_noise
+        previous_value = states.value
 
         #Sigmoid transform the value
-        old_value_probability = 1 / (1 + exp(-old_value))
+        previous_value_probability = 1 / (1 + exp(-previous_value))
 
         #Get new value state
-        new_value = old_value + learning_rate * (observation - old_value_probability)
+        new_value = previous_value + learning_rate * (observation - previous_value_probability)
 
         #Pass through softmax to get action probability
         action_probability = 1 / (1 + exp(-action_precision * new_value))

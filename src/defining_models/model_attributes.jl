@@ -1,7 +1,7 @@
 #############################################
 ####### INITIALIZING MODEL ATTRIBUTES #######
 #############################################
-
+## For initializing the model attributes ##
 function initialize_attributes(
     action_model::ActionModel,
     initial_states::NamedTuple{initial_state_keys,<:Tuple{Vararg{Any}}},
@@ -37,7 +37,6 @@ function initialize_variables(
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {names,TF,TI}
-
     return map(
         parameter -> Variable{load_type(parameter.type, TF, TI)}(parameter.value),
         parameters,
@@ -72,9 +71,7 @@ function load_type(
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {ST,T<:Array{ST},TF,TI}
-
     NT = load_type(ST, TF, TI)
-
     return Array{NT}
 end
 #For returning a single type
@@ -95,7 +92,6 @@ end
 function load_type(::Type{T}, ::Type{TF} = Float64, ::Type{TI} = Int64) where {T,TF,TI}
     return T
 end
-
 
 
 
@@ -157,4 +153,33 @@ end
 function store_action!(model_attributes::ModelAttributes, sampled_action::A) where {A<:Real}
     #Set the action to the value
     first(model_attributes.actions).value = sampled_action
+end
+
+
+
+
+
+
+
+#####################################################
+####### FUNCTIONS FOR EXTRACTING ATTRIBUTES #########
+#####################################################
+
+function get_parameters(model_attributes::ModelAttributes)
+    return map(
+        parameter -> parameter.value,
+        model_attributes.parameters,
+    )
+end
+function get_states(model_attributes::ModelAttributes)
+    return map(
+        state -> state.value,
+        model_attributes.states,
+    )
+end
+function get_actions(model_attributes::ModelAttributes)
+    return map(
+        action -> action.value,
+        model_attributes.actions,
+    )
 end

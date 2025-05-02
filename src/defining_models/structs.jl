@@ -4,7 +4,7 @@
 ## For creating parameters ##
 abstract type AbstractParameter end
 
-mutable struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
+struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     value::T
     type::Type{T}
 
@@ -28,7 +28,7 @@ mutable struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     end
 end
 
-mutable struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
+struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     state::Symbol
     value::T
     type::Type{T}
@@ -51,7 +51,7 @@ end
 
 ## For creating states ##
 abstract type AbstractState end
-mutable struct State{T} <: AbstractState
+struct State{T} <: AbstractState
     initial_value::Union{Missing,T}
     type::Type{T}
 
