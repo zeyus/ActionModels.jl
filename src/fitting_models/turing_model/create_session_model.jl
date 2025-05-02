@@ -22,13 +22,14 @@ function create_session_model(
     end
 
     #Create session model function with flattened actions included
-    return @model function my_session_model(
-        agent::Agent,
-        estimated_parameter_names::Vector{Symbol},
-        session_ids::Vector{String},
+    return @model function session_model(
+        action_model::ActionModel,
+        model_attributes::ModelAttributes,
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{O}},
-        actions_per_session::Vector{Vector{A}};
+        actions_per_session::Vector{Vector{A}},
+        estimated_parameter_names::Vector{Symbol},
+        session_ids::Vector{String};
         flattened_actions::FA = flattened_actions,
     ) where {
         O<:Tuple{Vararg{Any}},
@@ -40,15 +41,15 @@ function create_session_model(
         ## Run forwards to get the action distributions ##
         action_distributions = [
             begin
-                #Set the agent parameters
-                set_parameters!(agent, estimated_parameter_names, session_parameters)
-                reset!(agent)
+                #Set the sampled parameters and reset the action model
+                set_parameters!(model_attributes, estimated_parameter_names, session_parameters)
+                reset!(model_attributes)
                 [
                     begin
                         #Get the action probability (either a distribution, or a tuple of distributions) 
-                        action_distribution = agent.action_model(agent, observation...)
+                        action_distribution = action_model.action_model(model_attributes, observation...)
                         #Save the action
-                        update_states!(agent, :action, action)
+                        store_action!(model_attributes, action)
 
                         #Return the action probability distribution
                         action_distribution

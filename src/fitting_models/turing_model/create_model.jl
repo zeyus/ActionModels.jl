@@ -186,11 +186,10 @@ function create_model(
         action_model.action_model,
         population_model,
         session_model,
-        session_ids,
         observations,
         actions,
-        attribute_names,
-        attribute_types,
+        parameters_to_estimate,
+        session_ids,
         initial_states,
     )
 
@@ -206,18 +205,17 @@ end
 
 
 
-
-
 ###########################
 #### FULL TURING MODEL ####
 ###########################
 @model function full_model(
-    action_model::Function,
+    action_model::ActionModel,
     population_model::DynamicPPL.Model,
     session_model::Function,
-    session_ids::Vector{String},
     observations_per_session::Vector{Vector{O}},
     actions_per_session::Vector{Vector{A}},
+    estimated_parameter_names::Vector{Symbol},
+    session_ids::Vector{String},
     initial_states::NamedTuple{initial_state_keys,<:Tuple},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
@@ -228,9 +226,8 @@ end
     TF,
     TI,
 }
-
     #Initialize the model with the correct types
-    model_attributes, initial_states = initialize_attributes(action_model, initial_states, TF, TI)
+    model_attributes = initialize_attributes(action_model, initial_states, TF, TI)
 
     #Generate session parameters with the population submodel
     parameters_per_session ~ to_submodel(population_model, false)
@@ -238,12 +235,13 @@ end
     #Generate behavior for each session
     i ~ to_submodel(
         session_model(
-            agent_model,
-            parameters_to_estimate,
-            session_ids,
+            action_model,
+            model_attributes,
             parameters_per_session,
             observations_per_session,
             actions_per_session,
+            estimated_parameter_names,
+            session_ids,
         ),
         false, #Do not add a prefix
     )
