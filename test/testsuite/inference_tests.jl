@@ -75,6 +75,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             ad_type = AutoMooncake(; config = nothing)
         end
 
+
+
         @testset "API tests $(AD)" begin
 
             #Create model
@@ -224,6 +226,9 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             end
         end
 
+
+
+
         @testset "population model tests $(AD)" begin
 
             @testset "single session ($AD)" begin
@@ -243,112 +248,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 )
             end
 
-            @testset "single session with multiple observations and actions ($AD)" begin
-                function multi_observation_action(
-                    attributes::ModelAttributes,
-                    observation1::Float64,
-                    observation2::Float64,
-                )
-                    parameters = get_parameters(attributes)
-                    noise = parameters.noise
-
-                    actiondist1 = Normal(observation1, noise)
-                    actiondist2 = Normal(observation2, noise)
-
-                    return (actiondist1, actiondist2)
-                end
-
-                #Create action_model
-                new_model = ActionModel(
-                    multi_observation_action,
-                    parameters = (; noise = Parameter(1.0)),
-                    observations = (;
-                        observation_1 = Observation(Float64),
-                        observation_2 = Observation(Float64),
-                    ),
-                    actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
-                )
-
-                new_prior = (; noise = LogNormal(0.0, 1.0))
-
-                #Extract observations and actions from data
-                observations = Tuple.(eachrow(data[!, [:observations, :observations_2]]))
-                actions = Tuple.(eachrow(data[!, [:actions, :actions_2]]))
-
-                #Create model
-                model = create_model(new_model, new_prior, observations, actions)
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "single session with missing actions" begin
-
-                #Create new dataframe where three actions = missing
-                new_data = allowmissing(data, :actions)
-                new_data[[2, 7, 12], :actions] .= missing
-
-                #Extract observations and actions from data
-                observations = new_data[!, :observations]
-                actions = new_data[!, :actions]
-
-                #Create model
-                model = create_model(action_model, prior, observations, actions)
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "simple statistical model ($AD)" begin
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                    grouping_cols = [:id],
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "no grouping cols ($AD)" begin
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "multiple grouping cols ($AD)" begin
+            @testset "independent sessions model ($AD)" begin
 
                 #Create model
                 model = create_model(
@@ -413,7 +313,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
-                    parameters_to_estimate = [:learning_rate, :action_noise, :initial_value],
+                    parameters_to_estimate = [
+                        :learning_rate,
+                        :action_noise,
+                        :initial_value,
+                    ],
                 )
 
                 posterior_chains = sample_posterior!(
@@ -423,7 +327,12 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_chains = n_chains,
                 )
             end
+        end
 
+
+
+        @testset "action model variations" begin
+            
             @testset "check for parameter rejections, no rejections $(AD)" begin
                 #Create model
                 model = create_model(
@@ -478,324 +387,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
                     check_parameter_rejections = true,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-        end
-
-
-
-
-        @testset "different observation and action types ($AD)" begin
-
-
-            @testset "varying session lengths $(AD)" begin
-
-                #Remove last two rows from the data
-                new_data = data[1:(end-2), :]
-
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    new_data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                    grouping_cols = grouping_cols,
-                    check_parameter_rejections = true,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-
-                get_session_parameters!(model, :posterior)
-                state_trajectories =
-                    get_state_trajectories!(model, [:observation, :value], :posterior)
-                summarize(state_trajectories)
-            end
-
-            @testset "infer missing actions ($AD)" begin
-
-                #Create new dataframe where three actions = missing
-                new_data = allowmissing(data, :actions)
-                new_data[[2, 7, 12], :actions] .= missing
-
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    new_data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                    grouping_cols = grouping_cols,
-                    infer_missing_actions = true,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "skip missing actions ($AD)" begin
-
-                #Create new dataframe where three actions = missing
-                new_data = allowmissing(data, :actions)
-                new_data[[2, 7, 12], :actions] .= missing
-
-                #Create model
-                model = create_model(
-                    action_model,
-                    prior,
-                    new_data,
-                    observation_cols = observation_cols,
-                    action_cols = action_cols,
-                    grouping_cols = grouping_cols,
-                    infer_missing_actions = false,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "multiple actions ($AD)" begin
-
-                function multi_action(attributes::ModelAttributes, observation::Float64)
-
-                    parameters = get_parameters(attributes)
-                    noise = parameters.noise
-
-                    actiondist1 = Normal(observation, noise)
-                    actiondist2 = Normal(observation, noise)
-
-                    return (actiondist1, actiondist2)
-                end
-                #Create model
-                new_model = ActionModel(
-                    multi_action,
-                    parameters = (; noise = Parameter(1.0)),
-                    observations = (; observation = Observation(Float64)),
-                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
-                )
-
-                #Set prior
-                new_prior = (; noise = LogNormal(0.0, 1.0))
-
-                #Create model
-                model = create_model(
-                    new_model,
-                    new_prior,
-                    data,
-                    observation_cols = observation_cols,
-                    action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
-                )
-
-                #Fit model
-                posterior_chains =
-                    sample_posterior!(model, ad_type = ad_type, n_samples = n_samples, n_chains = n_chains)
-            end
-
-            @testset "multiple actions, infer missing actions ($AD)" begin
-
-                function multi_action(attributes::ModelAttributes, observation::Float64)
-
-                    parameters = get_parameters(attributes)
-                    noise = parameters.noise
-
-                    actiondist1 = Normal(observation, noise)
-                    actiondist2 = Normal(observation, noise)
-
-                    return (actiondist1, actiondist2)
-                end
-                #Create model
-                new_model = ActionModel(
-                    multi_action,
-                    parameters = (; noise = Parameter(1.0)),
-                    observations = (; observation = Observation(Float64)),
-                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
-                )
-
-                #Set prior
-                new_prior = (; noise = LogNormal(0.0, 1.0))
-
-                #Create new dataframe where three actions = missing
-                new_data = allowmissing(data, [:actions, :actions_2])
-                new_data[[2, 12], :actions] .= missing
-                new_data[[3], :actions_2] .= missing
-
-                #Create model
-                model = create_model(
-                    new_model,
-                    new_prior,
-                    new_data,
-                    observation_cols = observation_cols,
-                    action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
-                    infer_missing_actions = true,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "multiple actions, skip missing actions ($AD)" begin
-
-                function multi_action(attributes::ModelAttributes, observation::Float64)
-
-                    parameters = get_parameters(attributes)
-                    noise = parameters.noise
-
-                    actiondist1 = Normal(observation, noise)
-                    actiondist2 = Normal(observation, noise)
-
-                    return (actiondist1, actiondist2)
-                end
-                #Create model
-                new_model = ActionModel(
-                    multi_action,
-                    parameters = (; noise = Parameter(1.0)),
-                    observations = (; observation = Observation(Float64)),
-                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
-                )
-
-                #Set prior
-                new_prior = (; noise = LogNormal(0.0, 1.0))
-
-                #Create new dataframe where three actions = missing
-                new_data = allowmissing(data, [:actions, :actions_2])
-                new_data[[2, 12], :actions] .= missing
-                new_data[[3], :actions_2] .= missing
-
-                #Create model
-                model = create_model(
-                    new_model,
-                    new_prior,
-                    new_data,
-                    observation_cols = observation_cols,
-                    action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
-                    infer_missing_actions = false,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "multiple observations ($AD)" begin
-
-                function multi_observation(
-                    attributes::ModelAttributes,
-                    observation1::Float64,
-                    observation2::Float64,
-                )
-
-                    parameters = get_parameters(attributes)
-                    noise = parameters.noise
-
-                    actiondist = Normal(observation1, noise)
-
-                    return actiondist
-                end
-                #Create model
-                new_model = ActionModel(
-                    multi_observation,
-                    parameters = (; noise = Parameter(1.0)),
-                    observations = (;
-                        observation_1 = Observation(Float64),
-                        observation_2 = Observation(Float64),
-                    ),
-                    actions = (; action_1 = Action(Normal)),
-                )
-
-                new_prior = (; noise = LogNormal(0.0, 1.0))
-
-                #Create model
-                model = create_model(
-                    new_model,
-                    new_prior,
-                    data,
-                    observation_cols = [:observations, :observations_2],
-                    action_cols = action_cols,
-                    grouping_cols = grouping_cols,
-                )
-
-                #Fit model
-                posterior_chains = sample_posterior!(
-                    model,
-                    ad_type = ad_type,
-                    n_samples = n_samples,
-                    n_chains = n_chains,
-                )
-            end
-
-            @testset "multiple observations and multiple actions ($AD)" begin
-
-                function multi_observation_action(
-                    attributes::ModelAttributes,
-                    observation1::Float64,
-                    observation2::Float64,
-                )
-
-                    parameters = get_parameters(attributes)
-                    noise = parameters.noise
-
-                    actiondist1 = Normal(observation1, noise)
-                    actiondist2 = Normal(observation2, noise)
-
-                    return (actiondist1, actiondist2)
-                end
-                #Create action_model
-                new_model = ActionModel(
-                    multi_observation_action,
-                    parameters = (; noise = Parameter(1.0)),
-                    observations = (;
-                        observation_1 = Observation(Float64),
-                        observation_2 = Observation(Float64),
-                    ),
-                    actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
-                )
-
-                new_prior = (; noise = LogNormal(0.0, 1.0))
-
-                #Create model
-                model = create_model(
-                    new_model,
-                    new_prior,
-                    data,
-                    observation_cols = [:observations, :observations_2],
-                    action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
                 )
 
                 #Fit model
@@ -904,8 +495,461 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_chains = n_chains,
                 )
             end
+        end
 
-            @testset "depend on previous action, missing actions $(AD)" begin
+
+        @testset "data context variations ($AD)" begin
+
+            @testset "varying session lengths $(AD)" begin
+
+                #Remove last two rows from the data
+                new_data = data[1:(end-2), :]
+
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    check_parameter_rejections = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
+                get_session_parameters!(model, :posterior)
+                state_trajectories =
+                    get_state_trajectories!(model, [:observation, :value], :posterior)
+                summarize(state_trajectories)
+            end
+
+            @testset "independent sessions model, single grouping column ($AD)" begin
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = [:id],
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "independent sessions model, no grouping columns ($AD)" begin
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+
+            @testset "multiple actions ($AD)" begin
+
+                function multi_action(attributes::ModelAttributes, observation::Float64)
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation, noise)
+                    actiondist2 = Normal(observation, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = [:actions, :actions_2],
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "multiple observations ($AD)" begin
+
+                function multi_observation(
+                    attributes::ModelAttributes,
+                    observation1::Float64,
+                    observation2::Float64,
+                )
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist = Normal(observation1, noise)
+
+                    return actiondist
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_observation,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (;
+                        observation_1 = Observation(Float64),
+                        observation_2 = Observation(Float64),
+                    ),
+                    actions = (; action_1 = Action(Normal)),
+                )
+
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = [:observations, :observations_2],
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "multiple observations and multiple actions ($AD)" begin
+
+                function multi_observation_action(
+                    attributes::ModelAttributes,
+                    observation1::Float64,
+                    observation2::Float64,
+                )
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation1, noise)
+                    actiondist2 = Normal(observation2, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create action_model
+                new_model = ActionModel(
+                    multi_observation_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (;
+                        observation_1 = Observation(Float64),
+                        observation_2 = Observation(Float64),
+                    ),
+                    actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = [:observations, :observations_2],
+                    action_cols = [:actions, :actions_2],
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "single session with multiple observations and actions ($AD)" begin
+                function multi_observation_action(
+                    attributes::ModelAttributes,
+                    observation1::Float64,
+                    observation2::Float64,
+                )
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation1, noise)
+                    actiondist2 = Normal(observation2, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+
+                #Create action_model
+                new_model = ActionModel(
+                    multi_observation_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (;
+                        observation_1 = Observation(Float64),
+                        observation_2 = Observation(Float64),
+                    ),
+                    actions = (; action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Extract observations and actions from data
+                observations = Tuple.(eachrow(data[!, [:observations, :observations_2]]))
+                actions = Tuple.(eachrow(data[!, [:actions, :actions_2]]))
+
+                #Create model
+                model = create_model(new_model, new_prior, observations, actions)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+        end
+
+
+
+        @testset "missing actions $(AD)" begin
+
+            @testset "infer missing actions ($AD)" begin
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, :actions)
+                new_data[[2, 7, 12], :actions] .= missing
+
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "skip missing actions ($AD)" begin
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, :actions)
+                new_data[[2, 7, 12], :actions] .= missing
+
+                #Create model
+                model = create_model(
+                    action_model,
+                    prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = false,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "single session, infer missing actions" begin
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, :actions)
+                new_data[[2, 7, 12], :actions] .= missing
+
+                #Extract observations and actions from data
+                observations = new_data[!, :observations]
+                actions = new_data[!, :actions]
+
+                #Create model
+                model = create_model(action_model, prior, observations, actions, infer_missing_actions = true)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "single session, skip missing actions $(AD)" begin
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, :actions)
+                new_data[[2, 7, 12], :actions] .= missing
+
+                #Extract observations and actions from data
+                observations = new_data[!, :observations]
+                actions = new_data[!, :actions]
+
+                #Create model
+                model = create_model(action_model, prior, observations, actions, infer_missing_actions = false)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
+            end
+
+            @testset "multiple actions, infer missing actions ($AD)" begin
+
+                function multi_action(attributes::ModelAttributes, observation::Float64)
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation, noise)
+                    actiondist2 = Normal(observation, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, [:actions, :actions_2])
+                new_data[[2, 12], :actions] .= missing
+                new_data[[3], :actions_2] .= missing
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = [:actions, :actions_2],
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = true,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "multiple actions, skip missing actions ($AD)" begin
+
+                function multi_action(attributes::ModelAttributes, observation::Float64)
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation, noise)
+                    actiondist2 = Normal(observation, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, [:actions, :actions_2])
+                new_data[[2, 12], :actions] .= missing
+                new_data[[3], :actions_2] .= missing
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    new_data,
+                    observation_cols = observation_cols,
+                    action_cols = [:actions, :actions_2],
+                    grouping_cols = grouping_cols,
+                    infer_missing_actions = false,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
+            @testset "depend on previous action, infer missing actions $(AD)" begin
 
                 function dependent_action(attributes::ModelAttributes, observation::Float64)
 
