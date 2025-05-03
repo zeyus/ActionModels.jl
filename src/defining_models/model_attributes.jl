@@ -72,7 +72,6 @@ function initialize_variables(
     return (;)
 end
 
-
 ## Load the correct type for a single attribute ##
 #For returning an array type
 function load_type(
@@ -132,6 +131,19 @@ function set_parameters!(
     for (parameter_name, parameter_value) in zip(parameter_names, parameters)
         #Set the parameter to the value
         model_attributes.parameters[parameter_name].value = parameter_value
+    end
+end
+
+## Function for setting model states ##
+function set_states!(
+    model_attributes::ModelAttributes,
+    state_names::Vector{Symbol},
+    states::Tuple{Vararg{Any}},
+)
+    #For each state name and value
+    for (state_name, state_value) in zip(state_names, states)
+        #Set the state to the value
+        model_attributes.states[state_name].value = state_value
     end
 end
 
