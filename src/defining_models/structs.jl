@@ -32,7 +32,11 @@ struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     state::Symbol
     value::T
     type::Type{T}
-    function InitialStateParameter(value::T, state_name::Symbol; discrete::Bool = false) where {T<:Union{Real,Array{<:Real}}}  
+    function InitialStateParameter(
+        value::T,
+        state_name::Symbol;
+        discrete::Bool = false,
+    ) where {T<:Union{Real,Array{<:Real}}}
         if discrete
             if value isa Array
                 new{Array{Int64}}(state_name, value, Array{Int64})
@@ -126,10 +130,11 @@ end
 
 ## Supertype for submodels ##
 abstract type AbstractSubmodel end
+struct NoSubModel <: AbstractSubmodel end
 
 ## ActionModel struct ##
 abstract type AbstractActionModel end
-struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
+struct ActionModel{T<:AbstractSubmodel} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
         parameter_names,
@@ -161,10 +166,9 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
             AbstractAction,
             NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
         } where {action_names},
-        submodel::T = nothing,
+        submodel::AbstractSubmodel = NoSubModel(),
         verbose::Bool = true,
-    ) where {T<:Union{AbstractSubmodel,Nothing}}
-
+    )
         #Make single structs into NamedTuples
         if parameters isa AbstractParameter
             parameters = (; parameter = parameters)
@@ -225,7 +229,7 @@ end
 ### TYPES FOR USE IN THE ACTION MODEL ###
 #########################################
 ## Model attributes type which contains the information apssed to the action model ##
-struct ModelAttributes{TP<:NamedTuple, TS<:NamedTuple, TA<:NamedTuple, IS<:NamedTuple}
+struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple}
     parameters::TP
     states::TS
     actions::TA

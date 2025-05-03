@@ -25,7 +25,7 @@ function create_session_model(
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{O}},
         actions_per_session::Vector{Vector{A}},
-        estimated_parameter_names::Vector{Symbol},
+        estimated_parameter_names::Tuple{Vararg{Symbol}},
         session_ids::Vector{String};
         flattened_actions::FA = flattened_actions,
     ) where {
@@ -139,7 +139,7 @@ function create_session_model(
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{O}},
         actions_per_session::Vector{Vector{A}},
-        estimated_parameter_names::Vector{Symbol},
+        estimated_parameter_names::Tuple{Vararg{Symbol}},
         session_ids::Vector{String};
         timestep_prefixes_per_session::Vector{Vector{Symbol}} = timestep_prefixes,
         missing_action_markers_per_session::Vector{Vector{AbstractMissingActions}} = missing_action_markers,
@@ -202,7 +202,7 @@ end
 @model function single_session_model(
     action_model::ActionModel,
     model_attributes::ModelAttributes,
-    estimated_parameter_names::Vector{Symbol},
+    estimated_parameter_names::Tuple{Vararg{Symbol}},
     session_parameters::T,
     session_observations::Vector{O},
     session_actions::Vector{A},
@@ -332,7 +332,7 @@ function create_session_model(
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{O}},
         actions_per_session::Vector{Vector{A}},
-        estimated_parameter_names::Vector{Symbol},
+        estimated_parameter_names::Tuple{Vararg{Symbol}},
         session_ids::Vector{String},
     ) where {
         O<:Tuple{Vararg{Any}},

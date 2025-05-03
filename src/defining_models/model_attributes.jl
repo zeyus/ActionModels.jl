@@ -22,8 +22,6 @@ function initialize_attributes(
         initial_states,
     )
 
-    #TODO: intiialize submodel's attributes
-
     return ModelAttributes(parameters, states, actions, initial_states)
 end
 
@@ -124,7 +122,7 @@ end
 ## Function for setting model parameters ##
 function set_parameters!(
     model_attributes::ModelAttributes,
-    parameter_names::Vector{Symbol},
+    parameter_names::Tuple{Vararg{Symbol}},
     parameters::Tuple{Vararg{Real}},
 )
     #For each parameter name and value
@@ -137,7 +135,7 @@ end
 ## Function for setting model states ##
 function set_states!(
     model_attributes::ModelAttributes,
-    state_names::Vector{Symbol},
+    state_names::Tuple{Vararg{Symbol}},
     states::Tuple{Vararg{Any}},
 )
     #For each state name and value
@@ -147,7 +145,7 @@ function set_states!(
     end
 end
 
-## Function for updating a state ##
+## Function for updating a single state, used within action models ##
 function update_state!(
     model_attributes::ModelAttributes,
     state_name::Symbol,
@@ -157,7 +155,8 @@ function update_state!(
     model_attributes.states[state_name].value = state_value
 end
 
-## Function for saving an action ##
+
+## Function for saving an action, used in session_model ##
 #For multiple actions
 function store_action!(
     model_attributes::ModelAttributes,

@@ -42,7 +42,7 @@ function create_model(
     n_sessions = length(groupby(data, grouping_cols))
 
     #Get the names of the estimated parameters
-    parameters_to_estimate = collect(Symbol.(keys(prior)))
+    parameters_to_estimate = (keys(prior))
 
     #Create a filldist for each parameter
     priors_per_parameter = Tuple([
