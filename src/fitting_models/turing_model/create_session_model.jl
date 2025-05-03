@@ -31,7 +31,7 @@ function create_session_model(
     ) where {
         O<:Tuple{Vararg{Any}},
         A<:Tuple{Vararg{Real}},
-        FA<:Tuple, #TODO: make this better
+        FA<:Tuple{Vararg{Vector{<:Real}}}, 
         T,
     }
 
@@ -144,7 +144,7 @@ function create_session_model(
         timestep_prefixes_per_session::Vector{Vector{Symbol}} = timestep_prefixes,
         missing_action_markers_per_session::Vector{Vector{AbstractMissingActions}} = missing_action_markers,
         flattened_actions::FA = flattened_actions,
-    ) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Union{Missing,Real}}},T<:Any,FA<:Tuple}
+    ) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Union{Missing,Real}}},T<:Any,FA<:Tuple{Vararg{Vector{<:Real}}}}
         ## Run forwards to get the action distributions ##
         action_distributions = [
             i ~ to_submodel(
