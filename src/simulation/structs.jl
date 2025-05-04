@@ -48,7 +48,7 @@ function init_agent(
     #Initialize history with the initial states
     history = NamedTuple(
         state_name => push!(
-            Vector{action_model.states[state_name].type}(),
+            Vector{Union{Missing,action_model.states[state_name].type}}(),
             return_value(model_attributes.initial_states[state_name]),
         ) for state_name in save_history
     )
