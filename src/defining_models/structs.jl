@@ -1,8 +1,11 @@
 ############################################
 ### TYPE FOR INITIALIZING AN ACTIONMODEL ###
 ############################################
+## Supertype for model attributes ##
+abstract type AbstractAttribute end
+
 ## For creating parameters ##
-abstract type AbstractParameter end
+abstract type AbstractParameter <: AbstractAttribute end
 
 struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     value::T
@@ -54,7 +57,7 @@ struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
 end
 
 ## For creating states ##
-abstract type AbstractState end
+abstract type AbstractState <: AbstractAttribute end
 struct State{T} <: AbstractState
     initial_value::Union{Missing,T}
     type::Type{T}
@@ -71,7 +74,7 @@ struct State{T} <: AbstractState
 end
 
 ## For creating observations ##
-abstract type AbstractObservation end
+abstract type AbstractObservation <: AbstractAttribute end
 struct Observation{T} <: AbstractObservation
     type::Type{T}
 
@@ -81,7 +84,7 @@ struct Observation{T} <: AbstractObservation
 end
 
 ## For creating actions ##
-abstract type AbstractAction end
+abstract type AbstractAction <: AbstractAttribute end
 struct Action{T,TD} <: AbstractAction
     type::Type{T}
     distribution_type::Type{TD}
