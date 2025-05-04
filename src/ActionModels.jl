@@ -20,10 +20,10 @@ export ActionModel, Parameter, InitialStateParameter, State, Observation, Action
 export ModelAttributes, get_parameters, get_states, get_actions, update_state!, RejectParameters
 
 ## For simulation ##
-export Agent, init_agent
-export give_observations!, single_observation!, reset!
-export get_history, get_states, get_parameters
-export set_parameters!, set_save_history! # set_states!()
+export init_agent
+export simulate!, observe!
+export get_parameters, get_states, get_actions, get_history
+export set_parameters!, set_states!, set_actions!, reset!
 export plot_trajectory, plot_trajectory!
 
 ## For fitting models ##
@@ -60,16 +60,9 @@ for premade_model_file in readdir(joinpath("src", "defining_models", "premade_mo
 end
 
 ### Functions for simulation ###
-include(joinpath("simulation", "init_agent.jl"))
-include(joinpath("simulation", "give_observations.jl"))
-include(joinpath("simulation", "reset.jl"))
+include(joinpath("simulation", "simulate.jl"))
 include(joinpath("simulation", "prints.jl"))
-include(joinpath("simulation", "update_states.jl"))
-include(joinpath("simulation", "get_and_set", "set_parameters.jl"))
-include(joinpath("simulation", "get_and_set", "set_save_history.jl"))
-include(joinpath("simulation", "get_and_set", "get_parameters.jl"))
-include(joinpath("simulation", "get_and_set", "get_states.jl"))
-include(joinpath("simulation", "get_and_set", "get_history.jl"))
+include(joinpath("simulation", "manipulate_attributes.jl"))
 include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 
 ### Functions for fitting models ###

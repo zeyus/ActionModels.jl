@@ -18,26 +18,70 @@ end
 
 
 ### SET ATTRIBUTES ###
+## Setting multiple attributes with a namedtuple ##
 function set_parameters!(
     agent::Agent,
     parameters::NamedTuple{parameter_keys,<:Tuple{Vararg{Real}}} where {parameter_keys},
 )
-    set_parameters!(agent.model_attributes, keys(parameter_names), values(parameters))
+    for (parameter_name, parameter_value) in parameters
+        set_parameters!(agent, parameter_name, parameter_value)
+    end
 end
 function set_states!(
     agent::Agent,
     states::NamedTuple{state_keys,<:Tuple{Vararg{Any}}} where {state_keys},
 )
-    set_states!(agent.model_attributes, keys(state_names), values(states))
+    for (state_name, state_value) in states
+        set_states!(agent, state_name, state_value)
+    end
 end
 function set_actions!(
     agent::Agent,
     actions::NamedTuple{action_keys,<:Tuple{Vararg{Real}}} where {action_keys},
 )
     for (action_name, action_value) in actions
-        #Set the action to the value
-        agent.model_attributes.actions[action_name].value = action_value
+        set_actions!(agent, action_name, action_value)
     end
+end
+
+## Setting multiple attributes with two tuples ##
+function set_parameters!(
+    agent::Agent,
+    parameter_names::Tuple{Vararg{Symbol}},
+    parameter_values::Tuple{Vararg{Real}},
+)
+    for (parameter_name, parameter_value) in zip(parameter_names, parameter_values)
+        set_parameters!(agent, parameter_name, parameter_value)
+    end
+end
+function set_states!(
+    agent::Agent,
+    state_names::Tuple{Vararg{Symbol}},
+    state_values::Tuple{Vararg{Any}},
+)
+    for (state_name, state_value) in zip(state_names, state_values)
+        set_states!(agent, state_name, state_value)
+    end
+end
+function set_actions!(
+    agent::Agent,
+    action_names::Tuple{Vararg{Symbol}},
+    action_values::Tuple{Vararg{Real}},
+)
+    for (action_name, action_value) in zip(action_names, action_values)
+        set_actions!(agent, action_name, action_value)
+    end
+end
+
+## Setting single attributes ##
+function set_parameters!(agent::Agent, target_param::Symbol, value::R) where {R<:Real}
+    agent.model_attributes.parameters[target_param].value = value
+end
+function set_states!(agent::Agent, target_state::Symbol, value::T) where {T<:Any}
+    agent.model_attributes.states[target_state].value = value
+end
+function set_actions!(agent::Agent, target_action::Symbol, value::R) where {R<:Real}
+    agent.model_attributes.actions[target_action].value = value
 end
 
 
@@ -85,4 +129,7 @@ end
 ## Getting history ##
 function get_history(agent::Agent)
     return agent.history
+end
+function get_history(agent::Agent, target_state::Symbol)
+    return agent.history[target_state]
 end

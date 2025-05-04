@@ -17,7 +17,7 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
         learning_rate = parameters.learning_rate
         action_noise = parameters.action_noise
         previous_value = states.value
-    
+
         ##We dont have any settings in this model. If we had, we would read them in as well.
         ##-----This is where the update step starts -------
 

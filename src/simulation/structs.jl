@@ -1,12 +1,12 @@
-Base.@kwdef mutable struct Agent
+Base.@kwdef mutable struct Agent{TH<:NamedTuple}
     action_model::Function
     model_attributes::ModelAttributes
-    history::Tuple{Vararg{Vector{<:Any}}}
+    history::TH
 end
 
 function init_agent(
     action_model::ActionModel;
-    save_history::Union{Bool,Vector{Symbol}} = true,
+    save_history::Union{Bool,Vector{Symbol}} = false,
 )
 
     ## Initialize model attributes ##
@@ -26,6 +26,9 @@ function init_agent(
     #Initialize model attributes
     model_attributes = initialize_attributes(action_model, initial_states)
 
+    #Reset it, so that the initial states are set to the initial values
+    reset!(model_attributes)
+
     ## Initialize history ##
     #Find states for which to save history
     if save_history isa Bool
@@ -42,12 +45,12 @@ function init_agent(
     history = NamedTuple(
         state_name => push!(
             Vector{action_model.states[state_name].type}(),
-            return_value(initial_states[state_name]),
+            return_value(model_attributes.initial_states[state_name]),
         ) for state_name in save_history
     )
 
     ## Create agent ##
-    Agent(action_model, model_attributes, history)
+    Agent(action_model.action_model, model_attributes, history)
 end
 
 #Helper function for dealing with initial states and other places that mix Variables and fixed values
