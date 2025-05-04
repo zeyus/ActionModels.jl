@@ -850,7 +850,92 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     n_samples = n_samples,
                     n_chains = n_chains,
                 )
+            end
 
+            @testset "single session, infer missing actions, multiple actions ($AD)" begin
+
+                function multi_action(attributes::ModelAttributes, observation::Float64)
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation, noise)
+                    actiondist2 = Normal(observation, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, [:actions, :actions_2])
+                new_data[[2, 12], :actions] .= missing
+                new_data[[3], :actions_2] .= missing
+
+                #Extract observations and actions from data
+                observations = new_data[!, :observations]
+                actions = Tuple{Union{Missing, Float64}, Union{Missing, Float64}}[Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])]
+                #Create model
+                model = create_model(new_model, new_prior, observations, actions, infer_missing_actions = true)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+            @testset "single session, skip missing actions, multiple actions ($AD)" begin
+
+                function multi_action(attributes::ModelAttributes, observation::Float64)
+
+                    parameters = get_parameters(attributes)
+                    noise = parameters.noise
+
+                    actiondist1 = Normal(observation, noise)
+                    actiondist2 = Normal(observation, noise)
+
+                    return (actiondist1, actiondist2)
+                end
+                #Create model
+                new_model = ActionModel(
+                    multi_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (action_1 = Action(Normal), action_2 = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create new dataframe where three actions = missing
+                new_data = allowmissing(data, [:actions, :actions_2])
+                new_data[[2, 12], :actions] .= missing
+                new_data[[3], :actions_2] .= missing
+
+                #Extract observations and actions from data
+                observations = new_data[!, :observations]
+                actions = Tuple.(eachrow(new_data[!, [:actions, :actions_2]]))
+
+                #Create model
+                model = create_model(new_model, new_prior, observations, actions)
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
             end
 
             @testset "multiple actions, infer missing actions ($AD)" begin

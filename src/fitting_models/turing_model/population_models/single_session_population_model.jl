@@ -4,14 +4,15 @@
 function create_model(
     action_model::ActionModel,
     prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
-    observations::Vector{O},
+    observations::Vector{OO},
     actions::Vector{AA};
     verbose::Bool = true,
     kwargs...,
 ) where {
-    O<:Union{<:Any, NTuple{N, <:Any} where N},
+    O <:Any,
+    OO<:Union{O,Tuple{Vararg{O}}},
     A <:Union{Missing, Real},
-    AA<:Union{A, NTuple{N, A} where N},
+    AA<:Union{A, Tuple{Vararg{A}}},
     prior_names,
 }
     
@@ -26,18 +27,34 @@ function create_model(
         kwargs...,
     )
 
+    #Check if the observations and actions are tuples
+    multiple_observations = OO <: Tuple
+    multiple_actions = AA <: Tuple
+
     #Get number of observations and actions
-    n_observations = length(first(observations))    
-    n_actions = length(first(actions))
+    if !multiple_observations
+        n_observations = 1
+    else
+        n_observations = length(first(observations))   
+    end
+    if !multiple_actions
+        n_actions = 1
+    else
+        n_actions = length(first(actions))
+    end
 
     #Create column names
     observation_cols = map(x -> Symbol("observation_$x"), 1:n_observations)
     action_cols = map(x -> Symbol("action_$x"), 1:n_actions)
 
+    #Make observations and actions into tuples of vectors
+    observations = evert(observations)
+    actions = evert(actions)
+
     #Create dataframe of the observations and actions
     data = hcat(
-        DataFrame(NamedTuple{Tuple(observation_cols)}.(observations)),
-        DataFrame(NamedTuple{Tuple(action_cols)}.(actions)),
+        DataFrame(NamedTuple{Tuple(observation_cols)}(observations)),
+        DataFrame(NamedTuple{Tuple(action_cols)}(actions)),
     )
 
     #Add grouping column
