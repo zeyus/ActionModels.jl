@@ -9,6 +9,15 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
 
     test_path = ActionModels_path * "/test/"
 
+    @testset "Aqua.jl tests" begin
+        using Aqua
+        Aqua.test_all(
+            ActionModels,
+            ambiguities = false,
+            unbound_args = false, #TODO: turn these on again
+        )
+    end
+
     @testset "quick tests" begin
         # Test the quick tests that are used as pre-commit tests
         include(test_path * "quicktests.jl")

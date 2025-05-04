@@ -75,6 +75,6 @@ model = create_model(
     grouping_cols = grouping_cols,
 )
 
-sample_posterior!(model)
+sample_posterior!(model, n_chains = 1, n_samples = 10)
 get_session_parameters!(model, :posterior)
 get_state_trajectories!(model, :value, :posterior)

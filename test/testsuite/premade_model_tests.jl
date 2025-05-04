@@ -30,5 +30,3 @@ test_path = joinpath(ActionModels_path, "test")
         end
     end
 end
-
-#Go through each test in the premade models testsuite and run it with all AD backends
