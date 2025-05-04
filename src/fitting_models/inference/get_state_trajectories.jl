@@ -71,7 +71,7 @@ function get_state_trajectories!(
                 reset!(agent)
 
                 #Go through each observation
-                simulate(agent, session_observations)
+                simulate!(agent, session_observations)
 
                 #Extract histories
                 state_histories =

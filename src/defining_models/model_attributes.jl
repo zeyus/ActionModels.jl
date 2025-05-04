@@ -131,6 +131,17 @@ function set_parameters!(
         model_attributes.parameters[parameter_name].value = parameter_value
     end
 end
+function set_parameters!(
+    model_attributes::ModelAttributes,
+    parameter_names::Vector{Symbol}, #With a vector of parameter names
+    parameters::Tuple{Vararg{Real}},
+)
+    #For each parameter name and value
+    for (parameter_name, parameter_value) in zip(parameter_names, parameters)
+        #Set the parameter to the value
+        model_attributes.parameters[parameter_name].value = parameter_value
+    end
+end
 
 ## Function for setting model states ##
 function set_states!(

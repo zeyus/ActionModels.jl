@@ -4,14 +4,14 @@ function reset!(agent::Agent)
     #Reset the model attributes
     reset!(agent.model_attributes)
 
-    #Empty the history
-    empty!.(agent.history)
-
     #Set initial states in history
     for (state_name, state_history) in pairs(agent.history)
+        #Empty the history
+        empty!(state_history)
+        #Add the initial state to the history
         push!(
             state_history,
-            returned_value(agent.model_attributes.initial_states[state_name]),
+            return_value(agent.model_attributes.initial_states[state_name]),
         )
     end
 end
@@ -66,6 +66,34 @@ end
 function set_actions!(
     agent::Agent,
     action_names::Tuple{Vararg{Symbol}},
+    action_values::Tuple{Vararg{Real}},
+)
+    for (action_name, action_value) in zip(action_names, action_values)
+        set_actions!(agent, action_name, action_value)
+    end
+end
+## Setting multiple attributes with a vector and a tuple ##
+function set_parameters!(
+    agent::Agent,
+    parameter_names::Vector{Symbol},
+    parameter_values::Tuple{Vararg{Real}},
+)
+    for (parameter_name, parameter_value) in zip(parameter_names, parameter_values)
+        set_parameters!(agent, parameter_name, parameter_value)
+    end
+end
+function set_states!(
+    agent::Agent,
+    state_names::Vector{Symbol},
+    state_values::Tuple{Vararg{Any}},
+)
+    for (state_name, state_value) in zip(state_names, state_values)
+        set_states!(agent, state_name, state_value)
+    end
+end
+function set_actions!(
+    agent::Agent,
+    action_names::Vector{Symbol},
     action_values::Tuple{Vararg{Real}},
 )
     for (action_name, action_value) in zip(action_names, action_values)

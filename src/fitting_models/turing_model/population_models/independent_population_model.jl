@@ -42,7 +42,7 @@ function create_model(
     n_sessions = length(groupby(data, grouping_cols))
 
     #Get the names of the estimated parameters
-    parameters_to_estimate = (keys(prior))
+    parameters_to_estimate = keys(prior)
 
     #Create a filldist for each parameter
     priors_per_parameter = Tuple([
@@ -69,7 +69,7 @@ end
 #Turing model for sampling all sessions for all parameters
 @model function independent_population_model(
     priors_per_parameter::T,
-    parameters_to_estimate::Vector{Symbol},
+    parameters_to_estimate::Tuple{Vararg{Symbol}},
 ) where {T<:Tuple}
 
     sampled_parameters = Tuple(

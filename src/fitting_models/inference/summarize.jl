@@ -5,8 +5,6 @@ function Turing.summarize(
     session_parameters::SessionParameters,
     summary_function::Function = median;
 )
-
-
     #Extract sessions and parameters
     session_parameters = session_parameters.value
     sessions = session_parameters.axes[1]
@@ -68,7 +66,6 @@ function Turing.summarize(
     session_ids = state_trajectories.session_ids
     state_trajectories = state_trajectories.value
 
-
     # Initialize an empty vector to store summarized values
     summarized_values = Vector{Matrix{Union{Missing,Float64}}}()
     timestep_cols = Vector{Int}()
@@ -100,7 +97,6 @@ function Turing.summarize(
         split_session_ids =
             permutedims(hcat(repeat([split_session_ids], length(timesteps))...))
         push!(session_id_cols, split_session_ids)
-
     end
 
     #Construct grouping column names
@@ -117,7 +113,6 @@ function Turing.summarize(
     )
 
     return output_df
-
 end
 
 function summarize_samples(array::A, summary_function::Function) where {A<:AxisArray}

@@ -54,7 +54,7 @@ function get_session_parameters!(
     session_parameters = AxisArray(
         session_parameters,
         Axis{:session}(session_ids),
-        Axis{:parameter}(estimated_parameter_names),
+        Axis{:parameter}(collect(estimated_parameter_names)),
         Axis{:sample}(1:n_samples),
         Axis{:chain}(1:n_chains),
     )
