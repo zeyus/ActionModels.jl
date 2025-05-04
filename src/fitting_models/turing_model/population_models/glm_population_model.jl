@@ -187,7 +187,7 @@ end
 ## Turing model ##
 @model function regression_population_model(
     linear_submodels::Vector{T},
-    estimated_parameter_names::Vector,
+    estimated_parameter_names::Vector{Symbol},
     n_agents::Int,
 ) where {T<:DynamicPPL.Model}
 

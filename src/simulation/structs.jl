@@ -6,7 +6,7 @@ end
 
 function init_agent(
     action_model::ActionModel;
-    save_history::Union{Bool,Vector{Symbol}} = false,
+    save_history::Union{Bool,Symbol, Vector{Symbol}} = false,
 )
 
     ## Initialize model attributes ##
@@ -37,8 +37,12 @@ function init_agent(
             save_history = collect(keys(model_attributes.states))
         else
             #If save_history is false, don't save any states
-            save_history = []
+            save_history = Symbol[]
         end
+    end
+    if save_history isa Symbol
+        #If save_history is a symbol, save only that state
+        save_history = [save_history]
     end
 
     #Initialize history with the initial states

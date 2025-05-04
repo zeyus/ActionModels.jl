@@ -313,11 +313,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     grouping_cols = grouping_cols,
-                    parameters_to_estimate = (
+                    parameters_to_estimate = [
                         :learning_rate,
                         :action_noise,
                         :initial_value,
-                    ),
+                    ],
                 )
 
                 posterior_chains = sample_posterior!(

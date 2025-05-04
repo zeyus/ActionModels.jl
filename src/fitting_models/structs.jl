@@ -63,7 +63,7 @@ end
 #########################################
 ### Structs for containing outputted session parameters and state trajectories ###
 struct SessionParameters
-    estimated_parameter_names::Tuple{Vararg{Symbol}}
+    estimated_parameter_names::Vector{Symbol}
     session_ids::Vector{String}
     value::AxisArray{
         Float64,
@@ -99,7 +99,7 @@ end
 ### Structs for storing results of model fitting ###
 Base.@kwdef struct ModelFitInfo
     session_ids::Vector{String}
-    estimated_parameter_names::Tuple{Vararg{Symbol}}
+    estimated_parameter_names::Vector{Symbol}
 end
 
 Base.@kwdef mutable struct ModelFitResult

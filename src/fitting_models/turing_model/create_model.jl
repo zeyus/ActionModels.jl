@@ -16,7 +16,7 @@ function create_model(
         Symbol,
     },
     grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
-    parameters_to_estimate::Tuple{Vararg{Symbol}},
+    parameters_to_estimate::Vector{Symbol},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
     population_model_type::AbstractPopulationModel = CustomPopulationModel(),
@@ -204,7 +204,7 @@ end
     session_model::Function,
     observations_per_session::Vector{Vector{O}},
     actions_per_session::Vector{Vector{A}},
-    estimated_parameter_names::Tuple{Vararg{Symbol}},
+    estimated_parameter_names::Vector{Symbol},
     session_ids::Vector{String},
     initial_states::NamedTuple{initial_state_keys,<:Tuple},
     ::Type{TF} = Float64,
@@ -256,7 +256,7 @@ function check_model(
     action_cols::NamedTuple{action_names_cols,<:Tuple{Vararg{Symbol}}},
     grouping_cols::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
-    parameters_to_estimate::Tuple{Vararg{Symbol}},
+    parameters_to_estimate::Vector{Symbol},
 ) where {observation_names_cols,action_names_cols}
 
     #Check that user-specified columns exist in the dataset
