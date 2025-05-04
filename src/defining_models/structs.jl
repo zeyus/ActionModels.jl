@@ -134,6 +134,7 @@ struct NoSubModel <: AbstractSubmodel end
 
 ## ActionModel struct ##
 abstract type AbstractActionModel end
+
 struct ActionModel{T<:AbstractSubmodel} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
@@ -166,9 +167,9 @@ struct ActionModel{T<:AbstractSubmodel} <: AbstractActionModel
             AbstractAction,
             NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
         } where {action_names},
-        submodel::AbstractSubmodel = NoSubModel(),
+        submodel::T = NoSubModel(),
         verbose::Bool = true,
-    )
+    ) where {T<:AbstractSubmodel}
         #Make single structs into NamedTuples
         if parameters isa AbstractParameter
             parameters = (; parameter = parameters)

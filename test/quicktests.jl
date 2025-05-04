@@ -4,9 +4,12 @@ using ActionModels, DataFrames
 action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
 ## Simulate with agent ##
-agent = init_agent(action_model)
+agent = init_agent(action_model, save_history = [:value])
 
-give_observations!(agent, [1.,0,0,1])
+simulate!(agent, [1.,0,0,1])
+
+using StatsPlots
+plot(agent, :value)
 
 get_parameters(agent)
 set_parameters!(agent, :learning_rate, 0.2)
@@ -73,3 +76,4 @@ model = create_model(
 
 sample_posterior!(model)
 get_session_parameters!(model, :posterior)
+get_state_trajectories!(model, :value, :posterior)
