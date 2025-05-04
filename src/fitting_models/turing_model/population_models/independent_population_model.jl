@@ -69,7 +69,7 @@ end
 #Turing model for sampling all sessions for all parameters
 @model function independent_population_model(
     priors_per_parameter::T,
-    parameters_to_estimate::Vector{Symbol},
+    parameters_to_estimate::Tuple{Vararg{Symbol}},
 ) where {T<:Tuple}
 
     sampled_parameters = Tuple(
