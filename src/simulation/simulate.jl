@@ -21,7 +21,7 @@ function observe!(agent::Agent, observation::T) where {T<:Any}
     end
 
     #Count the timestep
-    agetn.n_timesteps.value += 1
+    agent.n_timesteps.value += 1
 
     #Return the action
     return action

@@ -24,7 +24,7 @@ export init_agent
 export simulate!, observe!
 export get_parameters, get_states, get_actions, get_history
 export set_parameters!, set_states!, set_actions!, reset!
-export plot_trajectory, plot_trajectory!
+#export plot_trajectory, plot_trajectory!
 
 ## For fitting models ##
 export create_model, RegressionPrior
@@ -32,7 +32,6 @@ export sample_prior!, sample_posterior!, SampleSaveResume
 export get_session_parameters!, get_state_trajectories!, summarize
 # export parameter_recovery
 # export plot_parameters, plot_trajectories
-export bounded_exp, bounded_logistic
 export @formula
 
 

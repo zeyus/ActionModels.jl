@@ -178,7 +178,7 @@ function create_model(
         observation_cols = observation_cols,
         action_cols = action_cols,
         grouping_cols = grouping_cols,
-        estimated_parameter_names = Tuple(estimated_parameter_names),
+        parameters_to_estimate = Tuple(estimated_parameter_names),
         population_model_type = RegressionPopulationModel(),
         kwargs...,
     )

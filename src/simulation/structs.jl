@@ -2,7 +2,7 @@ struct Agent{TH<:NamedTuple}
     action_model::Function
     model_attributes::ModelAttributes
     history::TH
-    n_timesteps::Int
+    n_timesteps::Variable{Int64}
 end
 
 function init_agent(
