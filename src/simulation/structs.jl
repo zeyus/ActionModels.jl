@@ -1,7 +1,8 @@
-Base.@kwdef mutable struct Agent{TH<:NamedTuple}
+struct Agent{TH<:NamedTuple}
     action_model::Function
     model_attributes::ModelAttributes
     history::TH
+    n_timesteps::Int
 end
 
 function init_agent(
@@ -54,7 +55,7 @@ function init_agent(
     )
 
     ## Create agent ##
-    Agent(action_model.action_model, model_attributes, history)
+    Agent(action_model.action_model, model_attributes, history, Variable(0))
 end
 
 #Helper function for dealing with initial states and other places that mix Variables and fixed values

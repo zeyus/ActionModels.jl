@@ -14,6 +14,11 @@ function reset!(agent::Agent)
             return_value(agent.model_attributes.initial_states[state_name]),
         )
     end
+
+    #Reset the number of timesteps
+    agent.n_timesteps.value = 0
+
+    return nothing
 end
 
 
