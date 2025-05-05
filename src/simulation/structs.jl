@@ -55,7 +55,7 @@ function init_agent(
     )
 
     ## Create agent ##
-    Agent(action_model.action_model, model_attributes, history, Variable(0))
+    Agent(action_model.action_model, model_attributes, history, Variable{Int64}(0))
 end
 
 #Helper function for dealing with initial states and other places that mix Variables and fixed values
