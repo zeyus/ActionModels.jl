@@ -17,8 +17,7 @@ function initialize_attributes(
 
     initial_states = map(
         state ->
-            state isa ParameterDependentState ? parameters[state.parameter_name] :
-            state,
+            state isa ParameterDependentState ? parameters[state.parameter_name] : state,
         initial_states,
     )
 
@@ -63,10 +62,10 @@ function initialize_variables(
 end
 #And if it is an empty collection
 function initialize_variables(
-    states::NamedTuple{names, <:Tuple{}},
+    states::NamedTuple{names,<:Tuple{}},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
-) where {names, TF,TI}
+) where {names,TF,TI}
     return (;)
 end
 
@@ -119,77 +118,82 @@ function reset!(model_attributes::ModelAttributes)
     end
 end
 
-## Function for setting model parameters ##
+## Function for setting a single model attribute ## #TODO: adapt to submodels existing
+#For parameters
+function set_parameter!(
+    model_attributes::ModelAttributes,
+    parameter_name::Symbol,
+    parameter_value::R,
+) where {R<:Real}
+    model_attributes.parameters[parameter_name].value = parameter_value
+end
+#For states
+function set_state!(
+    model_attributes::ModelAttributes,
+    state_name::Symbol,
+    state_value::S,
+) where {S}
+    model_attributes.states[state_name].value = state_value
+end
+#For actions
+function set_action!(
+    model_attributes::ModelAttributes,
+    action_name::Symbol,
+    action::A,
+) where {A<:Real}
+    model_attributes.actions[action_name].value = action
+end
+
+## Functions for setting multiple attributes ##
+#Parameters
 function set_parameters!(
     model_attributes::ModelAttributes,
     parameter_names::Tuple{Vararg{Symbol}},
     parameters::Tuple{Vararg{Real}},
 )
-    #For each parameter name and value
     for (parameter_name, parameter_value) in zip(parameter_names, parameters)
-        #Set the parameter to the value
-        model_attributes.parameters[parameter_name].value = parameter_value
+        set_parameter!(model_attributes, parameter_name, parameter_value)
     end
 end
-function set_parameters!(
-    model_attributes::ModelAttributes,
-    parameter_names::Vector{Symbol}, #With a vector of parameter names
-    parameters::Tuple{Vararg{Real}},
-)
-    #For each parameter name and value
-    for (parameter_name, parameter_value) in zip(parameter_names, parameters)
-        #Set the parameter to the value
-        model_attributes.parameters[parameter_name].value = parameter_value
-    end
-end
-
-## Function for setting model states ##
+#States
 function set_states!(
     model_attributes::ModelAttributes,
     state_names::Tuple{Vararg{Symbol}},
     states::Tuple{Vararg{Any}},
 )
-    #For each state name and value
     for (state_name, state_value) in zip(state_names, states)
-        #Set the state to the value
-        model_attributes.states[state_name].value = state_value
+        set_state!(model_attributes, state_name, state_value)
+    end
+end
+#For multiple actions
+function set_actions!(
+    model_attributes::ModelAttributes,
+    action_names::Tuple{Vararg{Symbol}},
+    actions::Tuple{Vararg{Real}},
+)
+    for (action_name, action) in zip(action_names, actions)
+        model_attributes.actions[action_name].value = action
     end
 end
 
-## Function for updating a single state, used within action models ##
-function update_state!(
-    model_attributes::ModelAttributes,
-    state_name::Symbol,
-    state_value::S,
-) where {S}
-    #Set the state to the value
-    model_attributes.states[state_name].value = state_value
+## Internal manipulation functions ##
+#Store a single sampled action - used in model fitting and simulation
+function store_action!(model_attributes::ModelAttributes, sampled_action::A) where {A<:Real}
+    first(model_attributes.actions).value = sampled_action
 end
-
-
-## Function for saving an action, used in session_model ##
-#For multiple actions
-function store_action!(
+#Store a set of actions from one timestep - used in model fitting and simulation
+function store_actions!(
     model_attributes::ModelAttributes,
     sampled_actions::Tuple{Vararg{Real}},
 )
-    #Go through each sampled action and corresponding action variable
-    for (action_variable, sampled_action) in zip(model_attributes.actions, sampled_actions)
-        #Set the action to the value
-        action_variable.value = sampled_action
+    for (action, sampled_action) in zip(model_attributes.actions, sampled_actions)
+        action.value = sampled_action
     end
 end
-
-#For single action
-function store_action!(model_attributes::ModelAttributes, sampled_action::A) where {A<:Real}
-    #Set the action to the value
-    first(model_attributes.actions).value = sampled_action
+#Update a state with a new value - used within action model definition
+function update_state!(model_attributes::ModelAttributes, state_name::Symbol, state_value::S) where {S}
+    model_attributes.states[state_name].value = state_value
 end
-
-
-
-
-
 
 
 #####################################################
@@ -197,20 +201,11 @@ end
 #####################################################
 
 function get_parameters(model_attributes::ModelAttributes)
-    return map(
-        parameter -> parameter.value,
-        model_attributes.parameters,
-    )
+    return map(parameter -> parameter.value, model_attributes.parameters)
 end
 function get_states(model_attributes::ModelAttributes)
-    return map(
-        state -> state.value,
-        model_attributes.states,
-    )
+    return map(state -> state.value, model_attributes.states)
 end
 function get_actions(model_attributes::ModelAttributes)
-    return map(
-        action -> action.value,
-        model_attributes.actions,
-    )
+    return map(action -> action.value, model_attributes.actions)
 end

@@ -11,7 +11,7 @@ using ActionModels
 
         observations = [1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
 
-        actions = give_observations!(agent, observations)
+        actions = simulate!(agent, observations)
 
         @test length(actions) == length(observations)
         
@@ -34,8 +34,6 @@ using ActionModels
 
         #Variations of set_parameters
         set_parameters!(agent, :initial_value, 1)
-
-        set_parameters!(agent, Dict(:learning_rate => 3, :action_noise => 0.5))
 
         #Variations of get_history
         get_history(agent, :value)
