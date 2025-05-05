@@ -63,7 +63,7 @@ function initialize_attributes(
 
     #Initialize the attributes
     attributes =
-        RescorlaWagner(initial_value = Variable{TF}(0.0), learning_rate = Variable{TF}(0.1))
+        RescorlaWagner(initial_value = Variable{TF}(model.initial_value.value), learning_rate = Variable{TF}(model.learning_rate.value))
 
     #Set the expected value to the initial value
     attributes.expected_value = attributes.initial_value
@@ -79,8 +79,8 @@ function initialize_attributes(
 
     #Initialize the attributes
     attributes = RescorlaWagner(
-        initial_value = Variable{Array{TF}}(zeros(TF, length(model.initial_value))),
-        learning_rate = Variable{TF}(0.1),
+        initial_value = Variable{Array{TF}}(model.initial_value.value),
+        learning_rate = Variable{TF}(model.learning_rate.value),
     )
 
     #Set the expected value to the initial value
