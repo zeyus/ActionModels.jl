@@ -11,8 +11,8 @@ function ActionModel(config::ContinuousRescorlaWagnerGaussian)
     
     function continuous_rescorla_wagner_gaussian(attributes::ModelAttributes, observation::Float64)
         #Read in parameters and states
-        parameters = get_parameters(attributes)
-        states = get_states(attributes)
+        parameters = load_parameters(attributes)
+        states = load_states(attributes)
 
         learning_rate = parameters.learning_rate
         action_noise = parameters.action_noise

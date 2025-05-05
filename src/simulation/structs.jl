@@ -9,7 +9,6 @@ function init_agent(
     action_model::ActionModel;
     save_history::Union{Bool,Symbol, Vector{Symbol}} = false,
 )
-
     ## Initialize model attributes ##
     #Find initial states
     initial_state_parameter_state_names = NamedTuple(
@@ -45,6 +44,9 @@ function init_agent(
         #If save_history is a symbol, save only that state
         save_history = [save_history]
     end
+
+    @show action_model
+    @show model_attributes
 
     #Initialize history with the initial states
     history = NamedTuple(

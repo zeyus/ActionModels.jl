@@ -21,7 +21,9 @@ function initialize_attributes(
         initial_states,
     )
 
-    return ModelAttributes(parameters, states, actions, initial_states)
+    submodel_attributes = initialize_attributes(action_model.submodel, TF, TI)
+
+    return ModelAttributes(parameters, states, actions, initial_states, submodel_attributes)
 end
 
 
@@ -100,82 +102,9 @@ end
 
 
 
-
-#######################################################
-####### FUNCTIONS FOR MANIPULATING ATTRIBUTES #########
-#######################################################
-## Function for resetting states to their initial values ##
-function reset!(model_attributes::ModelAttributes)
-    #Go through each state
-    for (state, initial_state) in
-        zip(model_attributes.states, model_attributes.initial_states)
-        #If the state is a parameter dependent state, set it to the value of the parameter
-        if initial_state isa Variable
-            state.value = initial_state.value
-        else
-            state.value = initial_state
-        end
-    end
-end
-
-## Function for setting a single model attribute ## #TODO: adapt to submodels existing
-#For parameters
-function set_parameter!(
-    model_attributes::ModelAttributes,
-    parameter_name::Symbol,
-    parameter_value::R,
-) where {R<:Real}
-    model_attributes.parameters[parameter_name].value = parameter_value
-end
-#For states
-function set_state!(
-    model_attributes::ModelAttributes,
-    state_name::Symbol,
-    state_value::S,
-) where {S}
-    model_attributes.states[state_name].value = state_value
-end
-#For actions
-function set_action!(
-    model_attributes::ModelAttributes,
-    action_name::Symbol,
-    action::A,
-) where {A<:Real}
-    model_attributes.actions[action_name].value = action
-end
-
-## Functions for setting multiple attributes ##
-#Parameters
-function set_parameters!(
-    model_attributes::ModelAttributes,
-    parameter_names::Tuple{Vararg{Symbol}},
-    parameters::Tuple{Vararg{Real}},
-)
-    for (parameter_name, parameter_value) in zip(parameter_names, parameters)
-        set_parameter!(model_attributes, parameter_name, parameter_value)
-    end
-end
-#States
-function set_states!(
-    model_attributes::ModelAttributes,
-    state_names::Tuple{Vararg{Symbol}},
-    states::Tuple{Vararg{Any}},
-)
-    for (state_name, state_value) in zip(state_names, states)
-        set_state!(model_attributes, state_name, state_value)
-    end
-end
-#For multiple actions
-function set_actions!(
-    model_attributes::ModelAttributes,
-    action_names::Tuple{Vararg{Symbol}},
-    actions::Tuple{Vararg{Real}},
-)
-    for (action_name, action) in zip(action_names, actions)
-        model_attributes.actions[action_name].value = action
-    end
-end
-
+#################################################
+####### INTERNAL MANIPULATION FUNCTIONS #########
+#################################################
 ## Internal manipulation functions ##
 #Store a single sampled action - used in model fitting and simulation
 function store_action!(model_attributes::ModelAttributes, sampled_action::A) where {A<:Real}
@@ -190,22 +119,23 @@ function store_actions!(
         action.value = sampled_action
     end
 end
+
 #Update a state with a new value - used within action model definition
-function update_state!(model_attributes::ModelAttributes, state_name::Symbol, state_value::S) where {S}
+function update_state!(
+    model_attributes::ModelAttributes,
+    state_name::Symbol,
+    state_value::S,
+) where {S}
     model_attributes.states[state_name].value = state_value
 end
 
-
-#####################################################
-####### FUNCTIONS FOR EXTRACTING ATTRIBUTES #########
-#####################################################
-
-function get_parameters(model_attributes::ModelAttributes)
+#Extracting parameters, states and actions from the model attributes - used within action model definition
+function load_parameters(model_attributes::ModelAttributes)
     return map(parameter -> parameter.value, model_attributes.parameters)
 end
-function get_states(model_attributes::ModelAttributes)
+function load_states(model_attributes::ModelAttributes)
     return map(state -> state.value, model_attributes.states)
 end
-function get_actions(model_attributes::ModelAttributes)
+function load_actions(model_attributes::ModelAttributes)
     return map(action -> action.value, model_attributes.actions)
 end

@@ -358,7 +358,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function rejected_params(attributes::ModelAttributes, observation::Float64)
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     if observation * noise > 5.0
@@ -402,8 +402,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function dependent_action(attributes::ModelAttributes, observation::Float64)
 
-                    parameters = get_parameters(attributes)
-                    previous_action = get_actions(attributes)
+                    parameters = load_parameters(attributes)
+                    previous_action = load_actions(attributes)
                     noise = parameters.noise
 
                     previous_action = previous_action.action_1
@@ -452,11 +452,11 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation::Float64,
                 )
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
 
                     noise = parameters.noise
 
-                    previous_action = get_actions(attributes)
+                    previous_action = load_actions(attributes)
 
                     if ismissing(previous_action[1])
                         previous_action = (0.0, 0.0)
@@ -574,7 +574,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     actiondist1 = Normal(observation, noise)
@@ -620,7 +620,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation2::Float64,
                 )
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     actiondist = Normal(observation1, noise)
@@ -667,7 +667,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation2::Float64,
                 )
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     actiondist1 = Normal(observation1, noise)
@@ -713,7 +713,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                     observation1::Float64,
                     observation2::Float64,
                 )
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     actiondist1 = Normal(observation1, noise)
@@ -856,7 +856,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             #     function multi_action(attributes::ModelAttributes, observation::Float64)
 
-            #         parameters = get_parameters(attributes)
+            #         parameters = load_parameters(attributes)
             #         noise = parameters.noise
 
             #         actiondist1 = Normal(observation, noise)
@@ -898,7 +898,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
             #     function multi_action(attributes::ModelAttributes, observation::Float64)
 
-            #         parameters = get_parameters(attributes)
+            #         parameters = load_parameters(attributes)
             #         noise = parameters.noise
 
             #         actiondist1 = Normal(observation, noise)
@@ -942,7 +942,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     actiondist1 = Normal(observation, noise)
@@ -990,7 +990,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
-                    parameters = get_parameters(attributes)
+                    parameters = load_parameters(attributes)
                     noise = parameters.noise
 
                     actiondist1 = Normal(observation, noise)
@@ -1038,8 +1038,8 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 function dependent_action(attributes::ModelAttributes, observation::Float64)
 
-                    parameters = get_parameters(attributes)
-                    previous_action = get_actions(attributes)
+                    parameters = load_parameters(attributes)
+                    previous_action = load_actions(attributes)
                     noise = parameters.noise
 
                     previous_action = previous_action.action_1

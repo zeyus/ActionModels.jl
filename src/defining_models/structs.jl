@@ -233,11 +233,12 @@ end
 ### TYPES FOR USE IN THE ACTION MODEL ###
 #########################################
 ## Model attributes type which contains the information apssed to the action model ##
-struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple}
+struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple, TM<:AbstractSubmodel}
     parameters::TP
     states::TS
     actions::TA
     initial_states::IS
+    submodel::TM
 end
 
 ## Type for instantiating a variable with a type that can vary ##
@@ -257,6 +258,8 @@ Custom error type which will result in rejection of a sample
 struct RejectParameters <: Exception
     errortext::Any
 end
+
+struct AttributeError <: Exception end
 
 
 

@@ -3,8 +3,10 @@ using ActionModels, DataFrames
 ## Define model ##
 action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 
+action_model = ActionModel(PremadeRescorlaWagner())
+
 ## Simulate with agent ##
-agent = init_agent(action_model, save_history = [:value, :observation])
+agent = init_agent(action_model, save_history = [:value])
 
 simulate!(agent, [1.,0,0,1])
 

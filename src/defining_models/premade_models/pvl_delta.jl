@@ -14,8 +14,8 @@ function ActionModel(config::PVLDelta)
     function pvl_delta(attributes::ModelAttributes, deck::Int64, reward::Float64)
         
         #Read in parameters and states
-        parameters = get_parameters(attributes)
-        states = get_states(attributes)
+        parameters = load_parameters(attributes)
+        states = load_states(attributes)
 
         learning_rate = parameters.learning_rate
         reward_sensitivity = parameters.reward_sensitivity

@@ -29,7 +29,7 @@ function update!(attributes::RescorlaWagner{T}, observation::Int64) where {T<:Re
 end
 ## Categorical RW ##
 function update!(
-    attributes::CategoricalRescorlaWagner{T},
+    attributes::RescorlaWagner{T},
     observation::Int64,
 ) where {T<:Array{<:Real}}
 
@@ -105,14 +105,14 @@ function get_parameters(attributes::RescorlaWagner, parameter_name::Symbol)
     if parameter_name in [:learning_rate, :initial_value]
         return attributes[parameter_name].value
     else
-        return nothing #Let the higher level function handle the error
+        return AttributeError() #Let the higher level function handle the error
     end
 end
 function get_states(attributes::RescorlaWagner, state_name::Symbol)
     if state_name in [:expected_value]
         return attributes[state_name].value
     else
-        return nothing #Let the higher level function handle the error
+        return AttributeError() #Let the higher level function handle the error
     end
 end
 
@@ -136,7 +136,7 @@ function set_parameters!(
     if parameter_name in [:learning_rate, :initial_value]
         attributes[parameter_name].value = parameter_value
     else
-        return false #Let the higher level function handle the error
+        return AttributeError() #Let the higher level function handle the error
     end
     return true
 end
@@ -148,7 +148,7 @@ function set_states!(
     if state_name in [:expected_value]
         attributes[state_name].value = state_value
     else
-        return false #Let the higher level function handle the error
+        return AttributeError() #Let the higher level function handle the error
     end
     return true
 end
@@ -165,7 +165,7 @@ function set_parameters!(
         out = set_parameters!(attributes, parameter_name, parameter_value)
 
         #Raise an error if the parameter does not exist
-        if !out
+        if out isa AttributeError
             error("Parameter $parameter_name does not exist in a Rescorla Wagner model.")
         end
     end
@@ -181,7 +181,7 @@ function set_states!(
         out = set_states!(attributes, state_name, state_value)
 
         #Raise an error if the parameter does not exist
-        if !out
+        if out isa AttributeError
             error("State $state_name does not exist in a Rescorla Wagner model.")
         end
     end
@@ -299,7 +299,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
                 )
                     return Distributions.Normal(
                         rescorla_wagner.expected_value,
-                        response_model_parameters.action_noise,
+                        load_parameters(attributes).action_noise,
                     )
                 end
                 response_model_observations = (; observation = Observation(Float64))
@@ -312,7 +312,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
                     return Distributions.Bernoulli(
                         logistic(
                             rescorla_wagner.expected_value *
-                            response_model_parameters.action_noise,
+                            load_parameters(attributes).action_noise,
                         ),
                     )
                 end
@@ -326,7 +326,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
                     return Distributions.Categorical(
                         softmax(
                             rescorla_wagner.expected_value *
-                            response_model_parameters.action_noise,
+                            load_parameters(attributes).action_noise,
                         ),
                     )
                 end
@@ -383,7 +383,7 @@ function ActionModel(config::PremadeRescorlaWagner)
     if config.act_before_update
 
         ## With action selection before expectation update ##
-        model_function = function rescorla_wagner(
+        model_function = function rescorla_wagner_act_before_update(
             attributes::ModelAttributes{T},
             observation::R,
         ) where {T<:AbstractRescorlaWagner,R<:Real}
@@ -402,7 +402,7 @@ function ActionModel(config::PremadeRescorlaWagner)
 
     else
         ## With expectation update before action selection ##
-        model_function = function rescorla_wagner(
+        model_function = function rescorla_wagner_act_after_update(
             attributes::ModelAttributes{T},
             observation::R,
         ) where {T<:AbstractRescorlaWagner,R<:Real}
@@ -420,33 +420,10 @@ function ActionModel(config::PremadeRescorlaWagner)
         end
     end
 
-    ## Put model attriubtes in right format ##
-    #Parameters
-    parameters = NamedTuple(
-        parameter_value isa AbstractFloat64 ?
-        parameter_name => Parameter(parameter_value) :
-        parameter_name => Parameter(parameter_value, discrete = true) for
-        (parameter_name, parameter_value) in pairs(config.response_model_parameters)
-    )
-    #Observations
-    observations = NamedTuple(
-        observation_value isa AbstractFloat64 ?
-        observation_name => Observation(observation_value) :
-        observation_name => Observation(observation_value, discrete = true) for
-        (observation_name, observation_value) in pairs(config.response_model_observations)
-    )
-    #Actions
-    actions = NamedTuple(
-        action_value isa AbstractFloat64 ?
-        action_name => Action(action_value) :
-        action_name => Action(action_value, discrete = true) for
-        (action_name, action_value) in pairs(config.response_model_actions)
-    )
-
     return ActionModel(
         model_function,
-        parameters = parameters,
-        observations = observations,
-        actions = actions,
+        parameters = config.response_model_parameters,
+        observations = config.response_model_observations,
+        actions = config.response_model_actions,
     )
 end

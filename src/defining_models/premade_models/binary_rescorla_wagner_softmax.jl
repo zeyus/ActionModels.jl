@@ -11,8 +11,8 @@ function ActionModel(config::BinaryRescorlaWagnerSoftmax)
     #Create function
     function binary_rescorla_wagner_softmax(attributes::ModelAttributes, observation::Int64)
         #Read in parameters and states
-        parameters = get_parameters(attributes)
-        states = get_states(attributes)
+        parameters = load_parameters(attributes)
+        states = load_states(attributes)
 
         learning_rate = parameters.learning_rate
         action_precision = 1 / parameters.action_noise

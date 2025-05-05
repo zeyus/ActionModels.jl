@@ -17,7 +17,7 @@ using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, Aut
 
 ## For defining action models ##
 export ActionModel, Parameter, InitialStateParameter, State, Observation, Action
-export ModelAttributes, get_parameters, get_states, get_actions, update_state!, RejectParameters
+export ModelAttributes, load_parameters, load_states, load_actions, update_state!, RejectParameters
 
 ## For simulation ##
 export init_agent
@@ -49,8 +49,10 @@ include(joinpath("fitting_models", "structs.jl"))
 
 
 ### Functions for model definition ###
-include(joinpath("defining_models", "model_attributes.jl"))
 include(joinpath("defining_models", "prints.jl"))
+include(joinpath("defining_models", "model_attributes.jl"))
+include(joinpath("defining_models", "manipulate_attributes.jl"))
+include(joinpath("defining_models", "no_submodel_dispatches.jl"))
 #Read in all premade models
 for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
     if endswith(premade_model_file, ".jl")
@@ -59,8 +61,8 @@ for premade_model_file in readdir(joinpath("src", "defining_models", "premade_mo
 end
 
 ### Functions for simulation ###
-include(joinpath("simulation", "simulate.jl"))
 include(joinpath("simulation", "prints.jl"))
+include(joinpath("simulation", "simulate.jl"))
 include(joinpath("simulation", "manipulate_attributes.jl"))
 include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 

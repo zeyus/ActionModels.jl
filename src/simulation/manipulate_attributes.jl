@@ -43,9 +43,7 @@ function set_actions!(
     action_names::Tuple{Vararg{Symbol}},
     action_values::Tuple{Vararg{Real}},
 )
-    for (action_name, action_value) in zip(action_names, action_values)
-        store_action!(agent.model_attributes, action_name, action_value)
-    end
+    set_actions!(agent.model_attributes, action_name, action_value)
 end
 ## Setting multiple attributes with a namedtuple ##
 function set_parameters!(
@@ -108,36 +106,32 @@ end
 
 ## Getting single attributes ##
 function get_parameters(agent::Agent, target_param::Symbol)
-    return agent.model_attributes.parameters[target_param].value
+    return get_parameters(agent.model_attributes, target_param)
 end
 function get_states(agent::Agent, target_state::Symbol)
-    return agent.model_attributes.states[target_state].value
+    return get_states(agent.model_attributes, target_state)
 end
 function get_actions(agent::Agent, target_action::Symbol)
-    return agent.model_attributes.actions[target_action].value
+    return get_actions(agent.model_attributes, target_action)
 end
 
 ## Getting multiple attributes ##
-function get_parameters(agent::Agent, target_parameters::Vector{Symbol})
-    return NamedTuple(
-        parameter_name => get_parameters(agent, parameter_name) for
-        parameter_name in target_parameters
-    )
+function get_parameters(agent::Agent, target_parameters::Tuple{Vararg{Symbol}})
+    return get_parameters(agent.model_attributes, target_parameters)
 end
-function get_states(agent::Agent, target_states::Vector{Symbol})
-    return NamedTuple(
-        state_name => get_states(agent, state_name) for state_name in target_states
-    )
+function get_states(agent::Agent, target_states::Tuple{Vararg{Symbol}})
+    return get_states(agent.model_attributes, target_states)
 end
-function get_actions(agent::Agent, target_actions::Vector{Symbol})
-    return NamedTuple(
-        action_name => get_actions(agent, action_name) for action_name in target_actions
-    )
+function get_actions(agent::Agent, target_actions::Tuple{Vararg{Symbol}})
+    return get_actions(agent.model_attributes, target_actions)
 end
 
 ## Getting history ##
 function get_history(agent::Agent)
     return agent.history
+end
+function get_history(agent::Agent, target_state::Tuple{Vararg{Symbol}})
+    return get_history(agent.history, target_state)
 end
 function get_history(agent::Agent, target_state::Symbol)
     return agent.history[target_state]
