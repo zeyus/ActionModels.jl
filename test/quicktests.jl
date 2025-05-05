@@ -1,8 +1,6 @@
 using ActionModels, DataFrames
 
 ## Define model ##
-action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
-
 action_model = ActionModel(PremadeRescorlaWagner())
 
 ## Simulate with agent ##

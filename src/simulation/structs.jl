@@ -45,9 +45,6 @@ function init_agent(
         save_history = [save_history]
     end
 
-    @show action_model
-    @show model_attributes
-
     #Initialize history with the initial states
     history = NamedTuple(
         state_name => push!(
