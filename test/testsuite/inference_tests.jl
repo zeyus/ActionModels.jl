@@ -47,7 +47,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     grouping_cols = [:id, :treatment]
 
     #Create model
-    action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
+    action_model = ActionModel(PremadeRescorlaWagner())
 
     #Set prior
     prior = (

@@ -3,7 +3,7 @@ using ActionModels
 
 @testset "simulation" begin
     ### SETUP ###
-    action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
+    action_model = ActionModel(PremadeRescorlaWagner())
 
     agent = init_agent(action_model)
 
