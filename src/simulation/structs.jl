@@ -7,7 +7,7 @@ end
 
 function init_agent(
     action_model::ActionModel;
-    save_history::Union{Bool,Symbol, Vector{Symbol}} = false,
+    save_history::Union{Bool,Symbol,Vector{Symbol}} = false,
 )
     ## Initialize model attributes ##
     #Find initial states
@@ -30,11 +30,16 @@ function init_agent(
     reset!(model_attributes)
 
     ## Initialize history ##
+    #Extract state types from action model and submodel
+    state_types =
+        merge(get_state_types(action_model), get_state_types(action_model.submodel))
+    
     #Find states for which to save history
     if save_history isa Bool
         #If save_history is true, save all states
         if save_history
-            save_history = collect(keys(model_attributes.states))
+            save_history =
+                merge(collect(keys(model_attributes.states)), keys(submodel_state_types))
         else
             #If save_history is false, don't save any states
             save_history = Symbol[]
@@ -45,22 +50,16 @@ function init_agent(
         save_history = [save_history]
     end
 
-    #Initialize history with the initial states
+    #Initialize history
     history = NamedTuple(
-        state_name => push!(
-            Vector{Union{Missing,action_model.states[state_name].type}}(),
-            return_value(model_attributes.initial_states[state_name]),
-        ) for state_name in save_history
+        state_name => Vector{state_types[state_name]}() for state_name in save_history
     )
+
+    #Add initial states to history
+    for (state_name, state) in pairs(history)
+        push!(state, get_states(model_attributes, state_name))
+    end
 
     ## Create agent ##
     Agent(action_model.action_model, model_attributes, history, Variable{Int64}(0))
-end
-
-#Helper function for dealing with initial states and other places that mix Variables and fixed values
-function return_value(variable::Variable)
-    return variable.value
-end
-function return_value(value::T) where {T}
-    return value
 end

@@ -32,7 +32,7 @@ function set_parameters!(
     else
         #Set it in the submodel
         out = set_parameters!(
-            model_attributes.submodel_attributes,
+            model_attributes.submodel,
             parameter_name,
             parameter_value,
         )
@@ -54,7 +54,7 @@ function set_states!(
     if haskey(model_attributes.states, state_name)
         model_attributes.states[state_name].value = state_value
     else
-        out = set_states!(model_attributes.submodel_attributes, state_name, state_value)
+        out = set_states!(model_attributes.submodel, state_name, state_value)
         if out isa AttributeError
             error("State $state_name not found in model attributes or in the submodel.")
         end
@@ -110,13 +110,13 @@ end
 function get_parameters(model_attributes::ModelAttributes)
     return merge(
         map(parameter -> parameter.value, model_attributes.parameters),
-        get_parameters(model_attributes.submodel_attributes),
+        get_parameters(model_attributes.submodel),
     )
 end
 function get_states(model_attributes::ModelAttributes)
     return merge(
         map(state -> state.value, model_attributes.states),
-        get_states(model_attributes.submodel_attributes),
+        get_states(model_attributes.submodel),
     )
 end
 function get_actions(model_attributes::ModelAttributes)
@@ -149,7 +149,7 @@ function get_parameters(model_attributes::ModelAttributes, parameter_name::Symbo
         return model_attributes.parameters[parameter_name].value
     else
         #Set it in the submodel
-        parameter = get_parameters(model_attributes.submodel_attributes, parameter_name)
+        parameter = get_parameters(model_attributes.submodel, parameter_name)
         if parameter isa AttributeError
             error(
                 "Parameter $parameter_name not found in model attributes or in the submodel.",
@@ -164,7 +164,7 @@ function get_states(model_attributes::ModelAttributes, state_name::Symbol)
         return model_attributes.states[state_name].value
     else
         #Set it in the submodel
-        state = get_states(model_attributes.submodel_attributes, state_name)
+        state = get_states(model_attributes.submodel, state_name)
         if state isa AttributeError
             error("State $state_name not found in model attributes or in the submodel.")
         end

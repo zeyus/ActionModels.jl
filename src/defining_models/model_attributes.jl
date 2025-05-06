@@ -111,7 +111,7 @@ function store_action!(model_attributes::ModelAttributes, sampled_action::A) whe
     first(model_attributes.actions).value = sampled_action
 end
 #Store a set of actions from one timestep - used in model fitting and simulation
-function store_actions!(
+function store_action!(
     model_attributes::ModelAttributes,
     sampled_actions::Tuple{Vararg{Real}},
 )
@@ -138,4 +138,22 @@ function load_states(model_attributes::ModelAttributes)
 end
 function load_actions(model_attributes::ModelAttributes)
     return map(action -> action.value, model_attributes.actions)
+end
+
+## Functions for getting the types of parameters and states from the ActionModel ##
+function get_parameter_types(action_model::ActionModel)
+
+    return map(
+        parameter_name => action_model.parameters[parameter_name].type,
+        keys(action_model.parameters),
+    )
+end
+function get_state_types(action_model::ActionModel)
+
+    return NamedTuple(
+        state.intial_value isa Missing ?
+        state_name => Union{Missing,state.type} :
+        state_name => state.type for
+        (state_name, state) in pairs(action_model.states)
+    )
 end

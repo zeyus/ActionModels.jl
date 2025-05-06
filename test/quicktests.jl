@@ -4,7 +4,7 @@ using ActionModels, DataFrames
 action_model = ActionModel(PremadeRescorlaWagner())
 
 ## Simulate with agent ##
-agent = init_agent(action_model, save_history = [:value])
+agent = init_agent(action_model, save_history = [:expected_value])
 
 simulate!(agent, [1.,0,0,1])
 
@@ -75,6 +75,6 @@ model = create_model(
     grouping_cols = grouping_cols,
 )
 
-sample_posterior!(model, n_chains = 1, n_samples = 10)
-get_session_parameters!(model, :posterior)
-get_state_trajectories!(model, :value, :posterior)
+sample_posterior!(model, n_chains = 1, n_samples = 50)
+summarize(get_session_parameters!(model, :posterior))
+summarize(get_state_trajectories!(model, :expected_value))

@@ -11,7 +11,7 @@ function reset!(agent::Agent)
         #Add the initial state to the history
         push!(
             state_history,
-            return_value(agent.model_attributes.initial_states[state_name]),
+            get_states(agent.model_attributes, state_name),
         )
     end
 
@@ -89,6 +89,28 @@ function set_actions!(
     for (action_name, action_value) in zip(action_names, action_values)
         store_action!(agent.model_attributes, action_name, action_value)
     end
+end
+## Setting single attributes ##
+function set_parameters!(
+    agent::Agent,
+    target_param::Symbol,
+    target_value::Real,
+)
+    set_parameters!(agent.model_attributes, target_param, target_value)
+end
+function set_states!(
+    agent::Agent,
+    target_state::Symbol,
+    target_value::Any,
+)
+    set_states!(agent.model_attributes, target_state, target_value)
+end
+function set_actions!(
+    agent::Agent,
+    target_action::Symbol,
+    target_value::Real,
+)
+    set_actions!(agent.model_attributes, target_action, target_value)
 end
 
 

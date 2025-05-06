@@ -7,6 +7,12 @@ function initialize_attributes(
 ) where {TF,TI}
     return NoSubModel()
 end
+function get_parameter_types(submodel::NoSubModel)
+    return (;)
+end
+function get_state_types(submodel::NoSubModel)
+    return (;)
+end
 ## Reset ##
 function reset!(submodel::NoSubModel)
     return nothing

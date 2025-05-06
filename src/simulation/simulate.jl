@@ -2,7 +2,7 @@
 ### MAKING A SINGLE OBSERVATION ###
 ###################################
 function observe!(agent::Agent, observation::T) where {T<:Any}
-    
+
     #Run the action model to get the action distribution
     action_distribution = agent.action_model(agent.model_attributes, observation...)
 
