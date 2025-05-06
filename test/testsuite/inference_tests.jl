@@ -103,7 +103,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                       ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
                 summarize(posterior_parameters, mean)
                 posterior_trajectories =
-                    get_state_trajectories!(model, [:observation, :value], :posterior)
+                    get_state_trajectories!(model, :expected_value, :posterior)
                 summarize(posterior_trajectories)
                 summarize(posterior_trajectories, mean)
 
@@ -113,7 +113,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 prior_parameters = get_session_parameters!(model, :prior)
                 summarize(prior_parameters)
                 prior_trajectories =
-                    get_state_trajectories!(model, [:observation, :value], :prior)
+                    get_state_trajectories!(model, :expected_value, :prior)
                 summarize(prior_trajectories)
             end
 
@@ -526,7 +526,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
                 get_session_parameters!(model, :posterior)
                 state_trajectories =
-                    get_state_trajectories!(model, [:observation, :value], :posterior)
+                    get_state_trajectories!(model, :expected_value, :posterior)
                 summarize(state_trajectories)
             end
 

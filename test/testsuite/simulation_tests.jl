@@ -21,9 +21,7 @@ using ActionModels
         #Variations of get_states
         get_states(agent)
 
-        get_states(agent, :value)
-
-        get_states(agent, [:value, :action])
+        get_states(agent, :expected_value)
 
         #Variations of get_parameters
         get_parameters(agent)
@@ -36,7 +34,7 @@ using ActionModels
         set_parameters!(agent, :initial_value, 1)
 
         #Variations of get_history
-        get_history(agent, :value)
+        get_history(agent, :expected_value)
 
         get_history(agent)
 

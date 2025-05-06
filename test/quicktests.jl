@@ -9,8 +9,7 @@ agent = init_agent(action_model, save_history = [:expected_value])
 simulate!(agent, [1.,0,0,1])
 
 using StatsPlots
-plot(agent, :value)
-plot(agent, :observation)
+plot(agent, :expected_value)
 
 get_parameters(agent)
 set_parameters!(agent, :learning_rate, 0.2)
