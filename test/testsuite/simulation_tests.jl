@@ -28,7 +28,7 @@ using ActionModels
 
         get_parameters(agent, :initial_value)
 
-        get_parameters(agent, [:initial_value, :learning_rate])
+        get_parameters(agent, (:initial_value, :learning_rate))
 
         #Variations of set_parameters
         set_parameters!(agent, :initial_value, 1)
