@@ -2,7 +2,12 @@ using Test
 
 using ActionModels
 using DataFrames
-using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
+using ADTypes: AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
+import ForwardDiff
+import ReverseDiff
+import Mooncake
+import FiniteDifferences: central_fdm
+import Enzyme: set_runtime_activity, Forward, Reverse
 
 @testset "inference tests" begin
 
@@ -62,17 +67,23 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
 
     #Go through each supported AD type
     for AD in
-        ["AutoForwardDiff", "AutoReverseDiff", "AutoReverseDiff(true)", "AutoMooncake"]
+        ["ForwardDiff", "ReverseDiff", "ReverseDiff Compiled", "Mooncake", "Enzyme Forward", "Enzyme Reverse", "FiniteDifferences"]
 
         #Select appropriate AD backend
-        if AD == "AutoForwardDiff"
+        if AD == "ForwardDiff"
             ad_type = AutoForwardDiff()
-        elseif AD == "AutoReverseDiff"
+        elseif AD == "ReverseDiff"
             ad_type = AutoReverseDiff()
-        elseif AD == "AutoReverseDiff(true)"
+        elseif AD == "ReverseDiff Compiled"
             ad_type = AutoReverseDiff(; compile = true)
-        elseif AD == "AutoMooncake"
+        elseif AD == "Mooncake"
             ad_type = AutoMooncake(; config = nothing)
+        elseif AD == "Enzyme Forward"
+            ad_type = AutoEnzyme(; mode=set_runtime_activity(Forward, true))
+        elseif AD == "Enzyme Reverse"
+            ad_type = AutoEnzyme(; mode=set_runtime_activity(Reverse, true))
+        elseif AD == "FiniteDifferences"
+            ad_type = AutoFiniteDifferences(; fdm=central_fdm(5, 1))
         end
 
 

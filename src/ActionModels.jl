@@ -8,12 +8,19 @@ using RecipesBase #For defining plots
 using DataFrames #For the input format to create_model
 using AxisArrays #For storing session parameters and state trajectories
 using StatsModels, MixedModels, LogExpFunctions #For the GLM population Model
-using ForwardDiff, ReverseDiff, Mooncake #AD types to be compatible with
+
 using HDF5 #For the save_resume functionality
-using ProgressLogging #For progress bars
 using Distributed #For parameter recovery and other heavy functions
-using Logging #For hiding sample rejections
-using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, AutoReverseDiff, AutoMooncake
+using ProgressLogging #For progress bars
+using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems
+
+#ADType functionality
+using ADTypes: AutoForwardDiff#, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
+import ForwardDiff
+#import ReverseDiff
+#import Mooncake
+#import FiniteDifferences: central_fdm
+#import Enzyme: set_runtime_activity, Forward, Reverse #AD types to be compatible with
 
 ## For defining action models ##
 export ActionModel, Parameter, InitialStateParameter, State, Observation, Action

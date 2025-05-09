@@ -7,18 +7,24 @@ test_path = joinpath(ActionModels_path, "test")
 
 @testset "premade models" begin
 
-    for ad_type in
-        ["AutoForwardDiff", "AutoReverseDiff", "AutoReverseDiff(true)", "AutoMooncake"]
+    for AD in
+        ["ForwardDiff", "ReverseDiff", "ReverseDiff Compiled", "Mooncake", "Enzyme Forward", "Enzyme Reverse", "FiniteDifferences"]
 
         #Select appropriate AD backend
-        if ad_type == "AutoForwardDiff"
-            AD = AutoForwardDiff()
-        elseif ad_type == "AutoReverseDiff"
-            AD = AutoReverseDiff()
-        elseif ad_type == "AutoReverseDiff(true)"
-            AD = AutoReverseDiff(; compile = true)
-        elseif ad_type == "AutoMooncake"
-            AD = AutoMooncake(; config = nothing)
+        if AD == "ForwardDiff"
+            ad_type = AutoForwardDiff()
+        elseif AD == "ReverseDiff"
+            ad_type = AutoReverseDiff()
+        elseif AD == "ReverseDiff Compiled"
+            ad_type = AutoReverseDiff(; compile = true)
+        elseif AD == "Mooncake"
+            ad_type = AutoMooncake(; config = nothing)
+        elseif AD == "Enzyme Forward"
+            ad_type = AutoEnzyme(; mode=set_runtime_activity(Forward, true))
+        elseif AD == "Enzyme Reverse"
+            ad_type = AutoEnzyme(; mode=set_runtime_activity(Reverse, true))
+        elseif AD == "FiniteDifferences"
+            ad_type = AutoFiniteDifferences(; fdm=central_fdm(5, 1))
         end
 
         # List the julia filenames in the premade models testsuite
