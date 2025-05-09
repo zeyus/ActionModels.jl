@@ -57,9 +57,9 @@ end
 ##### SUMMARIZE STATE TRAJECTORIES ####
 #######################################
 function Turing.summarize(
-    state_trajectories::StateTrajectories{T},
+    state_trajectories::StateTrajectories,
     summary_function::Function = median,
-) where T
+)
 
     #Extract sessions ids and state trajectories
     state_names = state_trajectories.state_names

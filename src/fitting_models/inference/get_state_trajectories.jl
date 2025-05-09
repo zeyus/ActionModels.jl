@@ -13,7 +13,7 @@ function get_state_trajectories!(
     #Extract the model
     model = modelfit.model
     #Extract the appropirate session parameters
-    all_session_parameters = get_session_parameters!(modelfit, prior_or_posterior).value
+    all_session_parameters = get_session_parameters!(modelfit, prior_or_posterior)
     #create an agent
     agent = init_agent(model.args.action_model, save_history = target_states)
 
@@ -21,12 +21,15 @@ function get_state_trajectories!(
     observations_per_session = model.args.observations_per_session
 
     #Extract dimension labels
-    session_ids, estimated_parameter_names, sample_idxs, chain_idxs = all_session_parameters.axes
+    session_ids = all_session_parameters.session_ids
+    estimated_parameter_names = all_session_parameters.estimated_parameter_names
+    n_samples = all_session_parameters.n_samples
+    n_chains = all_session_parameters.n_chains
 
-    #Make parameter names into a vector
-    estimated_parameter_names = collect(estimated_parameter_names)
-    session_ids = collect(session_ids)
-
+    #Extract state types
+    action_model = model.args.action_model
+    state_types =
+        merge(get_state_types(action_model), get_state_types(action_model.submodel))
 
     ### Checks ###
     #If any of the target states are not in agent_states, throw an error
@@ -37,61 +40,58 @@ function get_state_trajectories!(
         end
     end
 
+    ## Prepare datacontainer for populating ##
+    state_trajectories = NamedTuple(
+        state_name => NamedTuple(
+            Symbol(session_id) => AxisArray(
+                Array{state_types[state_name]}(
+                    undef,
+                    n_samples,
+                    n_chains,
+                    length(session_observations) + 1,
+                ),
+                Axis{:sample}(1:n_samples),
+                Axis{:chain}(1:n_chains),
+                Axis{:timestep}(0:length(session_observations)),
+            ) for (session_id, session_observations) in
+            zip(session_ids, observations_per_session)
+        ) for state_name in target_states
+    )
+
     ### Extract States ###
     #Loop through sessions
-    state_trajectories = [
-        begin
+    @progress for session_idx = 1:length(session_ids)
 
-            #Extract the observations for the current session
-            session_observations = observations_per_session[session_idx]
+        #Extract session observations
+        session_observations = observations_per_session[session_idx]
 
-            #Create empty AxisArray for the session
-            session_trajectories = AxisArray(
-                Array{Union{Missing,Real}}(
-                    undef,
-                    length(session_observations) + 1,
-                    length(target_states),
-                    length(sample_idxs),
-                    length(chain_idxs),
-                ),
-                Axis{:timestep}(0:length(session_observations)),
-                Axis{:state}(Symbol.(target_states)),
-                Axis{:sample}(1:sample_idxs[end]),
-                Axis{:chain}(1:chain_idxs[end]),
+        #Loop through samples
+        for (sample_idx, chain_idx) in Iterators.product(1:n_samples, 1:n_chains)
+
+            #Extract the parameter sample
+            parameter_sample = map(parameter_name -> all_session_parameters.value[parameter_name][session_idx][sample_idx, chain_idx],
+                estimated_parameter_names,
             )
 
-            #For each sample and each chain
-            for (sample_idx, chain_idx) in
-                Iterators.product(1:length(sample_idxs), 1:length(chain_idxs))
+            #Set parameters in agent
+            set_parameters!(agent, estimated_parameter_names, parameter_sample)
+            reset!(agent)
 
-                parameter_sample = Tuple(session_parameters[:, sample_idx, chain_idx])
+            #Go through each observation
+            simulate!(agent, session_observations)
 
-                #Set parameters in agent
-                set_parameters!(agent, estimated_parameter_names, parameter_sample)
-                reset!(agent)
+            #Loop through target states
+            for state in target_states
 
-                #Go through each observation
-                simulate!(agent, session_observations)
+                #Extract the state history
+                state_history = get_history(agent, state)
 
-                #Extract histories
-                state_histories =
-                    hcat([get_history(agent, state) for state in target_states]...)
-
-                #Store them in the session_trajectories
-                session_trajectories[:, :, sample_idx, chain_idx] .= state_histories
+                #Store it in the session_trajectories
+                state_trajectories[state][session_idx][sample_idx, chain_idx, :] .= state_history
             end
-
-            #Return the session_trajectories
-            session_trajectories
-
-        end for (session_idx, (session_observations, session_parameters)) in
-        enumerate(zip(observations_per_session, eachslice(all_session_parameters, dims = 1)))
-    ]
+        end
+    end
 
     #Return StateTrajectories struct
-    return StateTrajectories(
-        target_states,
-        session_ids,
-        state_trajectories,
-    )
+    return StateTrajectories(target_states, session_ids, state_trajectories, n_samples, n_chains)
 end

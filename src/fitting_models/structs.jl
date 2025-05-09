@@ -65,27 +65,17 @@ end
 struct SessionParameters
     estimated_parameter_names::Tuple{Vararg{Symbol}}
     session_ids::Vector{String}
-    value::NamedTuple{parameter_names, <:Tuple{Vararg{NamedTuple}}} where parameter_names
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
     n_samples::Int
     n_chains::Int
 end
 
-struct StateTrajectories{T}
+struct StateTrajectories
     state_names::Vector{Symbol}
     session_ids::Vector{String}
-    value::Vector{
-        AxisArray{
-            Union{Missing,T},
-            4,
-            Array{Union{Missing,T},4},
-            Tuple{
-                Axis{:timestep,UnitRange{Int64}},
-                Axis{:state,Vector{Symbol}},
-                Axis{:sample,UnitRange{Int64}},
-                Axis{:chain,UnitRange{Int64}},
-            },
-        },
-    }
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    n_samples::Int
+    n_chains::Int
 end
 
 ### Structs for storing results of model fitting ###
