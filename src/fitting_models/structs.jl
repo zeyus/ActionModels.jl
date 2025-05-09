@@ -65,17 +65,9 @@ end
 struct SessionParameters
     estimated_parameter_names::Tuple{Vararg{Symbol}}
     session_ids::Vector{String}
-    value::AxisArray{
-        Float64,
-        4,
-        Array{Float64,4},
-        Tuple{
-            Axis{:session,Vector{String}},
-            Axis{:parameter,Vector{Symbol}},
-            Axis{:sample,UnitRange{Int64}},
-            Axis{:chain,UnitRange{Int64}},
-        },
-    }
+    value::NamedTuple{parameter_names, <:Tuple{Vararg{NamedTuple}}} where parameter_names
+    n_samples::Int
+    n_chains::Int
 end
 
 struct StateTrajectories{T}

@@ -2,13 +2,13 @@ using Test
 
 using ActionModels
 using DataFrames
-using ADTypes:
-    AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
 import ForwardDiff
 import ReverseDiff
 import Mooncake
 import FiniteDifferences: central_fdm
 import Enzyme: set_runtime_activity, Forward, Reverse
+using ADTypes:
+    AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
 
 @testset "inference tests" begin
 
@@ -395,7 +395,7 @@ import Enzyme: set_runtime_activity, Forward, Reverse
                     n_chains = n_chains,
                 )
 
-                get_session_parameters!(model, :posterior)
+                summarize(get_session_parameters!(model, :posterior))
             end
 
             @testset "multivariate state $(AD)" begin
@@ -448,7 +448,7 @@ import Enzyme: set_runtime_activity, Forward, Reverse
                 )
 
                 get_session_parameters!(model, :posterior)
-                get_state_trajectories!(model, :vector_means, :posterior)
+                summarize(get_state_trajectories!(model, :vector_means, :posterior))
             end
 
             @testset "multivariate action $(AD)" begin

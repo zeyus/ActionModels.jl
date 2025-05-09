@@ -93,7 +93,8 @@ function Base.show(io::IO, ::MIME"text/plain", session_parameters::SessionParame
     #Extract n sessions
     n_sessions = length(session_parameters.session_ids)
     #Extract n_samples and n_chains
-    n_samples, n_chains = size(session_parameters.value)[3:4]
+    n_samples = session_parameters.n_samples
+    n_chains = session_parameters.n_chains
 
     println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
 

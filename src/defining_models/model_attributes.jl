@@ -143,9 +143,9 @@ end
 ## Functions for getting the types of parameters and states from the ActionModel ##
 function get_parameter_types(action_model::ActionModel)
 
-    return map(
-        parameter_name => action_model.parameters[parameter_name].type,
-        keys(action_model.parameters),
+    return NamedTuple(
+        parameter_name => parameter.type for
+        (parameter_name, parameter) in pairs(action_model.parameters)
     )
 end
 function get_state_types(action_model::ActionModel)
