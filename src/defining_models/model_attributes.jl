@@ -151,7 +151,7 @@ end
 function get_state_types(action_model::ActionModel)
 
     return NamedTuple(
-        state.intial_value isa Missing ?
+        state.initial_value isa Missing ?
         state_name => Union{Missing,state.type} :
         state_name => state.type for
         (state_name, state) in pairs(action_model.states)
