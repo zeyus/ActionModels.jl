@@ -77,7 +77,7 @@ function Turing.summarize(
         end
 
         # Add the row to the DataFrame
-        push!(df, row)
+        push!(df, row, promote = true)
     end
 
     # Reorder the columns to have session id's as the first columns
@@ -175,7 +175,7 @@ function Turing.summarize(
                 end
 
                 # Add the row to the DataFrame
-                push!(df, row)
+                push!(df, row; promote = true)
             end
         end
     end
@@ -196,38 +196,3 @@ function summarize_samples(array::A, summary_function::Function) where {A<:AxisA
         return summary_function(array)
     end
 end
-
-
-
-
-
-#     # Populate the DataFrame with summarized values
-#     for session_id in session_ids
-#         for state in state_names
-#             # Prepare a new row for each timestep.
-#             split_session_ids = split(string(session_id), id_separator)
-#             base_row = Dict{Symbol, Any}()
-#             for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
-#                 base_row[column_name] = string(split(session_id_part, id_column_separator)[2])
-#             end
-#             # Extract the values for the current session and state.
-#             values = state_trajectories[state][Symbol(session_id)]
-#             for timestep in 1:size(values, 3)
-#                 row = copy(base_row)
-#                 row[:timestep] = timestep - 1
-#                 samples = values[:, :, timestep]
-#                 if eltype(samples) <: AbstractArray
-#                     # Unpack inner arrays.
-#                     first_inner = samples[1,1]
-#                     inner_dims = size(first_inner)
-#                     for I in CartesianIndices(inner_dims)
-#                         inner_values = [s[I] for s in samples]
-#                         summarized_value = summary_function(inner_values)
-#                         row[Symbol("$(state)_$(I)")] = summarized_value
-#                     end
-#                 else
-#                     summarized_value = summary_function(samples)
-#                     row[Symbol(state)] = summarized_value
-#                 end
-#                 push!(df, row)
-#             end
