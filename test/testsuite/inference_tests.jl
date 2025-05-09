@@ -2,7 +2,8 @@ using Test
 
 using ActionModels
 using DataFrames
-using ADTypes: AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
+using ADTypes:
+    AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
 import ForwardDiff
 import ReverseDiff
 import Mooncake
@@ -46,6 +47,9 @@ import Enzyme: set_runtime_activity, Forward, Reverse
     data.actions_2 = data.actions
     data.observations_2 = data.observations
 
+    #Add multivariate actions
+    data.actions_mv = Vector.(eachrow([data.actions data.actions_2]))
+
     #Define observation and action cols
     observation_cols = [:observations]
     action_cols = [:actions]
@@ -66,8 +70,15 @@ import Enzyme: set_runtime_activity, Forward, Reverse
     n_chains = 2
 
     #Go through each supported AD type
-    for AD in
-        ["ForwardDiff", "ReverseDiff", "ReverseDiff Compiled", "Mooncake", "Enzyme Forward", "Enzyme Reverse", "FiniteDifferences"]
+    for AD in [
+        "ForwardDiff",
+        "ReverseDiff",
+        "ReverseDiff Compiled",
+        "Mooncake",
+        "Enzyme Forward",
+        "Enzyme Reverse",
+        "FiniteDifferences",
+    ]
 
         #Select appropriate AD backend
         if AD == "ForwardDiff"
@@ -79,11 +90,11 @@ import Enzyme: set_runtime_activity, Forward, Reverse
         elseif AD == "Mooncake"
             ad_type = AutoMooncake(; config = nothing)
         elseif AD == "Enzyme Forward"
-            ad_type = AutoEnzyme(; mode=set_runtime_activity(Forward, true))
+            ad_type = AutoEnzyme(; mode = set_runtime_activity(Forward, true))
         elseif AD == "Enzyme Reverse"
-            ad_type = AutoEnzyme(; mode=set_runtime_activity(Reverse, true))
+            ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true))
         elseif AD == "FiniteDifferences"
-            ad_type = AutoFiniteDifferences(; fdm=central_fdm(5, 1))
+            ad_type = AutoFiniteDifferences(; fdm = central_fdm(5, 1))
         end
 
 
@@ -123,8 +134,7 @@ import Enzyme: set_runtime_activity, Forward, Reverse
                     sample_prior!(model, n_samples = n_samples, n_chains = n_chains)
                 prior_parameters = get_session_parameters!(model, :prior)
                 summarize(prior_parameters)
-                prior_trajectories =
-                    get_state_trajectories!(model, :expected_value, :prior)
+                prior_trajectories = get_state_trajectories!(model, :expected_value, :prior)
                 summarize(prior_trajectories)
             end
 
@@ -342,8 +352,148 @@ import Enzyme: set_runtime_activity, Forward, Reverse
 
 
 
-        @testset "action model variations" begin
-            
+        @testset "action model variations $(AD)" begin
+
+            @testset "multivariate parameter $(AD)" begin
+                function multivariate_parameter(
+                    attributes::ModelAttributes,
+                    observation::Float64,
+                )
+
+                    parameters = load_parameters(attributes)
+                    vector_noise = parameters.vector_noise
+
+                    return Normal(vector_noise[1], vector_noise[2])
+                end
+
+                #Create model
+                new_model = ActionModel(
+                    multivariate_parameter,
+                    parameters = (; vector_noise = Parameter([0, 1])),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (; action = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; vector_noise = filldist(Normal(0.0, 1.0), 2))
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
+                get_session_parameters!(model, :posterior)
+            end
+
+            @testset "multivariate state $(AD)" begin
+                function multivariate_state(
+                    attributes::ModelAttributes,
+                    observation::Float64,
+                )
+
+                    parameters = load_parameters(attributes)
+                    states = load_states(attributes)
+
+                    noise = parameters.noise
+
+                    vector_means = states.vector_means
+
+                    vector_means[2] = vector_means[1]
+                    vector_means[1] = observation
+
+                    return Normal(sum(vector_means), noise)
+                end
+
+                #Create model
+                new_model = ActionModel(
+                    multivariate_state,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    states = (; vector_means = State([0.0, 0.0])),
+                    actions = (; action = Action(Normal)),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = action_cols,
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+
+                get_session_parameters!(model, :posterior)
+                get_state_trajectories!(model, :vector_means, :posterior)
+            end
+
+            @testset "multivariate action $(AD)" begin
+                function multivariate_action(
+                    attributes::ModelAttributes,
+                    observation::Float64,
+                )
+
+                    parameters = load_parameters(attributes)
+
+                    noise = parameters.noise
+
+                    return filldist(Normal(observation, noise), 2)
+                end
+
+                #Create model
+                new_model = ActionModel(
+                    multivariate_action,
+                    parameters = (; noise = Parameter(1.0)),
+                    observations = (; observation = Observation(Float64)),
+                    actions = (; action = Action(Distribution{Multivariate, Continuous})),
+                )
+
+                #Set prior
+                new_prior = (; noise = LogNormal(0.0, 1.0))
+
+                #Create model
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    data,
+                    observation_cols = observation_cols,
+                    action_cols = [:actions_mv],
+                    grouping_cols = grouping_cols,
+                )
+
+                #Fit model
+                posterior_chains = sample_posterior!(
+                    model,
+                    ad_type = ad_type,
+                    n_samples = n_samples,
+                    n_chains = n_chains,
+                )
+            end
+
             @testset "check for parameter rejections, no rejections $(AD)" begin
                 #Create model
                 model = create_model(
@@ -830,7 +980,13 @@ import Enzyme: set_runtime_activity, Forward, Reverse
                 actions = new_data[!, :actions]
 
                 #Create model
-                model = create_model(action_model, prior, observations, actions, infer_missing_actions = true)
+                model = create_model(
+                    action_model,
+                    prior,
+                    observations,
+                    actions,
+                    infer_missing_actions = true,
+                )
 
                 #Fit model
                 posterior_chains = sample_posterior!(
@@ -852,7 +1008,13 @@ import Enzyme: set_runtime_activity, Forward, Reverse
                 actions = new_data[!, :actions]
 
                 #Create model
-                model = create_model(action_model, prior, observations, actions, infer_missing_actions = false)
+                model = create_model(
+                    action_model,
+                    prior,
+                    observations,
+                    actions,
+                    infer_missing_actions = false,
+                )
 
                 #Fit model
                 posterior_chains = sample_posterior!(
