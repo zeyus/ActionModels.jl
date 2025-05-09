@@ -63,17 +63,19 @@ end
 #########################################
 ### Structs for containing outputted session parameters and state trajectories ###
 struct SessionParameters
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
     estimated_parameter_names::Tuple{Vararg{Symbol}}
     session_ids::Vector{String}
-    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    parameter_types::NamedTuple{parameter_names, <:Tuple{Vararg{Type}}} where parameter_names
     n_samples::Int
     n_chains::Int
 end
 
 struct StateTrajectories
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
     state_names::Vector{Symbol}
     session_ids::Vector{String}
-    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    state_types::NamedTuple{state_names, <:Tuple{Vararg{Type}}} where state_names
     n_samples::Int
     n_chains::Int
 end

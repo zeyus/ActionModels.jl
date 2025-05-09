@@ -10,6 +10,8 @@ import Enzyme: set_runtime_activity, Forward, Reverse
 using ADTypes:
     AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
 
+using StatsPlots
+
 @testset "inference tests" begin
 
     ### SETUP ###
@@ -140,8 +142,6 @@ using ADTypes:
 
             @testset "plotting results $(AD)" begin
                 ### Test plotting functions ###
-                using StatsPlots
-
                 #Default Turing plots
                 plot(model.posterior.chains)
                 plot(model.prior.chains)
@@ -411,8 +411,10 @@ using ADTypes:
 
                     vector_means = states.vector_means
 
-                    vector_means[2] = vector_means[1]
-                    vector_means[1] = observation
+                    new_vector_means =
+                        [vector_means[1] + observation, vector_means[2] - observation]
+
+                    update_state!(attributes, :vector_means, new_vector_means)
 
                     return Normal(sum(vector_means), noise)
                 end
@@ -448,7 +450,8 @@ using ADTypes:
                 )
 
                 get_session_parameters!(model, :posterior)
-                summarize(get_state_trajectories!(model, :vector_means, :posterior))
+                state_trajectories = get_state_trajectories!(model, :vector_means, :posterior)
+                summarize(state_trajectories)
             end
 
             @testset "multivariate action $(AD)" begin
@@ -469,7 +472,7 @@ using ADTypes:
                     multivariate_action,
                     parameters = (; noise = Parameter(1.0)),
                     observations = (; observation = Observation(Float64)),
-                    actions = (; action = Action(Distribution{Multivariate, Continuous})),
+                    actions = (; action = Action(Distribution{Multivariate,Continuous})),
                 )
 
                 #Set prior

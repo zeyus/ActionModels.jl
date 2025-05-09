@@ -57,7 +57,7 @@ function get_session_parameters!(
     session_parameters = NamedTuple(
         parameter_name => NamedTuple(
             Symbol(session_id) => AxisArray(
-                Array{Float64}(undef, n_samples, n_chains),
+                Array{parameter_types[parameter_name]}(undef, n_samples, n_chains),
                 Axis{:sample}(1:n_samples),
                 Axis{:chain}(1:n_chains),
             ) for session_id in session_ids
@@ -88,7 +88,7 @@ function get_session_parameters!(
 
     #Store as SessionParameters struct
     session_parameters =
-        SessionParameters(estimated_parameter_names, session_ids, session_parameters, n_samples, n_chains)
+        SessionParameters(session_parameters, estimated_parameter_names, session_ids, parameter_types, n_samples, n_chains)
 
     #Save the session parameters
     sample_result.session_parameters = session_parameters

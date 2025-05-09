@@ -93,5 +93,5 @@ function get_state_trajectories!(
     end
 
     #Return StateTrajectories struct
-    return StateTrajectories(target_states, session_ids, state_trajectories, n_samples, n_chains)
+    return StateTrajectories(state_trajectories, target_states, session_ids, state_types, n_samples, n_chains)
 end
