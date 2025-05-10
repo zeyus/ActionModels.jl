@@ -5,7 +5,7 @@ using ActionModels
     ### SETUP ###
     action_model = ActionModel(PremadeRescorlaWagner())
 
-    agent = init_agent(action_model)
+    agent = init_agent(action_model, save_history = :expected_value)
 
     @testset "give_observations!" begin
 
