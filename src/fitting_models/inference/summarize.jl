@@ -21,9 +21,9 @@ function Turing.summarize(
     ## Initialize an empty DataFrame with appropriate columns. ##
     df_cols = Dict{String,Any}()
     # For each ParameterDependentState
-    for parameter in parameter_names
+    for parameter in estimated_parameter_names
         #If its first sample is an AbstractArray
-        sample_parameter = first(session_parameters[parammeter][1])
+        sample_parameter = first(session_parameters[parameter][1])
         if sample_parameter isa AbstractArray
             #Make a column for each Cartesian index
             for I in CartesianIndices(size(sample_parameter))
@@ -32,7 +32,7 @@ function Turing.summarize(
             end
         else
             #Oherwise, just make a column for the state
-            df_cols[parameter] = parameter_types[parameter][]
+            df_cols["$parameter"] = parameter_types[parameter][]
         end
     end
 
@@ -44,6 +44,7 @@ function Turing.summarize(
         df[!, column_name] = String[]
     end
 
+    @show names(df)
     ## Populate the DataFrame with summarized values ##
     row = Dict()
     #Loop over sessions and parameters
@@ -54,7 +55,7 @@ function Turing.summarize(
             split_session_ids = split(string(session_id), id_separator)
             #Add them to the row
             for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
-                row[column_name] = string(split(session_id_part, id_column_separator)[2])
+                row["$column_name"] = string(split(session_id_part, id_column_separator)[2])
             end
 
             # Extract the values for the current session and parameter across samples and chains
@@ -72,10 +73,9 @@ function Turing.summarize(
                 end
             else
                 summarized_value = summarize_samples(samples, summary_function)
-                row[parameter] = summarized_value
+                row["$parameter"] = summarized_value
             end
         end
-
         # Add the row to the DataFrame
         push!(df, row, promote = true)
     end
@@ -121,7 +121,7 @@ function Turing.summarize(
             end
         else
             #Oherwise, just make a column for the state
-            df_cols[state] = state_types[state][]
+            df_cols["$state"] = state_types[state][]
         end
     end
     #Create dataframe
@@ -144,7 +144,7 @@ function Turing.summarize(
             split_session_ids = split(string(session_id), id_separator)
             #Add them to the row
             for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
-                row[column_name] = string(split(session_id_part, id_column_separator)[2])
+                row["$column_name"] = string(split(session_id_part, id_column_separator)[2])
             end
 
             # Extract the values for the current session and state across samples, chains and timesteps
@@ -171,7 +171,7 @@ function Turing.summarize(
                     end
                 else
                     summarized_value = summarize_samples(samples, summary_function)
-                    row[state] = summarized_value
+                    row["$state"] = summarized_value
                 end
 
                 # Add the row to the DataFrame

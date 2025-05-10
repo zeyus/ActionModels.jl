@@ -3,6 +3,7 @@ using Test
 using ActionModels
 using DataFrames
 import ForwardDiff
+
 import ReverseDiff
 import Mooncake
 import FiniteDifferences: central_fdm
@@ -125,11 +126,11 @@ using StatsPlots
                 posterior_parameters_df = summarize(posterior_parameters)
                 @test sort(posterior_parameters_df, :learning_rate).id ==
                       ["Hans", "Hans", "Georg", "Georg", "Jørgen", "Jørgen"]
-                summarize(posterior_parameters, mean)
+                summarize(posterior_parameters, std)
                 posterior_trajectories =
                     get_state_trajectories!(model, :expected_value, :posterior)
                 summarize(posterior_trajectories)
-                summarize(posterior_trajectories, mean)
+                summarize(posterior_trajectories, std)
 
                 #Prior
                 prior_chains =
