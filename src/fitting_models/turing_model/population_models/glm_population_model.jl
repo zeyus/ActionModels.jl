@@ -9,6 +9,7 @@
 #       - TODO: check for whether the vector of priors is the correct amount
 # TODO: (1.0) make a show or summarize function for the GLM chains object
 #       - TODO: which renames parameters to be interpretable and removes the random effects etc
+# TODO: allow using GLM with multivariate parameters - set an aray of regression models
 
 ## FUNCTIONALITY ##
 # TODO: use an mvnormal to sample all the random effects, instead of a huge constructed arraydist

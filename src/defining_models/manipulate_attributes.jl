@@ -23,7 +23,7 @@ end
 function set_parameters!(
     model_attributes::ModelAttributes,
     parameter_name::Symbol,
-    parameter_value::R,
+    parameter_value::Union{R, AbstractArray{R}},
 ) where {R<:Real}
 
     #Check if the parameter exists in the model attributes
@@ -74,7 +74,7 @@ end
 function set_parameters!(
     model_attributes::ModelAttributes,
     parameter_names::Tuple{Vararg{Symbol}},
-    parameters::Tuple{Vararg{Real}},
+    parameters::Tuple{Vararg{Union{R, AbstractArray{R}}}} where {R<:Real},
 )
     for (parameter_name, parameter_value) in zip(parameter_names, parameters)
         set_parameters!(model_attributes, parameter_name, parameter_value)

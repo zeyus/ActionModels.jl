@@ -364,7 +364,7 @@ using StatsPlots
                     parameters = load_parameters(attributes)
                     vector_noise = parameters.vector_noise
 
-                    return Normal(vector_noise[1], vector_noise[2])
+                    return Normal(vector_noise[1], exp(vector_noise[2]))
                 end
 
                 #Create model
@@ -396,7 +396,7 @@ using StatsPlots
                     n_chains = n_chains,
                 )
 
-                summarize(get_session_parameters!(model, :posterior))
+                summarize(get_session_parameters!(model))
             end
 
             @testset "multivariate state $(AD)" begin

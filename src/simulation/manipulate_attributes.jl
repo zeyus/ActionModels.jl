@@ -27,7 +27,7 @@ end
 function set_parameters!(
     agent::Agent,
     parameter_names::Tuple{Vararg{Symbol}},
-    parameter_values::Tuple{Vararg{Real}},
+    parameter_values::Tuple{Vararg{Union{R, AbstractArray{R}}}} where {R<:Real},
 )
     set_parameters!(agent.model_attributes, parameter_names, parameter_values)
 end
@@ -48,7 +48,7 @@ end
 ## Setting multiple attributes with a namedtuple ##
 function set_parameters!(
     agent::Agent,
-    parameters::NamedTuple{parameter_keys,<:Tuple{Vararg{Real}}} where {parameter_keys},
+    parameters::NamedTuple{parameter_keys,<:Tuple{Vararg{Union{R,AbstractArray{R}}}}} where {R<:Real, parameter_keys},
 )
     set_parameters!(agent.model_attributes, keys(parameters), values(parameters))
 end
@@ -70,7 +70,7 @@ end
 function set_parameters!(
     agent::Agent,
     parameter_names::Vector{Symbol},
-    parameter_values::Tuple{Vararg{Real}},
+    parameter_values::Tuple{Vararg{Union{R, AbstractArray{R}}}} where {R<:Real},
 )
     set_parameters!(agent.model_attributes, Tuple(parameter_names), parameter_values)
 end
@@ -94,7 +94,7 @@ end
 function set_parameters!(
     agent::Agent,
     target_param::Symbol,
-    target_value::Real,
+    target_value::Union{R, AbstractArray{R}} where {R<:Real},
 )
     set_parameters!(agent.model_attributes, target_param, target_value)
 end
