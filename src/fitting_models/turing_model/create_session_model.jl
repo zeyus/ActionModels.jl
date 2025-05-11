@@ -4,17 +4,25 @@
 function create_session_model(
     infer_missing_actions::NoMissingActions,    #No missing actions
     check_parameter_rejections::Val{false},     #No parameter rejections
-    actions::Vector{Vector{A}},
-) where {A<:Tuple{Vararg{Real}}}
+    actions::Vector{Vector{AA}},
+) where {A<:Real,AA<:Tuple{Vararg{Union{Array{A},A}}}}
 
     #Create flattened actions
     flattened_actions = evert(collect(Iterators.flatten(actions)))
 
+    #Make multivariate actions into single arrays
+    flattened_actions = Tuple(
+        first(single_action) isa AbstractArray ?
+        cat(single_action..., dims = ndims(first(single_action)) + 1) : single_action for
+        single_action in flattened_actions
+    )
+
     #Submodel for sampling all actions of a single action idx as an arraydist
     @model function sample_actions_one_idx(
-        actions::Vector{R},
+        actions::Array{AA},
         distributions::Vector{D},
-    ) where {R<:Real,D<:Distribution}
+    ) where {A<:Real,AA<:Union{A,Array{A}},D<:Distribution}
+
         actions ~ arraydist(distributions)
     end
 
@@ -24,14 +32,15 @@ function create_session_model(
         model_attributes::ModelAttributes,
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{O}},
-        actions_per_session::Vector{Vector{A}},
+        actions_per_session::Vector{Vector{AA}},
         estimated_parameter_names::Tuple{Vararg{Symbol}},
         session_ids::Vector{String};
-        flattened_actions::FA = flattened_actions,
+        flattened_actions::Tuple{Vararg{Array{FA}}} = flattened_actions,
     ) where {
         O<:Tuple{Vararg{Any}},
-        A<:Tuple{Vararg{Real}},
-        FA<:Tuple{Vararg{Vector{<:Real}}}, 
+        A<:Real,
+        AA<:Tuple{Vararg{Union{Array{A},A}}},
+        FA<:Union{Array{A},A},
         T,
     }
 
@@ -50,6 +59,7 @@ function create_session_model(
                         #Get the action probability (either a distribution, or a tuple of distributions) 
                         action_distribution =
                             action_model.action_model(model_attributes, observation...)
+
                         #Save the action (either a single real, or a tuple of reals)
                         store_action!(model_attributes, action)
 
@@ -68,6 +78,7 @@ function create_session_model(
 
         ## Sample the actions from the probability distributions ##
         for (actions, distributions) in zip(flattened_actions, flattened_distributions)
+
             a ~ to_submodel(sample_actions_one_idx(actions, distributions), false)
         end
     end
@@ -79,12 +90,12 @@ end
 function create_session_model(
     infer_missing_actions::AbstractMissingActions,
     check_parameter_rejections::Val{false},
-    actions::Vector{Vector{A}},
-) where {A<:Tuple{Vararg{Union{Missing,Real}}}}
+    actions::Vector{Vector{AA}},
+) where {A<:Union{Missing,Real},AA<:Tuple{Vararg{Union{Array{A},A}}}}
 
     ## Submodel for sampling all actions of a single action idx as an arraydist ##
     @model function sample_actions_one_idx(
-        actions::Vector{R},
+        actions::Array{R},
         distributions::Vector{D},
     ) where {R<:Any,D<:Any}
         # ) where {R<:Real,D<:Distribution} TODO: once things have been made typestable we can clean this
@@ -138,13 +149,19 @@ function create_session_model(
         model_attributes::ModelAttributes,
         parameters_per_session::T, #No way to type for an iterator
         observations_per_session::Vector{Vector{O}},
-        actions_per_session::Vector{Vector{A}},
+        actions_per_session::Vector{Vector{AA}},
         estimated_parameter_names::Tuple{Vararg{Symbol}},
         session_ids::Vector{String};
         timestep_prefixes_per_session::Vector{Vector{Symbol}} = timestep_prefixes,
         missing_action_markers_per_session::Vector{Vector{AbstractMissingActions}} = missing_action_markers,
-        flattened_actions::FA = flattened_actions,
-    ) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Union{Missing,Real}}},T<:Any,FA<:Tuple{Vararg{Vector{<:Real}}}}
+        flattened_actions::Tuple{Vararg{Array{FA}}} = flattened_actions,
+    ) where {
+        O<:Tuple{Vararg{Any}},
+        A<:Union{Missing,Real},
+        AA<:Tuple{Vararg{Union{Array{A},A}}},
+        T<:Any,
+        FA<:Union{Array{A},A},
+    }
         ## Run forwards to get the action distributions ##
         action_distributions = [
             i ~ to_submodel(
@@ -205,10 +222,15 @@ end
     estimated_parameter_names::Tuple{Vararg{Symbol}},
     session_parameters::T,
     session_observations::Vector{O},
-    session_actions::Vector{A},
+    session_actions::Vector{AA},
     session_timestep_prefixes::Vector{Symbol},
     session_missing_action_markers::Vector{AbstractMissingActions},
-) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Union{Missing,Real}}},T<:Tuple}
+) where {
+    O<:Tuple{Vararg{Any}},
+    A<:Union{Missing,Real},
+    AA<:Tuple{Vararg{Union{Array{A},A}}},
+    T<:Tuple,
+}
     #Prepare the agent
     set_parameters!(model_attributes, estimated_parameter_names, session_parameters)
     reset!(model_attributes)
@@ -242,9 +264,9 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    action::Tuple{Vararg{Real}},
+    action::Tuple{Vararg{AA}},
     missing_actions::NoMissingActions,      #No missing actions
-) where {O}
+) where {O,A<:Real,AA<:Union{Array{A},A}}
     #Give observation and get action distribution
     action_distribution = action_model.action_model(model_attributes, observation...)
 
@@ -259,9 +281,9 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    action::Tuple{Vararg{Union{Missing,Real}}},
+    action::Tuple{Vararg{AA}},
     missing_actions::SkipMissingActions,    #Skip missing actions
-) where {O}
+) where {O,A<:Union{Missing,Real},AA<:Union{Array{A},A}}
     #Give observation and get action distribution
     action_distribution = action_model.action_model(model_attributes, observation...)
 
@@ -273,9 +295,9 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    actions::Tuple{Vararg{Union{Missing,Real}}},
+    actions::Tuple{Vararg{AA}},
     missing_actions::InferMissingActions,   #Infer missing actions
-) where {O}
+) where {O,A<:Union{Missing,Real},AA<:Union{Array{A},A}}
 
     #Get the tuple of action distributions from the action model
     action_distributions = action_model.action_model(model_attributes, observation...)
@@ -303,9 +325,9 @@ end
 
 #Turing subsubmodel for sampling one of the actions in the timestep
 @model function sample_subaction(
-    action::A,
+    action::AA,
     action_distribution::D,
-) where {A<:Union{<:Real,Missing},D<:Distribution}
+) where {A<:Union{Real,Missing},AA<:Union{Array{A},A},D<:Distribution}
     action ~ action_distribution
 
     return action
@@ -323,8 +345,7 @@ function create_session_model(
 ) where {A<:Tuple{Vararg{Real}}}
 
     #Get normal session model
-    session_submodel =
-        create_session_model(infer_missing_actions, Val{false}(), actions)
+    session_submodel = create_session_model(infer_missing_actions, Val{false}(), actions)
 
     return @model function session_model(
         action_model::ActionModel,
@@ -334,11 +355,7 @@ function create_session_model(
         actions_per_session::Vector{Vector{A}},
         estimated_parameter_names::Tuple{Vararg{Symbol}},
         session_ids::Vector{String},
-    ) where {
-        O<:Tuple{Vararg{Any}},
-        A<:Tuple{Vararg{Real}},
-        T<:Any,
-    }
+    ) where {O<:Tuple{Vararg{Any}},A<:Tuple{Vararg{Real}},T<:Any}
 
         try
 

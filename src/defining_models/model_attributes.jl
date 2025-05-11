@@ -107,14 +107,17 @@ end
 #################################################
 ## Internal manipulation functions ##
 #Store a single sampled action - used in model fitting and simulation
-function store_action!(model_attributes::ModelAttributes, sampled_action::A) where {A<:Real}
+function store_action!(
+    model_attributes::ModelAttributes,
+    sampled_action::Union{A,Array{A}},
+) where {A<:Real}
     first(model_attributes.actions).value = sampled_action
 end
 #Store a set of actions from one timestep - used in model fitting and simulation
 function store_action!(
     model_attributes::ModelAttributes,
-    sampled_actions::Tuple{Vararg{Real}},
-)
+    sampled_actions::Tuple{Vararg{Union{A,Array{A}}}},
+) where {A<:Real}
     for (action, sampled_action) in zip(model_attributes.actions, sampled_actions)
         action.value = sampled_action
     end
@@ -151,9 +154,7 @@ end
 function get_state_types(action_model::ActionModel)
 
     return NamedTuple(
-        state.initial_value isa Missing ?
-        state_name => Union{Missing,state.type} :
-        state_name => state.type for
-        (state_name, state) in pairs(action_model.states)
+        state.initial_value isa Missing ? state_name => Union{Missing,state.type} :
+        state_name => state.type for (state_name, state) in pairs(action_model.states)
     )
 end

@@ -203,7 +203,7 @@ end
     population_model::DynamicPPL.Model,
     session_model::Function,
     observations_per_session::Vector{Vector{O}},
-    actions_per_session::Vector{Vector{A}},
+    actions_per_session::Vector{Vector{AA}},
     estimated_parameter_names::Tuple{Vararg{Symbol}},
     session_ids::Vector{String},
     initial_states::NamedTuple{initial_state_keys,<:Tuple},
@@ -211,7 +211,8 @@ end
     ::Type{TI} = Int64,
 ) where {
     O<:Tuple{Vararg{Any}},
-    A<:Tuple{Vararg{Union{Missing,Real}}},
+    A <:Union{Missing,Real},
+    AA<:Tuple{Vararg{Union{A, Array{A}}}},
     initial_state_keys,
     TF,
     TI,
@@ -325,7 +326,15 @@ function check_model(
     end
 
     #Check whether there are NaN values in the action columns
-    if any(isnan.(skipmissing(Matrix(data[!, collect(action_cols)]))))
-        throw(ArgumentError("There are NaN values in the action columns"))
+    for (colname, action) in zip(action_cols, action_model.actions)
+        if action.type <: AbstractArray
+            if any(map(action_array -> any(isnan.(skipmissing((action_array)))), data[!,colname]))
+                throw(ArgumentError("There are NaN values in the action column $colname"))
+            end
+        else
+            if any(isnan.(skipmissing(data[!, colname])))
+                throw(ArgumentError("There are NaN values in the action column $colname"))
+            end
+        end
     end
 end
