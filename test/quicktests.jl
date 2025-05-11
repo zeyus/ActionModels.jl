@@ -1,12 +1,15 @@
 using ActionModels, DataFrames
 
 ## Define model ##
-action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
+action_model = ActionModel(PremadeRescorlaWagner())
 
 ## Simulate with agent ##
-agent = init_agent(action_model)
+agent = init_agent(action_model, save_history = [:expected_value])
 
-give_observations!(agent, [1.,0,0,1])
+simulate!(agent, [1.,0,0,1])
+
+using StatsPlots
+plot(agent, :expected_value)
 
 get_parameters(agent)
 set_parameters!(agent, :learning_rate, 0.2)
@@ -56,9 +59,9 @@ grouping_cols = [:id, :treatment]
 
 #Create and fit model
 prior = (
-        learning_rate => LogitNormal(),
-        action_noise => LogNormal(),
-        initial_value => Normal(),
+        learning_rate = LogitNormal(),
+        action_noise = LogNormal(),
+        initial_value = Normal(),
     )
 
 #Create model
@@ -71,5 +74,6 @@ model = create_model(
     grouping_cols = grouping_cols,
 )
 
-sample_posterior!(model)
-get_session_parameters!(model, :posterior)
+sample_posterior!(model, n_chains = 1, n_samples = 50)
+summarize(get_session_parameters!(model, :posterior))
+summarize(get_state_trajectories!(model, :expected_value))

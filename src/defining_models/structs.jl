@@ -1,82 +1,90 @@
 ############################################
 ### TYPE FOR INITIALIZING AN ACTIONMODEL ###
 ############################################
+## Supertype for model attributes ##
+abstract type AbstractAttribute end
 
 ## For creating parameters ##
-abstract type AbstractParameter end
+abstract type AbstractParameter <: AbstractAttribute end
 
-mutable struct Parameter{T<:Real} <: AbstractParameter
+struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     value::T
     type::Type{T}
 
-    function Parameter(value::T) where {T<:Real}
-        new{Float64}(value, Float64)
-    end
-    function Parameter(value::T, ::Type{T}) where {T<:Real}
-        new{T}(value, T)
-    end
-    function Parameter(::Type{T}, value::T) where {T<:Real}
-        new{T}(value, T)
+    function Parameter(
+        value::T;
+        discrete::Bool = false,
+    ) where {T<:Union{Real,Array{<:Real}}}
+        if discrete
+            if value isa Array
+                new{Array{Int64}}(value, Array{Int64})
+            else
+                new{Int64}(value, Int64)
+            end
+        else
+            if value isa Array
+                new{Array{Float64}}(value, Array{Float64})
+            else
+                new{Float64}(value, Float64)
+            end
+        end
     end
 end
 
-mutable struct InitialStateParameter{T<:Real} <: AbstractParameter
+struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     state::Symbol
     value::T
     type::Type{T}
-    function InitialStateParameter(value::T, state_name::Symbol) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(value::T, state_name::Symbol, ::Type{T}) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(value::T, ::Type{T}, state_name::Symbol) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(state_name::Symbol, ::Type{T}, value::T) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(::Type{T}, value::T, state_name::Symbol) where {T<:Real}
-        new{T}(state_name, value, T)
-    end
-    function InitialStateParameter(::Type{T}, state_name::Symbol, value::T) where {T<:Real}
-        new{T}(state_name, value, T)
+    function InitialStateParameter(
+        value::T,
+        state_name::Symbol;
+        discrete::Bool = false,
+    ) where {T<:Union{Real,Array{<:Real}}}
+        if discrete
+            if value isa Array
+                new{Array{Int64}}(state_name, value, Array{Int64})
+            else
+                new{Int64}(state_name, value, Int64)
+            end
+        else
+            if value isa Array
+                new{Array{Float64}}(state_name, value, Array{Float64})
+            else
+                new{Float64}(state_name, value, Float64)
+            end
+        end
     end
 end
 
 ## For creating states ##
-abstract type AbstractState end
-mutable struct State{T} <: AbstractState
-    value::T
+abstract type AbstractState <: AbstractAttribute end
+struct State{T} <: AbstractState
+    initial_value::Union{Missing,T}
     type::Type{T}
 
-    function State(value::T) where {T}
-        new{T}(value, T)
+    function State(initial_value::T) where {T}
+        new{T}(initial_value, T)
     end
-    function State(value, ::Type{T}) where {T}
-        new{T}(value, T)
-    end
-    function State(::Type{T}, value) where {T}
-        new{T}(value, T)
+    function State(initial_value, ::Type{T}) where {T}
+        new{T}(initial_value, T)
     end
     function State(::Type{T}) where {T}
-        new{Union{T,Missing}}(missing, Union{T,Missing})
+        new{T}(missing, T)
     end
 end
 
 ## For creating observations ##
-abstract type AbstractObservation end
+abstract type AbstractObservation <: AbstractAttribute end
 struct Observation{T} <: AbstractObservation
     type::Type{T}
 
-    function Observation(type::Type{T}) where {T}
+    function Observation(type::Type{T} = Float64) where {T}
         new{T}(T)
     end
 end
 
-
 ## For creating actions ##
-abstract type AbstractAction end
+abstract type AbstractAction <: AbstractAttribute end
 struct Action{T,TD} <: AbstractAction
     type::Type{T}
     distribution_type::Type{TD}
@@ -84,10 +92,10 @@ struct Action{T,TD} <: AbstractAction
     function Action(
         action_type::Type{T},
         distribution_type::Type{TD},
-    ) where {T<:Real,TD<:Distribution}
+    ) where {T<:Union{Real,Array{<:Real}},TD<:Distribution}
 
-        if T != get_action_type(TD)
-            @warn "Action type $T is different from the the action type $(get_action_type(TD)) which should match the distribution type $TD. Check that everything is in order"
+        if !(get_action_type(TD) <: T)
+            @warn "Action type $T is not a supertype of $(get_action_type(TD)), which is the type that matches the chosen distribution type $TD. Check that everything is in order"
         end
         new{T,TD}(action_type, distribution_type)
     end
@@ -100,12 +108,7 @@ struct Action{T,TD} <: AbstractAction
 
         new{T,TD}(action_type, distribution_type)
     end
-
-    function Action(action_type::Type{T}) where {T<:Real}
-        new{T,Nothing}(action_type, Nothing)
-    end
 end
-
 function get_action_type(
     action_dist_type::Type{T},
 ) where {T<:Distribution{Univariate,Continuous}}
@@ -126,17 +129,16 @@ function get_action_type(
 ) where {T<:Distribution{Multivariate,Discrete}}
     return Array{Int64}
 end
-function get_action_type(action_dist_type::Type{T}) where {T<:Distribution}
-    return Nothing
-end
 
 
 ## Supertype for submodels ##
 abstract type AbstractSubmodel end
+struct NoSubModel <: AbstractSubmodel end
 
 ## ActionModel struct ##
 abstract type AbstractActionModel end
-struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
+
+struct ActionModel{T<:AbstractSubmodel} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
         parameter_names,
@@ -168,10 +170,9 @@ struct ActionModel{T<:Union{AbstractSubmodel,Nothing}} <: AbstractActionModel
             AbstractAction,
             NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
         } where {action_names},
-        submodel::T = nothing,
+        submodel::T = NoSubModel(),
         verbose::Bool = true,
-    ) where {T<:Union{AbstractSubmodel,Nothing}}
-
+    ) where {T<:AbstractSubmodel}
         #Make single structs into NamedTuples
         if parameters isa AbstractParameter
             parameters = (; parameter = parameters)
@@ -228,10 +229,29 @@ end
 
 
 
+#########################################
+### TYPES FOR USE IN THE ACTION MODEL ###
+#########################################
+## Model attributes type which contains the information apssed to the action model ##
+struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple, TM<:AbstractSubmodel}
+    parameters::TP
+    states::TS
+    actions::TA
+    initial_states::IS
+    submodel::TM
+end
 
-###################
-### OTHER TYPES ###
-###################
+## Type for instantiating a variable with a type that can vary ##
+mutable struct Variable{T}
+    value::T
+end
+
+## Struct for denoting an initial state as depending on a parameter ##
+struct ParameterDependentState
+    parameter_name::Symbol
+end
+
+
 """
 Custom error type which will result in rejection of a sample
 """
@@ -239,4 +259,12 @@ struct RejectParameters <: Exception
     errortext::Any
 end
 
+struct AttributeError <: Exception end
+
+
+
+###################
+### OTHER TYPES ###
+###################
+## Supertype for premade models ##
 abstract type AbstractPremadeModel end

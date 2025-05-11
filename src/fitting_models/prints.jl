@@ -9,7 +9,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     println(output, "-- ModelFit object --")
 
     #Get name of action model
-    action_model_name = string(modelfit.model.args.agent_model.action_model)
+    action_model_name = string(modelfit.model.args.action_model.action_model)
 
     println(output, "Action model: $action_model_name")
 
@@ -26,7 +26,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     println(output, "$population_model_type")
 
     #Get info
-    n_parameters = length(modelfit.info.estimated_parameters)
+    n_parameters = length(modelfit.info.estimated_parameter_names)
     n_sessions = length(modelfit.info.session_ids)
 
     println(output, "$n_parameters estimated action model parameters, $n_sessions sessions")
@@ -55,7 +55,7 @@ end
 ################################
 ### PRINT STATE TRAJECTORIES ###
 ################################
-function Base.show(io::IO, ::MIME"text/plain", state_trajectories::StateTrajectories{T}) where T
+function Base.show(io::IO, ::MIME"text/plain", state_trajectories::StateTrajectories)
     #Make I/O buffer
     output = IOBuffer()
 
@@ -64,7 +64,8 @@ function Base.show(io::IO, ::MIME"text/plain", state_trajectories::StateTrajecto
     #Extract n sessions
     n_sessions = length(state_trajectories.session_ids)
     #Extract n_samples and n_chains
-    n_samples, n_chains = size(first(state_trajectories.value))[3:4]
+    n_samples = state_trajectories.n_samples
+    n_chains = state_trajectories.n_chains
 
     println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
 
@@ -93,15 +94,16 @@ function Base.show(io::IO, ::MIME"text/plain", session_parameters::SessionParame
     #Extract n sessions
     n_sessions = length(session_parameters.session_ids)
     #Extract n_samples and n_chains
-    n_samples, n_chains = size(session_parameters.value)[3:4]
+    n_samples = session_parameters.n_samples
+    n_chains = session_parameters.n_chains
 
     println(output, "$n_sessions sessions, $n_chains chains, $n_samples samples")
 
-    estimated_parameters = session_parameters.estimated_parameters
+    estimated_parameter_names = session_parameters.estimated_parameter_names
 
-    println(output, "$(length(estimated_parameters)) estimated parameters:")
+    println(output, "$(length(estimated_parameter_names)) estimated parameters:")
 
-    for parameter_name in session_parameters.estimated_parameters
+    for parameter_name in session_parameters.estimated_parameter_names
         println(output, "   $parameter_name")
     end
 

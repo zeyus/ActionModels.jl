@@ -24,7 +24,7 @@ function get_session_parameters!(
         sample_prior!(modelfit)
 
         sample_result = modelfit.prior
-        
+
     else
         @error "use only either :posterior or :prior as the second argument"
     end
@@ -42,21 +42,26 @@ function get_session_parameters!(
     returned_values = returned(model.args.population_model, chains)
 
     #Extract info
-    estimated_parameters = modelfit.info.estimated_parameters
-    n_parameters = length(estimated_parameters)
+    estimated_parameter_names = modelfit.info.estimated_parameter_names
+    action_model = model.args.action_model
+    n_parameters = length(estimated_parameter_names)
     session_ids = modelfit.info.session_ids
     n_sessions = length(session_ids)
     n_samples, n_chains = size(returned_values)
 
-    #Create an empty AxisArray
-    session_parameters =
-        Array{Float64}(undef, n_sessions, n_parameters, n_samples, n_chains)
-    session_parameters = AxisArray(
-        session_parameters,
-        Axis{:session}(session_ids),
-        Axis{:parameter}(estimated_parameters),
-        Axis{:sample}(1:n_samples),
-        Axis{:chain}(1:n_chains),
+    #Extract parameter types
+    parameter_types =
+        merge(get_parameter_types(action_model), get_parameter_types(action_model.submodel))
+
+    #Create an empty AxisArray for each parameter
+    session_parameters = NamedTuple(
+        parameter_name => NamedTuple(
+            Symbol(session_id) => AxisArray(
+                Array{parameter_types[parameter_name]}(undef, n_samples, n_chains),
+                Axis{:sample}(1:n_samples),
+                Axis{:chain}(1:n_chains),
+            ) for session_id in session_ids
+        ) for parameter_name in estimated_parameter_names
     )
 
     #Go through each sampled parameter
@@ -74,7 +79,7 @@ function get_session_parameters!(
                     parameter_value = parameters[parameter_idx]
 
                     #And set it in the appropriate place
-                    session_parameters[session_idx, parameter_idx, sample_idx, chain_idx] =
+                    session_parameters[parameter_idx][session_idx][sample_idx, chain_idx] =
                         parameter_value
                 end
             end
@@ -82,11 +87,8 @@ function get_session_parameters!(
     end
 
     #Store as SessionParameters struct
-    session_parameters = SessionParameters(
-        estimated_parameters,
-        session_ids,
-        session_parameters,
-    )
+    session_parameters =
+        SessionParameters(session_parameters, estimated_parameter_names, session_ids, parameter_types, n_samples, n_chains)
 
     #Save the session parameters
     sample_result.session_parameters = session_parameters

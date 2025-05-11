@@ -41,7 +41,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     grouping_cols = [:id, :treatment]
 
     #Create action model
-    action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
+    action_model = ActionModel(PremadeRescorlaWagner())
 
     #Inference parameters
     n_samples = 200

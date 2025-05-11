@@ -1,14 +1,12 @@
-### TYPES FOR TURING MODELS ###
+##########################################
+### TYPES FOR SPECIFYING TURING MODELS ###
+##########################################
 
 #Structs for setting missing actions to be either skipped or inferred
 abstract type AbstractMissingActions end
-struct NoMissingActions <: AbstractMissingActions end 
+struct NoMissingActions <: AbstractMissingActions end
 struct SkipMissingActions <: AbstractMissingActions end
 struct InferMissingActions <: AbstractMissingActions end
-
-abstract type AbstractMultipleActions end
-struct SingleAction <: AbstractMultipleActions end
-struct MultipleActions <: AbstractMultipleActions end
 
 #Abstract type for population models
 abstract type AbstractPopulationModel end
@@ -60,53 +58,32 @@ struct Regression
     end
 end
 
-
 #########################################
 ### TYPES FOR MODEL FITTING AND TOOLS ###
 #########################################
-
-
 ### Structs for containing outputted session parameters and state trajectories ###
 struct SessionParameters
-    estimated_parameters::Vector{Symbol}
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    estimated_parameter_names::Tuple{Vararg{Symbol}}
     session_ids::Vector{String}
-    value::AxisArray{
-        Float64,
-        4,
-        Array{Float64,4},
-        Tuple{
-            Axis{:session,Vector{String}},
-            Axis{:parameter,Vector{Symbol}},
-            Axis{:sample,UnitRange{Int64}},
-            Axis{:chain,UnitRange{Int64}},
-        },
-    }
+    parameter_types::NamedTuple{parameter_names, <:Tuple{Vararg{Type}}} where parameter_names
+    n_samples::Int
+    n_chains::Int
 end
 
-struct StateTrajectories{T}
+struct StateTrajectories
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
     state_names::Vector{Symbol}
     session_ids::Vector{String}
-    value::Vector{
-        AxisArray{
-            Union{Missing,T},
-            4,
-            Array{Union{Missing,T},4},
-            Tuple{
-                Axis{:timestep,UnitRange{Int64}},
-                Axis{:state,Vector{Symbol}},
-                Axis{:sample,UnitRange{Int64}},
-                Axis{:chain,UnitRange{Int64}},
-            },
-        },
-    }
-
+    state_types::NamedTuple{state_names, <:Tuple{Vararg{Type}}} where state_names
+    n_samples::Int
+    n_chains::Int
 end
-
 
 ### Structs for storing results of model fitting ###
 Base.@kwdef struct ModelFitInfo
     session_ids::Vector{String}
-    estimated_parameters::Vector{Symbol}
+    estimated_parameter_names::Tuple{Vararg{Symbol}}
 end
 
 Base.@kwdef mutable struct ModelFitResult
@@ -130,12 +107,10 @@ struct SampleSaveResume
     plot_progress::Bool
     chain_prefix::String
 end
-
 SampleSaveResume(;
     save_every::Int = 100,
     path = "./.samplingstate",
     plot_progress::Bool = false,
     chain_prefix = "ActionModels_chain_link",
 ) = SampleSaveResume(save_every, path, plot_progress, chain_prefix)
-
 

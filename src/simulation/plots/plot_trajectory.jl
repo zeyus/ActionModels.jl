@@ -1,67 +1,44 @@
-"""
-    plot_trajector(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs...)
-
-Plot trajectory of a state from an agent. Keyword arguments are passed to Plots.
-"""
-function plot_trajectory end
-
-
-function plot_trajectory(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs...)
-
-    #If the target state is in the agent's history
-    if target_state in keys(agent.history)
-        #Plot that
-        plot_trajectory_agent(agent, target_state; kwargs...)
-        #Otherwise
-    else
-        #Look in the submodel
-        plot_trajectory(agent.submodel, target_state; kwargs...)
-    end
-end
-
-function plot_trajectory!(agent::Agent, target_state::Union{Symbol,Tuple}; kwargs...)
-
-    #If the target state is in the agent's history
-    if target_state in keys(agent.history)
-        #Plot that
-        plot_trajectory_agent!(agent, target_state; kwargs...)
-        #Otherwise
-    else
-        #Look in the submodel
-        plot_trajectory!(agent.submodel, target_state; kwargs...)
-    end
-end
-
-
-function plot_trajectory(submodel::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
-    throw(ArgumentError("The specified state does not exist in the agent's history"))
-end
-
-
-function plot_trajectory!(submodel::Nothing, target_state::Union{Symbol,Tuple}; kwargs...)
-    throw(ArgumentError("The specified state does not exist in the history"))
-end
-
-
-@userplot Plot_Trajectory_Agent
-
-@recipe function f(pl::Plot_Trajectory_Agent)
-
-    #Get out the agent and the target state
-    agent = pl.args[1]
-    target_state = pl.args[2]
-
+@recipe function f(
+    agent::Agent,
+    target_state::Symbol,
+    index::Union{Nothing,Vector{Int}} = nothing;
+)
     #Get the history of the state
-    state_history = agent.history[target_state]
+    state_history = get_history(agent, target_state)
+    
+    if !isnothing(index) && !(first(state_history) isa AbstractArray)
+        @error "And index was provided, but the state is not an array."
+    end
+
+    if isnothing(index) && first(state_history) isa AbstractArray
+        @error "The state is an array. Provide an index to select which value to plot."
+    end
+    
+    #If the state is multivariate
+    if first(state_history) isa AbstractArray && !isnothing(index)
+        
+        #Extract the state history for the given index
+        index = CartesianIndex(index...)
+        state_history = map(
+            i -> state_history[index],
+            index,
+        )
+    end
+
     #Replace missings with NaNs for plotting
     state_history = replace(state_history, missing => NaN)
 
+    #The x-axis starts at 0
+    x_axis = collect(0:(length(state_history)-1))
+
+    xlabel --> "timestep"
+    yguide --> "$target_state"
+
     #Plot the history
     @series begin
-        seriestype --> :scatter
-        label --> target_state
+        seriestype --> :path
         markersize --> 5
-        title --> "State trajectory"
-        state_history
+        title --> "$target_state"
+        x_axis, state_history
     end
 end

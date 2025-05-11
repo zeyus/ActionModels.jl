@@ -11,17 +11,21 @@ end
 
 function ActionModel(config::PVLDelta)
 
-    function pvl_delta(agent::Agent, deck::Int64, reward::Float64)
+    function pvl_delta(attributes::ModelAttributes, deck::Int64, reward::Float64)
+        
+        #Read in parameters and states
+        parameters = load_parameters(attributes)
+        states = load_states(attributes)
 
-        learning_rate = agent.parameters[:learning_rate]
-        reward_sensitivity = agent.parameters[:reward_sensitivity]
-        loss_aversion = agent.parameters[:loss_aversion]
-        action_precision = agent.parameters[:action_precision]
+        learning_rate = parameters.learning_rate
+        reward_sensitivity = parameters.reward_sensitivity
+        loss_aversion = parameters.loss_aversion
+        action_precision = parameters.action_precision
 
-        expected_value = agent.states[:expected_value]
+        previous_value = states.value
 
         #Get action probabilities by softmaxing expected values for each deck
-        action_probabilities = softmax(expected_value * action_precision)
+        action_probabilities = softmax(previous_value * action_precision)
 
         #Avoid underflow and overflow
         action_probabilities = clamp.(action_probabilities, 0.001, 0.999)
@@ -36,25 +40,25 @@ function ActionModel(config::PVLDelta)
         end
 
         #Update expected values
-        new_expected_value = [
-            expected_value[deck_idx] +
+        new_value = [
+            previous_value[deck_idx] +
             learning_rate * prediction_error * (deck == deck_idx) for deck_idx = 1:n_decks
         ]
 
-        update_states!(agent, :expected_value, new_expected_value)
+        update_state!(attributes, :value, new_value)
 
         return Categorical(action_probabilities)
     end
 
     parameters = (
-            learning_rate = Parameter(config.learning_rate, Real),
-            reward_sensitivity = Parameter(config.reward_sensitivity, Real),
-            action_precision = Parameter(config.action_precision, Real),
-            loss_aversion = Parameter(config.loss_aversion, Real),
-            initial_value = InitialStateParameter(config.initial_value, :expected_value, Array{Real}),
+            learning_rate = Parameter(config.learning_rate),
+            reward_sensitivity = Parameter(config.reward_sensitivity),
+            action_precision = Parameter(config.action_precision),
+            loss_aversion = Parameter(config.loss_aversion),
+            initial_value = InitialStateParameter(config.initial_value, :value),
         )
 
-    states = (; expected_value = State(zeros(Float64, 4)))
+    states = (; value = State(config.initial_value))
 
     observations = (;
         deck = Observation(Int64),

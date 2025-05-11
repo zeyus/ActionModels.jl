@@ -2,29 +2,37 @@ module ActionModels
 
 #Load packages
 using Reexport 
-@reexport using Turing #For fitting models
 @reexport using Distributions #Make distributions available to the user
+@reexport using Turing #For fitting models
+using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems
+
 using RecipesBase #For defining plots
 using DataFrames #For the input format to create_model
 using AxisArrays #For storing session parameters and state trajectories
 using StatsModels, MixedModels, LogExpFunctions #For the GLM population Model
-using ForwardDiff, ReverseDiff, Mooncake #AD types to be compatible with
+
 using HDF5 #For the save_resume functionality
 using ProgressLogging #For progress bars
-using Distributed #For parameter recovery and other heavy functions
-using Logging #For hiding sample rejections
-using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems, AutoForwardDiff, AutoReverseDiff, AutoMooncake
+
+
+#ADType functionality
+using ADTypes: AutoForwardDiff#, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
+import ForwardDiff
+#import ReverseDiff
+#import Mooncake
+#import FiniteDifferences: central_fdm
+#import Enzyme: set_runtime_activity, Forward, Reverse #AD types to be compatible with
 
 ## For defining action models ##
-export Parameter, InitialStateParameter, State, Observation, Action, ActionModel
-export RejectParameters, update_states!
+export ActionModel, Parameter, InitialStateParameter, State, Observation, Action
+export ModelAttributes, load_parameters, load_states, load_actions, update_state!, RejectParameters
 
 ## For simulation ##
-export Agent, init_agent
-export give_observations!, single_observation!, reset!
-export get_history, get_states, get_parameters
-export set_parameters!, set_save_history! # set_states!()
-export plot_trajectory, plot_trajectory!
+export init_agent
+export simulate!, observe!
+export get_parameters, get_states, get_actions, get_history
+export set_parameters!, set_states!, set_actions!, reset!
+#export plot_trajectory, plot_trajectory!
 
 ## For fitting models ##
 export create_model, RegressionPrior
@@ -32,7 +40,6 @@ export sample_prior!, sample_posterior!, SampleSaveResume
 export get_session_parameters!, get_state_trajectories!, summarize
 # export parameter_recovery
 # export plot_parameters, plot_trajectories
-export bounded_exp, bounded_logistic
 export @formula
 
 
@@ -50,8 +57,10 @@ include(joinpath("fitting_models", "structs.jl"))
 
 
 ### Functions for model definition ###
-include(joinpath("defining_models", "update_states.jl"))
 include(joinpath("defining_models", "prints.jl"))
+include(joinpath("defining_models", "model_attributes.jl"))
+include(joinpath("defining_models", "manipulate_attributes.jl"))
+include(joinpath("defining_models", "no_submodel_dispatches.jl"))
 #Read in all premade models
 for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
     if endswith(premade_model_file, ".jl")
@@ -60,15 +69,9 @@ for premade_model_file in readdir(joinpath("src", "defining_models", "premade_mo
 end
 
 ### Functions for simulation ###
-include(joinpath("simulation", "init_agent.jl"))
-include(joinpath("simulation", "give_observations.jl"))
-include(joinpath("simulation", "reset.jl"))
 include(joinpath("simulation", "prints.jl"))
-include(joinpath("simulation", "get_and_set", "set_parameters.jl"))
-include(joinpath("simulation", "get_and_set", "set_save_history.jl"))
-include(joinpath("simulation", "get_and_set", "get_parameters.jl"))
-include(joinpath("simulation", "get_and_set", "get_states.jl"))
-include(joinpath("simulation", "get_and_set", "get_history.jl"))
+include(joinpath("simulation", "simulate.jl"))
+include(joinpath("simulation", "manipulate_attributes.jl"))
 include(joinpath("simulation", "plots", "plot_trajectory.jl"))
 
 ### Functions for fitting models ###

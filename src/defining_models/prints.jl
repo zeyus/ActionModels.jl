@@ -33,7 +33,7 @@ function Base.show(io::IO, ::MIME"text/plain", action_model::ActionModel)
     end
 
     # submodel info
-    if !isnothing(action_model.submodel)
+    if !(action_model.submodel isa NoSubModel)
         submodel_type = string(typeof(action_model.submodel))
         println(output, "submodel type: $submodel_type")
     end

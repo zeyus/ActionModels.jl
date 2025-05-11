@@ -1,18 +1,65 @@
-
-
-"""
-Agent struct
-"""
-Base.@kwdef mutable struct Agent
+struct Agent{TH<:NamedTuple}
     action_model::Function
-    submodel::Any
-    parameters::Dict = Dict()
-    initial_state_parameters::Dict{Symbol,InitialStateParameter} = Dict()
-    initial_states::Dict{Symbol,InitialStateParameter} = Dict()
-    parameter_groups::Dict = Dict()
-    states::Dict{Symbol,Any} = Dict(:action => missing)
-    history::Dict{Symbol,Vector{Any}} = Dict(:action => [missing])
-    save_history::Bool = true
+    model_attributes::ModelAttributes
+    history::TH
+    n_timesteps::Variable{Int64}
 end
 
+function init_agent(
+    action_model::ActionModel;
+    save_history::Union{Bool,Symbol,Vector{Symbol}} = false,
+)
+    ## Initialize model attributes ##
+    #Find initial states
+    initial_state_parameter_state_names = NamedTuple(
+        parameter.state => ParameterDependentState(parameter_name) for
+        (parameter_name, parameter) in pairs(action_model.parameters) if
+        parameter isa InitialStateParameter
+    )
+    initial_states = NamedTuple(
+        state_name in keys(initial_state_parameter_state_names) ?
+        state_name => initial_state_parameter_state_names[state_name] :
+        state_name => state.initial_value for
+        (state_name, state) in pairs(action_model.states)
+    )
 
+    #Initialize model attributes
+    model_attributes = initialize_attributes(action_model, initial_states)
+
+    #Reset it, so that the initial states are set to the initial values
+    reset!(model_attributes)
+
+    ## Initialize history ##
+    #Extract state types from action model and submodel
+    state_types =
+        merge(get_state_types(action_model), get_state_types(action_model.submodel))
+    
+    #Find states for which to save history
+    if save_history isa Bool
+        #If save_history is true, save all states
+        if save_history
+            save_history =
+                merge(collect(keys(model_attributes.states)), keys(submodel_state_types))
+        else
+            #If save_history is false, don't save any states
+            save_history = Symbol[]
+        end
+    end
+    if save_history isa Symbol
+        #If save_history is a symbol, save only that state
+        save_history = [save_history]
+    end
+
+    #Initialize history
+    history = NamedTuple(
+        state_name => Vector{state_types[state_name]}() for state_name in save_history
+    )
+
+    #Add initial states to history
+    for (state_name, state) in pairs(history)
+        push!(state, get_states(model_attributes, state_name))
+    end
+
+    ## Create agent ##
+    Agent(action_model.action_model, model_attributes, history, Variable{Int64}(0))
+end

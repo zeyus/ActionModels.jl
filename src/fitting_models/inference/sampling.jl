@@ -76,9 +76,6 @@ function sample_posterior!(
         gradient_differences = gradients .- forwarddiff_gradients
         if verbose && !all(isapprox.(gradient_differences, 0.0, atol = 1e-6))
 
-            @show gradients
-            @show forwarddiff_gradients
-
             @warn """
             The gradients calculated with the chosen autodifferentiation type does not agree with ForwardDiff (atol: 1e-6).
             This may indicate a problem with the model. Take appropriate care.
