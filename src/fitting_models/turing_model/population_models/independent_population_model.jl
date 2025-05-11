@@ -81,7 +81,9 @@ end
     )
 
     #Slice, to allow for varying dimensionalities of parameters
-    sampled_parameters = map(single_parameter -> eachslice(single_parameter, dims = ndims(single_parameter)), sampled_parameters)
+    sampled_parameters = map(
+        single_parameter -> single_parameter isa Vector ? single_parameter : eachslice(single_parameter, dims = ndims(single_parameter)), 
+        sampled_parameters)
 
     return zip(sampled_parameters...)
 end

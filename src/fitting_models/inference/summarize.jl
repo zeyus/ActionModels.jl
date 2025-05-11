@@ -44,7 +44,6 @@ function Turing.summarize(
         df[!, column_name] = String[]
     end
 
-    @show names(df)
     ## Populate the DataFrame with summarized values ##
     row = Dict()
     #Loop over sessions and parameters

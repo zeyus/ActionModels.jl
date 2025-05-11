@@ -87,7 +87,7 @@ function create_model(
             if verbose
                 @warn """
                       There are missing values in the action columns, but infer_missing_actions is set to false. 
-                      These actions will not be used to inform parameter estimation, but they will still be passed to the action model. 
+                      These actions will not be used to inform parameter estimation, and will be passed to the action model as missing values. 
                       Check that this is desired behaviour. This can be a problem for models which depend on their previous actions.
                       """
             end

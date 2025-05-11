@@ -47,6 +47,7 @@ function create_session_model(
         ## Run forwards to get the action distributions ##
         action_distributions = [
             begin
+
                 #Set the sampled parameters and reset the action model
                 set_parameters!(
                     model_attributes,
@@ -234,7 +235,7 @@ end
     #Prepare the agent
     set_parameters!(model_attributes, estimated_parameter_names, session_parameters)
     reset!(model_attributes)
-
+    
     return [
         i ~ to_submodel(
             prefix(
@@ -281,9 +282,9 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    action::Tuple{Vararg{AA}},
+    action::Tuple{Vararg{Union{Missing,A, Array{A}}}},
     missing_actions::SkipMissingActions,    #Skip missing actions
-) where {O,A<:Union{Missing,Real},AA<:Union{Array{A},A}}
+) where {O,A<:Union{Missing,Real}}
     #Give observation and get action distribution
     action_distribution = action_model.action_model(model_attributes, observation...)
 
@@ -295,9 +296,9 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    actions::Tuple{Vararg{AA}},
+    actions::Tuple{Vararg{Union{Missing,A, Array{A}}}},
     missing_actions::InferMissingActions,   #Infer missing actions
-) where {O,A<:Union{Missing,Real},AA<:Union{Array{A},A}}
+) where {O,A<:Union{Missing,Real}}
 
     #Get the tuple of action distributions from the action model
     action_distributions = action_model.action_model(model_attributes, observation...)
@@ -325,9 +326,9 @@ end
 
 #Turing subsubmodel for sampling one of the actions in the timestep
 @model function sample_subaction(
-    action::AA,
+    action::Union{Missing,A, Array{A}},
     action_distribution::D,
-) where {A<:Union{Real,Missing},AA<:Union{Array{A},A},D<:Distribution}
+) where {A<:Union{Real,Missing},D<:Distribution}
     action ~ action_distribution
 
     return action
