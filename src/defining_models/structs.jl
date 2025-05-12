@@ -68,7 +68,7 @@ struct State{T} <: AbstractState
     function State(initial_value, ::Type{T}) where {T}
         new{T}(initial_value, T)
     end
-    function State(::Type{T}) where {T}
+    function State(::Type{T} = Float64) where {T}
         new{T}(missing, T)
     end
 end
@@ -78,7 +78,7 @@ abstract type AbstractObservation <: AbstractAttribute end
 struct Observation{T} <: AbstractObservation
     type::Type{T}
 
-    function Observation(type::Type{T} = Float64) where {T}
+    function Observation(::Type{T} = Float64) where {T}
         new{T}(T)
     end
 end
