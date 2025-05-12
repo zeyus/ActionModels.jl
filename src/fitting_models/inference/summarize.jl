@@ -17,19 +17,29 @@ function Turing.summarize(
         i in split(string(first(session_ids)), id_separator)
     ]
 
-
     ## Initialize an empty DataFrame with appropriate columns. ##
     df_cols = Dict{String,Any}()
+    parameter_colnames = Dict{String,Vector{String}}()
     # For each ParameterDependentState
     for parameter in estimated_parameter_names
         #If its first sample is an AbstractArray
         sample_parameter = first(session_parameters[parameter][1])
         if sample_parameter isa AbstractArray
-            #Make a column for each Cartesian index
+            #Make container for the column names
+            names = String[]
+            #Get the parameter type
+            parameter_type = eltype(parameter_types[parameter])
+            #For each index in the parameter
             for I in CartesianIndices(size(sample_parameter))
-                col_name = "$(parameter)$(Tuple(I))"
-                df_cols[col_name] = eltype(parameter_types[parameter])[]
+                #Construct the column name
+                col_name = "$(parameter)$(collect(Tuple(I)))"
+                #Add it to the list of column names
+                push!(names, col_name)
+                #Add it to the dataframe column names with the appropriate type
+                df_cols[col_name] = parameter_type[]
             end
+            #Save the column names
+            parameter_colnames["$parameter"] = names
         else
             #Oherwise, just make a column for the state
             df_cols["$parameter"] = parameter_types[parameter][]
@@ -63,12 +73,15 @@ function Turing.summarize(
             #If the samples are AbstractArrays
             if first(samples) isa AbstractArray
 
-                #For each Cartesian index
-                for I in CartesianIndices(size(first(samples)))
+                #Get column names for the parameter
+                colnames = parameter_colnames["$parameter"]
+
+                #For each Cartesian index and corresponding column name
+                for (I, colname) in zip(CartesianIndices(size(first(samples))), colnames)
                     #Unpack that index and summarize the samples
                     summarized_value =
                         summarize_samples(map(s -> s[I], samples), summary_function)
-                    row["$(parameter)$(Tuple(I))"] = summarized_value
+                    row[colname] = summarized_value
                 end
             else
                 summarized_value = summarize_samples(samples, summary_function)
@@ -108,16 +121,25 @@ function Turing.summarize(
 
     ## Initialize an empty DataFrame with appropriate columns. ##
     df_cols = Dict{String,Any}()
+    state_colnames = Dict{String,Vector{String}}()
     # For each state
     for state in state_names
         #If its first sample is an AbstractArray
         sample_state = first(state_trajectories[state][1])
         if sample_state isa AbstractArray
+            names = String[]
+            state_type = eltype(state_types[state])
             #Make a column for each Cartesian index
             for I in CartesianIndices(size(sample_state))
-                col_name = "$(state)$(Tuple(I))"
-                df_cols[col_name] = eltype(state_types[state])[]
+                #Construct the column name
+                col_name = "$(state)$(collect(Tuple(I)))"
+                #Add it to the list of column names
+                push!(names, col_name)
+                #Add it to the dataframe column names with the appropriate type
+                df_cols[col_name] = state_type[]
             end
+            #Save the column names
+            state_colnames["$state"] = names
         else
             #Oherwise, just make a column for the state
             df_cols["$state"] = state_types[state][]
@@ -160,13 +182,15 @@ function Turing.summarize(
 
                 #If the samples are AbstractArrays
                 if first(samples) isa AbstractArray
+                    #Get column names for the state
+                    colnames = state_colnames["$state"]
 
-                    #For each Cartesian index
-                    for I in CartesianIndices(size(first(samples)))
+                    #For each Cartesian index and corresponding column name
+                    for (I, colname) in zip(CartesianIndices(size(first(samples))), colnames)
                         #Unpack that index and summarize the samples
                         summarized_value =
                             summarize_samples(map(s -> s[I], samples), summary_function)
-                        row["$(state)$(Tuple(I))"] = summarized_value
+                        row[colname] = summarized_value
                     end
                 else
                     summarized_value = summarize_samples(samples, summary_function)
