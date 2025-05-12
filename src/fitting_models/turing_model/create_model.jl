@@ -24,6 +24,15 @@ function create_model(
 ) where {observation_names_cols,action_names_cols}
 
     ### ARGUMENT SETUP & CHECKS ###
+
+    ## Change columns to the correct format ##
+    #Make single action and observation columns into vectors
+    if observation_cols isa Symbol
+        observation_cols = [observation_cols]
+    end
+    if action_cols isa Symbol
+        action_cols = [action_cols]
+    end
     #Check that observation cols and action cols are the same length as the observations and actions in the action model
     if length(observation_cols) != length(action_model.observations)
         throw(
@@ -40,14 +49,6 @@ function create_model(
         )
     end
 
-    ## Change columns to the correct format ##
-    #Make single action and observation columns into vectors
-    if observation_cols isa Symbol
-        observation_cols = [observation_cols]
-    end
-    if action_cols isa Symbol
-        action_cols = [action_cols]
-    end
     #Make sure that observation_cols and action_cols are named tuples
     if observation_cols isa Vector
         observation_cols = NamedTuple{keys(action_model.observations)}(observation_cols)
@@ -211,8 +212,8 @@ end
     ::Type{TI} = Int64,
 ) where {
     O<:Tuple{Vararg{Any}},
-    A <:Union{Missing,Real},
-    AA<:Tuple{Vararg{Union{A, Array{A}}}},
+    A<:Union{Missing,Real},
+    AA<:Tuple{Vararg{Union{A,Array{A}}}},
     initial_state_keys,
     TF,
     TI,
@@ -328,7 +329,12 @@ function check_model(
     #Check whether there are NaN values in the action columns
     for (colname, action) in zip(action_cols, action_model.actions)
         if action.type <: AbstractArray
-            if any(map(action_array -> any(isnan.(skipmissing((action_array)))), data[!,colname]))
+            if any(
+                map(
+                    action_array -> any(isnan.(skipmissing((action_array)))),
+                    data[!, colname],
+                ),
+            )
                 throw(ArgumentError("There are NaN values in the action column $colname"))
             end
         else
