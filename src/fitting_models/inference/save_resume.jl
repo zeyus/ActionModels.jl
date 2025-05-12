@@ -81,7 +81,7 @@ function load_segment(save_resume::SampleSaveResume, chain_n::Int, segment::Int)
     return chain
 end
 
-function save_segment(seg::Chains, save_resume::SampleSaveResume, chain_n::Int, seg_n::Int)
+function save_segment(seg::Chains, save_resume::SampleSaveResume, chain_n::Int, seg_n::Int)    
     # save the chain
     h5open(
         joinpath(save_resume.path, "$(save_resume.chain_prefix)_c$(chain_n)_s$(seg_n).h5"),
@@ -123,9 +123,8 @@ function sample_save_resume(
     sampler_kwargs...,
 )
 
-    if save_resume.save_every < n_samples
-        @error "save_every must be more than n_samples"
-
+    if save_resume.save_every > n_samples
+        throw(ArgumentError("save_every ($save_resume.save_every) must be less than n_samples ($n_samples)"))
     end
 
     final_segment = n_samples % save_resume.save_every

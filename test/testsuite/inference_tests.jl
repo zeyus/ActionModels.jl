@@ -224,26 +224,44 @@ using StatsPlots
                     )
                 end
 
-                @testset "save/resume THIS ERRORS! $(AD)" begin
-                    # posterior_chains = sample_posterior!(model, resample = true, save_resume = SampleSaveResume(path = mktempdir()), n_samples = n_samples, n_chains = n_chains)
+                @testset "save/resume $(AD)" begin
+                    posterior_chains = sample_posterior!(
+                        model,
+                        resample = true,
+                        save_resume = SampleSaveResume(path = mktempdir(), save_every = Int64(n_samples / 2)),
+                        n_samples = n_samples,
+                        n_chains = n_chains,
+                    )
                 end
 
                 @testset "multi-core save/resume $(AD)" begin
-                    # using Distributed
+                    using Distributed
 
-                    # addprocs(2)
+                    addprocs(2)
 
-                    # @everywhere using ActionModels
-                    # @everywhere model = $model
+                    @everywhere using ActionModels
+                    @everywhere model = $model
 
-                    # posterior_chains = sample_posterior!(model, MCMCDistributed(), save_resume = SampleSaveResume(path = mktempdir()), resample = true, n_samples = n_samples, n_chains = n_chains)
-
-                    # rmprocs(workers())
+                    posterior_chains = sample_posterior!(
+                        model,
+                        MCMCDistributed(),
+                        resample = true,
+                        save_resume = SampleSaveResume(path = mktempdir(), save_every = Int64(n_samples / 2)),
+                        n_samples = n_samples,
+                        n_chains = n_chains,
+                    )
+                    rmprocs(workers())
                 end
 
-
                 @testset "multi-thread save/resume $(AD)" begin
-                    #TODO:
+                    posterior_chains = sample_posterior!(
+                        model,
+                        MCMCThreads(),
+                        resample = true,
+                        save_resume = SampleSaveResume(path = mktempdir(), save_every = Int64(n_samples / 2)),
+                        n_samples = n_samples,
+                        n_chains = n_chains,
+                    )
                 end
             end
         end
@@ -451,7 +469,8 @@ using StatsPlots
                 )
 
                 get_session_parameters!(model, :posterior)
-                state_trajectories = get_state_trajectories!(model, :vector_means, :posterior)
+                state_trajectories =
+                    get_state_trajectories!(model, :vector_means, :posterior)
                 summarize(state_trajectories)
             end
 
@@ -1107,10 +1126,18 @@ using StatsPlots
 
                 #Extract observations and actions from data
                 observations = new_data[!, :observations]
-                actions = Tuple{Union{Missing, Float64}, Union{Missing, Float64}}[Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])]
+                actions = Tuple{Union{Missing,Float64},Union{Missing,Float64}}[
+                    Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])
+                ]
                 #Create model
 
-                model = create_model(new_model, new_prior, observations, actions, infer_missing_actions = true)
+                model = create_model(
+                    new_model,
+                    new_prior,
+                    observations,
+                    actions,
+                    infer_missing_actions = true,
+                )
 
                 #Fit model
                 posterior_chains = sample_posterior!(
@@ -1150,7 +1177,9 @@ using StatsPlots
 
                 #Extract observations and actions from data
                 observations = new_data[!, :observations]
-                actions = Tuple{Union{Missing, Float64}, Union{Missing, Float64}}[Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])]
+                actions = Tuple{Union{Missing,Float64},Union{Missing,Float64}}[
+                    Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])
+                ]
 
                 #Create model
                 model = create_model(new_model, new_prior, observations, actions)
