@@ -12,7 +12,7 @@ function create_model(
     O <:Any,
     OO<:Union{O,Tuple{Vararg{O}}},
     A <:Union{Missing, Real},
-    AA<:Union{A, Tuple{Vararg{A}}},
+    AA<:Union{A, Tuple{Vararg{Union{Missing,A}}}},
     prior_names,
 }
     
@@ -48,8 +48,16 @@ function create_model(
     action_cols = map(x -> Symbol("action_$x"), 1:n_actions)
 
     #Make observations and actions into tuples of vectors
-    observations = evert(observations)
-    actions = evert(actions)
+    if observations isa Vector{<:Tuple}
+        observations = Tuple([observation[i] for observation in observations] for i in 1:length(first(observations)))
+    else
+        observations = (observations,)
+    end
+    if actions isa Vector{<:Tuple}
+        actions = Tuple([action[i] for action in actions] for i in 1:length(first(actions)))
+    else 
+        actions = (actions,)
+    end
 
     #Create dataframe of the observations and actions
     data = hcat(

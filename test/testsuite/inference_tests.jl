@@ -1109,6 +1109,7 @@ using StatsPlots
                 observations = new_data[!, :observations]
                 actions = Tuple{Union{Missing, Float64}, Union{Missing, Float64}}[Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])]
                 #Create model
+
                 model = create_model(new_model, new_prior, observations, actions, infer_missing_actions = true)
 
                 #Fit model
@@ -1149,7 +1150,7 @@ using StatsPlots
 
                 #Extract observations and actions from data
                 observations = new_data[!, :observations]
-                actions = Tuple.(eachrow(new_data[!, [:actions, :actions_2]]))
+                actions = Tuple{Union{Missing, Float64}, Union{Missing, Float64}}[Tuple(row) for row in eachrow(new_data[!, [:actions, :actions_2]])]
 
                 #Create model
                 model = create_model(new_model, new_prior, observations, actions)
