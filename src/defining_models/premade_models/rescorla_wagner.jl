@@ -15,63 +15,65 @@ Base.@kwdef struct RescorlaWagner <: AbstractRescorlaWagner
 end
 
 #Attributes struct
-Base.@kwdef struct RescorlaWagnerAttributes{T<:Union{Real,Array{Real}}} <:
-                   AbstractRescorlaWagner
-    initial_value::Variable{T}
-    learning_rate::Variable
-    expected_value::Variable{T}
+Base.@kwdef mutable struct RescorlaWagnerAttributes{T<:Real,AT<:Union{T,Array{T}}} <:
+                           AbstractRescorlaWagner
+    initial_value::AT
+    learning_rate::T
+    expected_value::AT
 end
 ## Continuous RW ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T},
+    attributes::RescorlaWagnerAttributes{T,AT},
     observation::Float64,
-) where {T<:Real}
+) where {T<:Real,AT<:Real}
     # Update the expected value using the Rescorla-Wagner rule
-    attributes.expected_value.value =
-        attributes.expected_value.value +
-        attributes.learning_rate.value * (observation - attributes.expected_value.value)
+    attributes.expected_value +=
+        attributes.learning_rate * (observation - attributes.expected_value)
 end
 ## Binary RW ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T},
+    attributes::RescorlaWagnerAttributes{T,AT},
     observation::Int64,
-) where {T<:Real}
+) where {T<:Real,AT<:Real}
     #Get new value state
-    attributes.expected_value.value +=
-        attributes.learning_rate.value * (observation - logistic(attributes.expected_value.value))
+    attributes.expected_value +=
+        attributes.learning_rate *
+        (observation - logistic(attributes.expected_value))
 end
 ## Categorical RW ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T},
+    attributes::RescorlaWagnerAttributes{T, AT},
     observation::Int64,
-) where {T<:Array{<:Real}}
+) where {T<:Real,AT<:Array{T}}
     #Make one-hot encoded observation
-    one_hot_observation = zeros(length(attributes.expected_value.value))
+    one_hot_observation = zeros(length(attributes.expected_value))
     one_hot_observation[observation] = 1
 
     update!(attributes, one_hot_observation)
 end
 ## Categorical RW with binary vector input ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T},
+    attributes::RescorlaWagnerAttributes{T, AT},
     observation::Vector{Int64},
-) where {T<:Array{<:Real}}
-    attributes.expected_value.value = map(
+) where {T<:Real,AT<:Array{T}}
+    attributes.expected_value = map(
         (expected_value, single_observation) ->
-            expected_value.value +=
-                attributes.learning_rate.value * (single_observation - logistic(expected_value.value)),
+            expected_value +=
+                attributes.learning_rate *
+                (single_observation - logistic(expected_value)),
         zip(attributes.expected_value, observation),
     )
 end
 ## Categorical RW with continuous vector input ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T},
+    attributes::RescorlaWagnerAttributes{T, AT},
     observation::Vector{Float64},
-) where {T<:Array{<:Real}}
-    attributes.expected_value.value = map(
+) where {T<:Real,AT<:Array{T}}
+    attributes.expected_value = map(
         (expected_value, single_observation) ->
-            expected_value.value +=
-                attributes.learning_rate.value * (single_observation - expected_value.value),
+            expected_value +=
+                attributes.learning_rate *
+                (single_observation - expected_value),
         zip(attributes.expected_value, observation),
     )
 end
@@ -90,10 +92,10 @@ function initialize_attributes(
 ) where {TF,TI}
 
     #Initialize the attributes
-    attributes = RescorlaWagnerAttributes(
-        initial_value = Variable{TF}(model.initial_value),
-        expected_value = Variable{TF}(model.initial_value),
-        learning_rate = Variable{TF}(model.learning_rate),
+    attributes = RescorlaWagnerAttributes{TF, TF}(
+        initial_value = model.initial_value,
+        expected_value = model.initial_value,
+        learning_rate = model.learning_rate,
     )
 
     return attributes
@@ -106,10 +108,10 @@ function initialize_attributes(
 ) where {TF,TI}
 
     #Initialize the attributes
-    attributes = RescorlaWagnerAttributes(
-        initial_value = Variable{Array{TF}}(model.initial_value),
-        expected_value = Variable{Array{TF}}(model.initial_value),
-        learning_rate = Variable{TF}(model.learning_rate),
+    attributes = RescorlaWagnerAttributes{TF, Array{TF}}(
+        initial_value = model.initial_value,
+        expected_value = model.initial_value,
+        learning_rate = model.learning_rate,
     )
 
     return attributes
@@ -135,21 +137,21 @@ end
 ## Reset function ##
 function reset!(attributes::RescorlaWagnerAttributes)
     # Reset the expected value to the initial value
-    attributes.expected_value.value = attributes.initial_value.value
+    attributes.expected_value = attributes.initial_value
     return nothing
 end
 
 ## Get single attribute ##
 function get_parameters(attributes::RescorlaWagnerAttributes, parameter_name::Symbol)
     if parameter_name in [:learning_rate, :initial_value]
-        return getfield(attributes, parameter_name).value
+        return getfield(attributes, parameter_name)
     else
         return AttributeError() #Let the higher level function handle the error
     end
 end
 function get_states(attributes::RescorlaWagnerAttributes, state_name::Symbol)
     if state_name in [:expected_value]
-        return getfield(attributes, state_name).value
+        return getfield(attributes, state_name)
     else
         return AttributeError() #Let the higher level function handle the error
     end
@@ -158,12 +160,12 @@ end
 ## Get all attributes ##
 function get_parameters(attributes::RescorlaWagnerAttributes)
     return (;
-        learning_rate = attributes.learning_rate.value,
-        initial_value = attributes.initial_value.value,
+        learning_rate = attributes.learning_rate,
+        initial_value = attributes.initial_value,
     )
 end
 function get_states(attributes::RescorlaWagnerAttributes)
-    return (; expected_value = attributes.expected_value.value,)
+    return (; expected_value = attributes.expected_value,)
 end
 
 ## Set single attribute (used by attributes) ##
@@ -173,7 +175,7 @@ function set_parameters!(
     parameter_value::T,
 ) where {T<:Union{Real,Array{Real}}}
     if parameter_name in [:learning_rate, :initial_value]
-        getfield(attributes, parameter_name).value = parameter_value
+        setfield!(attributes, parameter_name, parameter_value)
     else
         return AttributeError() #Let the higher level function handle the error
     end
@@ -185,7 +187,7 @@ function set_states!(
     state_value::T,
 ) where {T<:Union{Real,Array{Real}}}
     if state_name in [:expected_value]
-        getfield(attributes, state_name).value = state_value
+        setfield!(attributes, state_name, state_value)
     else
         return AttributeError() #Let the higher level function handle the error
     end
@@ -337,7 +339,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
                     attributes::ModelAttributes,
                 )
                     return Distributions.Normal(
-                        rescorla_wagner.expected_value.value,
+                        rescorla_wagner.expected_value,
                         load_parameters(attributes).action_noise,
                     )
                 end
@@ -350,7 +352,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
                 )
                     return Distributions.Bernoulli(
                         logistic(
-                            rescorla_wagner.expected_value.value *
+                            rescorla_wagner.expected_value *
                             load_parameters(attributes).action_noise,
                         ),
                     )
@@ -364,7 +366,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
                 )
                     return Distributions.Categorical(
                         softmax(
-                            rescorla_wagner.expected_value.value *
+                            rescorla_wagner.expected_value *
                             load_parameters(attributes).action_noise,
                         ),
                     )
