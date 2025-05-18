@@ -88,7 +88,7 @@ function get_session_parameters!(
 
     #Store as SessionParameters struct
     session_parameters =
-        SessionParameters(session_parameters, estimated_parameter_names, session_ids, parameter_types, n_samples, n_chains)
+        SessionParameters(session_parameters, modelfit, estimated_parameter_names, session_ids, parameter_types, n_samples, n_chains)
 
     #Save the session parameters
     sample_result.session_parameters = session_parameters

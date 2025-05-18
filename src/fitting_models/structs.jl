@@ -61,24 +61,8 @@ end
 #########################################
 ### TYPES FOR MODEL FITTING AND TOOLS ###
 #########################################
-### Structs for containing outputted session parameters and state trajectories ###
-struct SessionParameters
-    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
-    estimated_parameter_names::Tuple{Vararg{Symbol}}
-    session_ids::Vector{String}
-    parameter_types::NamedTuple{parameter_names, <:Tuple{Vararg{Type}}} where parameter_names
-    n_samples::Int
-    n_chains::Int
-end
-
-struct StateTrajectories
-    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
-    state_names::Vector{Symbol}
-    session_ids::Vector{String}
-    state_types::NamedTuple{state_names, <:Tuple{Vararg{Type}}} where state_names
-    n_samples::Int
-    n_chains::Int
-end
+## Abstract type for containing fitting results for storing in the following ##
+abstract type AbstractFittingResult end
 
 ### Structs for storing results of model fitting ###
 Base.@kwdef struct ModelFitInfo
@@ -88,15 +72,37 @@ end
 
 Base.@kwdef mutable struct ModelFitResult
     chains::Chains
-    session_parameters::Union{Nothing,SessionParameters} = nothing
+    session_parameters::Union{Nothing,AbstractFittingResult} = nothing
 end
 
 Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
     model::DynamicPPL.Model
     population_model_type::T
+    population_data::DataFrame
     info::ModelFitInfo
     prior::Union{ModelFitResult,Nothing} = nothing
     posterior::Union{ModelFitResult,Nothing} = nothing
+end
+
+### Structs for containing outputted session parameters and state trajectories ###
+struct SessionParameters <: AbstractFittingResult
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    modelfit::ModelFit
+    estimated_parameter_names::Tuple{Vararg{Symbol}}
+    session_ids::Vector{String}
+    parameter_types::NamedTuple{parameter_names, <:Tuple{Vararg{Type}}} where parameter_names
+    n_samples::Int
+    n_chains::Int
+end
+
+struct StateTrajectories <: AbstractFittingResult
+    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    modelfit::ModelFit
+    state_names::Vector{Symbol}
+    session_ids::Vector{String}
+    state_types::NamedTuple{state_names, <:Tuple{Vararg{Type}}} where state_names
+    n_samples::Int
+    n_chains::Int
 end
 
 

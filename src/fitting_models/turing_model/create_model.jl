@@ -184,9 +184,13 @@ function create_model(
         initial_states,
     )
 
+    ## Extract population data ##
+    population_data = unique(data, session_cols)
+
     return ModelFit(
         model = model,
         population_model_type = population_model_type,
+        population_data = population_data,
         info = ModelFitInfo(
             estimated_parameter_names = parameters_to_estimate,
             session_ids = session_ids,
