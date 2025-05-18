@@ -35,7 +35,7 @@ end
 
 #Including the index file 
 Literate.markdown(
-    joinpath(julia_files_folder, "index.jl"),
+    joinpath(julia_files_folder, "E_others", "index.jl"),
     markdown_files_folder,
     execute = true,
     documenter = true,
@@ -44,7 +44,7 @@ Literate.markdown(
 
 #And the README
 Literate.markdown(
-    joinpath(julia_files_folder, "README.jl"),
+    joinpath(julia_files_folder, "E_others", "README.jl"),
     project_dir,
     execute = true,
     flavor = Literate.CommonMarkFlavor(),
@@ -74,24 +74,10 @@ makedocs(;
     ),
     doctest = true,
     pages = [
-        "Introduction to Action Models" => [
+        "Welcome to ActionModels" => [
             joinpath(".", "index.md"),
-            # joinpath(".", "generated", "agent_and_actionmodel.md"),
-            # joinpath(".", "generated", "fitting_vs_simulating.md"),
         ]
-        # "Creating Your Model" => [
-        #     joinpath(".", "generated", "creating_own_action_model.md"),
-        #     joinpath(".", "generated", "premade_agents_and_models.md"),
-        # ]
-        # "Agent Based Simulation" => [
-        #     joinpath(".", "generated", "simulation_with_an_agent.md"),
-        #     joinpath(".", "generated", "variations_of_util.md"),
-        # ]
-        # "Fitting an Agent Model" => [
-        #     joinpath(".", "generated", "fitting_an_agent_model_to_data.md"),
-        #     joinpath(".", "generated", "prior_predictive_sim.md"),
-        # ]
-        # "All Functions" => joinpath(".", "generated", "all_functions.md")
+        
     ]
 )
 

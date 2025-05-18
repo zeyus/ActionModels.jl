@@ -10,7 +10,7 @@ using CSV, DataFrames
 
 action_cols = [:deck]
 input_cols = [:deck, :reward]
-grouping_cols = [:subjID]
+session_cols = [:subjID]
 
 # Import data
 data_healthy = CSV.read(
@@ -79,7 +79,7 @@ model = create_model(
     inv_links = exp,
     action_cols = [:deck],
     input_cols = [:deck, :reward],
-    grouping_cols = [:subjID],
+    session_cols = [:subjID],
 )
 
 # AD = AutoForwardDiff()
@@ -115,7 +115,7 @@ model = create_model(
     inv_links = [logistic, logistic, exp, exp],
     action_cols = action_cols,
     input_cols = input_cols,
-    grouping_cols = grouping_cols,
+    session_cols = session_cols,
 )
 
 # AD = AutoForwardDiff()

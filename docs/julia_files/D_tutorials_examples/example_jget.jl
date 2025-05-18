@@ -8,7 +8,7 @@ using CSV, DataFrames
 
 action_cols = [:response]
 input_cols = [:outcome]
-grouping_cols = [:ID, :session]
+session_cols = [:ID, :session]
 
 #Data from https://github.com/nacemikus/jget-schizotypy
 #Trial-level data
@@ -37,13 +37,13 @@ JGET_data.outcome = Float64.(JGET_data.outcome)
 
 #Remove ID's with missing actions
 JGET_data = combine(
-    groupby(JGET_data, grouping_cols),
+    groupby(JGET_data, session_cols),
     subdata -> any(ismissing, Matrix(subdata[!, action_cols])) ? DataFrame() : subdata,
 )
 disallowmissing!(JGET_data, action_cols)
 #Remove ID's with missing pdi_scores
 JGET_data = combine(
-    groupby(JGET_data, grouping_cols),
+    groupby(JGET_data, session_cols),
     subdata -> any(ismissing, Matrix(subdata[!, [:pdi_total]])) ? DataFrame() : subdata,
 )
 disallowmissing!(JGET_data, [:pdi_total])
@@ -81,7 +81,7 @@ model = create_model(
     inv_links = Function[identity, exp],
     action_cols = action_cols,
     input_cols = input_cols,
-    grouping_cols = grouping_cols,
+    session_cols = session_cols,
 )
 
 # AD = AutoForwardDiff()
@@ -117,7 +117,7 @@ model = create_model(
     inv_links = Function[logistic, exp, identity],
     action_cols = action_cols,
     input_cols = input_cols,
-    grouping_cols = grouping_cols,
+    session_cols = session_cols,
 )
 
 # AD = AutoForwardDiff()
