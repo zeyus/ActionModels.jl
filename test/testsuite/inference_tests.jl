@@ -56,7 +56,7 @@ using StatsPlots
     #Define observation and action cols
     observation_cols = [:observations]
     action_cols = [:actions]
-    grouping_cols = [:id, :treatment]
+    session_cols = [:id, :treatment]
 
     #Create model
     action_model = ActionModel(PremadeRescorlaWagner())
@@ -111,7 +111,7 @@ using StatsPlots
                 data,
                 observation_cols = observation_cols,
                 action_cols = action_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             @testset "sampling and extracting results $(AD)" begin
@@ -297,7 +297,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -352,7 +352,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     parameters_to_estimate = (
                         :learning_rate,
                         :action_noise,
@@ -403,7 +403,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -457,7 +457,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -505,7 +505,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = [:actions_mv],
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -525,7 +525,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     check_parameter_rejections = true,
                 )
 
@@ -569,7 +569,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     check_parameter_rejections = true,
                 )
 
@@ -617,7 +617,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -668,7 +668,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -696,7 +696,7 @@ using StatsPlots
                     new_data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     check_parameter_rejections = true,
                 )
 
@@ -714,7 +714,7 @@ using StatsPlots
                 summarize(state_trajectories)
             end
 
-            @testset "independent sessions model, single grouping column ($AD)" begin
+            @testset "independent sessions model, single session column ($AD)" begin
                 #Create model
                 model = create_model(
                     action_model,
@@ -722,7 +722,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = [:id],
+                    session_cols = [:id],
                 )
 
                 #Fit model
@@ -734,7 +734,7 @@ using StatsPlots
                 )
             end
 
-            @testset "independent sessions model, no grouping columns ($AD)" begin
+            @testset "independent sessions model, no session columns ($AD)" begin
                 #Create model
                 model = create_model(
                     action_model,
@@ -784,7 +784,7 @@ using StatsPlots
                     data,
                     observation_cols = observation_cols,
                     action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -831,7 +831,7 @@ using StatsPlots
                     data,
                     observation_cols = [:observations, :observations_2],
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -879,7 +879,7 @@ using StatsPlots
                     data,
                     observation_cols = [:observations, :observations_2],
                     action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                 )
 
                 #Fit model
@@ -953,7 +953,7 @@ using StatsPlots
                     new_data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     infer_missing_actions = true,
                 )
 
@@ -979,7 +979,7 @@ using StatsPlots
                     new_data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     infer_missing_actions = false,
                 )
 
@@ -1083,7 +1083,7 @@ using StatsPlots
                     new_data,
                     observation_cols = observation_cols,
                     action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     infer_missing_actions = true,
                 )
 
@@ -1228,7 +1228,7 @@ using StatsPlots
                     new_data,
                     observation_cols = observation_cols,
                     action_cols = [:actions, :actions_2],
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     infer_missing_actions = false,
                 )
 
@@ -1281,7 +1281,7 @@ using StatsPlots
                     new_data,
                     observation_cols = observation_cols,
                     action_cols = action_cols,
-                    grouping_cols = grouping_cols,
+                    session_cols = session_cols,
                     infer_missing_actions = true,
                 )
 

@@ -15,7 +15,7 @@ function create_model(
         Vector{Symbol},
         Symbol,
     },
-    grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
+    session_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     parameters_to_estimate::Tuple{Vararg{Symbol}},
     infer_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
@@ -73,8 +73,8 @@ function create_model(
     )
 
     #Grouping columns are a vector of symbols
-    if !(grouping_cols isa Vector)
-        grouping_cols = [grouping_cols]
+    if !(session_cols isa Vector)
+        session_cols = [session_cols]
     end
 
     ## Check whether to skip or infer missing data ##
@@ -115,7 +115,7 @@ function create_model(
         data,
         observation_cols,
         action_cols,
-        grouping_cols,
+        session_cols,
         population_model_type,
         parameters_to_estimate,
     )
@@ -141,13 +141,13 @@ function create_model(
     )
 
     ## Group data by sessions ##
-    grouped_data = groupby(data, grouping_cols)
+    grouped_data = groupby(data, session_cols)
 
     ## Create IDs for each session ##
     session_ids = [
         join(
             [
-                string(col_name) * id_column_separator * string(first(subdata)[col_name]) for col_name in grouping_cols
+                string(col_name) * id_column_separator * string(first(subdata)[col_name]) for col_name in session_cols
             ],
             id_separator,
         ) for subdata in grouped_data
@@ -260,13 +260,13 @@ function check_model(
     data::DataFrame,
     observation_cols::NamedTuple{observation_names_cols,<:Tuple{Vararg{Symbol}}},
     action_cols::NamedTuple{action_names_cols,<:Tuple{Vararg{Symbol}}},
-    grouping_cols::Vector{Symbol},
+    session_cols::Vector{Symbol},
     population_model_type::AbstractPopulationModel,
     parameters_to_estimate::Tuple{Vararg{Symbol}},
 ) where {observation_names_cols,action_names_cols}
 
     #Check that user-specified columns exist in the dataset
-    if any(grouping_cols .∉ Ref(Symbol.(names(data))))
+    if any(session_cols .∉ Ref(Symbol.(names(data))))
         throw(
             ArgumentError(
                 "There are specified group columns that do not exist in the dataframe",

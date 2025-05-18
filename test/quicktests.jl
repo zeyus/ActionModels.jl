@@ -54,7 +54,7 @@ data = DataFrame(
 #Define observation and action cols
 observation_cols = [:observations]
 action_cols = [:actions]
-grouping_cols = [:id, :treatment]
+session_cols = [:id, :treatment]
 
 
 #Create and fit model
@@ -71,7 +71,7 @@ model = create_model(
     data,
     observation_cols = observation_cols,
     action_cols = action_cols,
-    grouping_cols = grouping_cols,
+    session_cols = session_cols,
 )
 
 sample_posterior!(model, n_chains = 1, n_samples = 50)

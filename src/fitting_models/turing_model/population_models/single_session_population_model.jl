@@ -65,9 +65,9 @@ function create_model(
         DataFrame(NamedTuple{Tuple(action_cols)}(actions)),
     )
 
-    #Add grouping column
-    grouping_cols = :session
-    data[!, grouping_cols] .= :single_session
+    #Add session column
+    session_cols = :session
+    data[!, session_cols] .= :single_session
 
     #Create an independent_population_model with the single session
     return create_model(
@@ -76,7 +76,7 @@ function create_model(
         data;
         observation_cols = observation_cols,
         action_cols = action_cols,
-        grouping_cols = grouping_cols,
+        session_cols = session_cols,
         verbose = verbose,
         population_model_type = SingleSessionPopulationModel(),
         kwargs...,

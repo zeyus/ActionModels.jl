@@ -38,7 +38,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     #Define observation and action cols
     observation_cols = [:observation]
     action_cols = [:action]
-    grouping_cols = [:id, :treatment]
+    session_cols = [:id, :treatment]
 
     #Create action model
     action_model = ActionModel(PremadeRescorlaWagner())
@@ -69,7 +69,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -88,7 +88,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -114,7 +114,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             #     data;
             #     action_cols = action_cols,
             #     observation_cols = observation_cols,
-            #     grouping_cols = grouping_cols,
+            #     session_cols = session_cols,
             # )
 
             # samples = sample(model, sampler, n_iterations; sampling_kwargs...)
@@ -127,7 +127,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -150,7 +150,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -173,7 +173,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -196,7 +196,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 data;
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -221,7 +221,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             #     data;
             #     action_cols = action_cols,
             #     observation_cols = observation_cols,
-            #     grouping_cols = grouping_cols,
+            #     session_cols = session_cols,
             # )
 
             # samples = sample(model, sampler, n_iterations; sampling_kwargs...)
@@ -238,7 +238,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 inv_links = [identity, LogExpFunctions.exp],
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior
@@ -272,7 +272,7 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 ],
                 action_cols = action_cols,
                 observation_cols = observation_cols,
-                grouping_cols = grouping_cols,
+                session_cols = session_cols,
             )
 
             #Posterior

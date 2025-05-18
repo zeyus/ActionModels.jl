@@ -15,7 +15,7 @@ function create_model(
         Vector{Symbol},
         Symbol,
     },
-    grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
+    session_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     population_model_type::Union{IndependentPopulationModel,SingleSessionPopulationModel} = IndependentPopulationModel(),
     verbose::Bool = true,
     kwargs...,
@@ -33,13 +33,13 @@ function create_model(
         data,
         observation_cols,
         action_cols,
-        grouping_cols,
+        session_cols,
         verbose;
         kwargs...,
     )
 
     #Get number of sessions
-    n_sessions = length(groupby(data, grouping_cols))
+    n_sessions = length(groupby(data, session_cols))
 
     #Get the names of the estimated parameters
     parameters_to_estimate = keys(prior)
@@ -59,7 +59,7 @@ function create_model(
         data;
         observation_cols = observation_cols,
         action_cols = action_cols,
-        grouping_cols = grouping_cols,
+        session_cols = session_cols,
         parameters_to_estimate = parameters_to_estimate,
         population_model_type = population_model_type,
         kwargs...,
@@ -116,7 +116,7 @@ function check_population_model(
         Vector{Symbol},
         Symbol,
     },
-    grouping_cols::Union{Vector{Symbol},Symbol},
+    session_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
 ) where {prior_names, observation_names, action_names}

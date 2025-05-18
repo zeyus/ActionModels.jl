@@ -19,7 +19,7 @@
 
 ## DOCUMENTATION ##
 # TODO: add to documentation
-#       - TODO: that there shouldn't be random slopes for the most specific level of grouping column (particularly when you only have one grouping column)
+#       - TODO: that there shouldn't be random slopes for the most specific level of session column (particularly when you only have one session column)
 
 
 ###################################
@@ -41,7 +41,7 @@ function create_model(
         Vector{Symbol},
         Symbol,
     },
-    grouping_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
+    session_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     verbose::Bool = true,
     kwargs...,
 ) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, observation_names, action_names}
@@ -56,7 +56,7 @@ function create_model(
         inv_links,
         observation_cols,
         action_cols,
-        grouping_cols,
+        session_cols,
         verbose;
         kwargs...,
     )
@@ -90,7 +90,7 @@ function create_model(
     end
 
     #Extract just the data needed for the linear regression
-    population_data = unique(data, grouping_cols)
+    population_data = unique(data, session_cols)
     #Extract number of agents
     n_agents = nrow(population_data)
 
@@ -178,7 +178,7 @@ function create_model(
         data;
         observation_cols = observation_cols,
         action_cols = action_cols,
-        grouping_cols = grouping_cols,
+        session_cols = session_cols,
         parameters_to_estimate = Tuple(estimated_parameter_names),
         population_model_type = RegressionPopulationModel(),
         kwargs...,
@@ -339,7 +339,7 @@ function check_population_model(
         Vector{Symbol},
         Symbol,
     },
-    grouping_cols::Union{Vector{Symbol},Symbol},
+    session_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
 ) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, observation_names, action_names}

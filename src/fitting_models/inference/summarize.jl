@@ -11,8 +11,8 @@ function Turing.summarize(
     parameter_types = session_parameters.parameter_types
     session_parameters = session_parameters.value
 
-    #Construct grouping column names
-    grouping_cols = [
+    #Construct session column names
+    session_cols = [
         Symbol(first(split(i, id_column_separator))) for
         i in split(string(first(session_ids)), id_separator)
     ]
@@ -49,8 +49,8 @@ function Turing.summarize(
     #Create dataframe
     df = DataFrame(df_cols)
 
-    #Add grouping colnames
-    for column_name in grouping_cols
+    #Add session colnames
+    for column_name in session_cols
         df[!, column_name] = String[]
     end
 
@@ -63,7 +63,7 @@ function Turing.summarize(
             #Split session ids
             split_session_ids = split(string(session_id), id_separator)
             #Add them to the row
-            for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
+            for (session_id_part, column_name) in zip(split_session_ids, session_cols)
                 row["$column_name"] = string(split(session_id_part, id_column_separator)[2])
             end
 
@@ -93,7 +93,7 @@ function Turing.summarize(
     end
 
     # Reorder the columns to have session id's as the first columns
-    select!(df, grouping_cols, names(df)[1:(end-length(grouping_cols))]...)
+    select!(df, session_cols, names(df)[1:(end-length(session_cols))]...)
 
     return df
 end
@@ -113,8 +113,8 @@ function Turing.summarize(
     state_types = state_trajectories.state_types
     state_trajectories = state_trajectories.value
 
-    #Construct grouping column names
-    grouping_cols = [
+    #Construct session column names
+    session_cols = [
         first(split(i, id_column_separator)) for
         i in split(string(first(session_ids)), id_separator)
     ]
@@ -148,8 +148,8 @@ function Turing.summarize(
     #Create dataframe
     df = DataFrame(df_cols)
 
-    #Add grouping columns and the timestep column.
-    for column_name in grouping_cols
+    #Add session columns and the timestep column.
+    for column_name in session_cols
         df[!, column_name] = String[]
     end
     df[!, "timestep"] = Int[]
@@ -164,7 +164,7 @@ function Turing.summarize(
             #Split session ids
             split_session_ids = split(string(session_id), id_separator)
             #Add them to the row
-            for (session_id_part, column_name) in zip(split_session_ids, grouping_cols)
+            for (session_id_part, column_name) in zip(split_session_ids, session_cols)
                 row["$column_name"] = string(split(session_id_part, id_column_separator)[2])
             end
 
@@ -204,7 +204,7 @@ function Turing.summarize(
     end
 
     # Reorder the columns to have session id's as the first columns
-    select!(df, grouping_cols, "timestep", names(df)[1:(end-length(grouping_cols)-1)]...)
+    select!(df, session_cols, "timestep", names(df)[1:(end-length(session_cols)-1)]...)
 
     return df
 end
