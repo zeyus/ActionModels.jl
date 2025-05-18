@@ -11,11 +11,7 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
 
     @testset "Aqua.jl tests" begin
         using Aqua
-        Aqua.test_all(
-            ActionModels,
-            ambiguities = false,
-            unbound_args = false, #TODO: turn these on again
-        )
+        Aqua.test_all(ActionModels, unbound_args = false)
     end
 
     @testset "quick tests" begin
@@ -41,7 +37,7 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
         documentation_path = joinpath(ActionModels_path, "docs", "julia_files")
 
         # List the julia filenames in the documentation source files folder
-        filenames = [glob("*/*.jl", documentation_path); glob("*.jl", documentation_path)] 
+        filenames = [glob("*/*.jl", documentation_path); glob("*.jl", documentation_path)]
 
         for filename in filenames
             @testset "$(splitpath(filename)[end])" begin
