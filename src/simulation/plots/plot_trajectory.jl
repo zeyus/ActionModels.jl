@@ -36,6 +36,7 @@
 
     #Plot the history
     @series begin
+        label --> nothing
         seriestype --> :path
         markersize --> 5
         title --> "$target_state"
