@@ -38,22 +38,22 @@ end
 Input struct for specifying a regression
 """
 struct Regression
-    formula::MixedModels.FormulaTerm
-    prior::RegPrior
+    formula::FormulaTerm
+    prior::RegressionPrior
     inv_link::Function
 
-    Regression(
-        formula::MixedModels.FormulaTerm,
-        prior::RegPrior = RegPrior(),
+    function Regression(
+        formula::FormulaTerm,
+        prior::RegressionPrior = RegressionPrior(),
         inv_link::Function = identity,
-    ) = begin
+    )
         new(formula, prior, inv_link)
     end
-    Regression(
-        formula::MixedModels.FormulaTerm,
+    function Regression(
+        formula::FormulaTerm,
         inv_link::Function,
-        prior::RegPrior = RegPrior(),
-    ) = begin
+        prior::RegressionPrior = RegressionPrior(),
+    )
         new(formula, prior, inv_link)
     end
 end
@@ -86,21 +86,24 @@ end
 
 ### Structs for containing outputted session parameters and state trajectories ###
 struct SessionParameters <: AbstractFittingResult
-    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    value::NamedTuple{names,<:Tuple{Vararg{NamedTuple}}} where {names}
     modelfit::ModelFit
     estimated_parameter_names::Tuple{Vararg{Symbol}}
     session_ids::Vector{String}
-    parameter_types::NamedTuple{parameter_names, <:Tuple{Vararg{Type}}} where parameter_names
+    parameter_types::NamedTuple{
+        parameter_names,
+        <:Tuple{Vararg{Type}},
+    } where {parameter_names}
     n_samples::Int
     n_chains::Int
 end
 
 struct StateTrajectories <: AbstractFittingResult
-    value::NamedTuple{names, <:Tuple{Vararg{NamedTuple}}} where names
+    value::NamedTuple{names,<:Tuple{Vararg{NamedTuple}}} where {names}
     modelfit::ModelFit
     state_names::Vector{Symbol}
     session_ids::Vector{String}
-    state_types::NamedTuple{state_names, <:Tuple{Vararg{Type}}} where state_names
+    state_types::NamedTuple{state_names,<:Tuple{Vararg{Type}}} where {state_names}
     n_samples::Int
     n_chains::Int
 end

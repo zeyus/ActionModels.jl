@@ -36,7 +36,8 @@ export set_parameters!, set_states!, set_actions!, reset!
 #export plot_trajectory, plot_trajectory!
 
 ## For fitting models ##
-export create_model, RegressionPrior
+export create_model
+export Regression, RegressionPrior, exp, logistic
 export sample_prior!, sample_posterior!, SampleSaveResume
 export get_session_parameters!, get_state_trajectories!, summarize
 # export parameter_recovery
@@ -48,7 +49,6 @@ export @formula
 ## Constants for creating ids and names consistently ##
 const id_separator = "."
 const id_column_separator = ":"
-const tuple_separator = "."
 
 
 ### Types ###

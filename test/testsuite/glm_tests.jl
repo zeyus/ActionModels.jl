@@ -1,7 +1,17 @@
 using Test
 
-using ActionModels, DataFrames, LogExpFunctions
-using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
+using ActionModels
+using DataFrames
+import ForwardDiff
+
+import ReverseDiff
+import Mooncake
+import FiniteDifferences: central_fdm
+import Enzyme: set_runtime_activity, Forward, Reverse
+using ADTypes:
+    AutoForwardDiff, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
+
+using StatsPlots
 
 @testset "linear regression tests" begin
 
@@ -48,18 +58,31 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
     n_chains = 2
 
     #Go through each supported AD type
-    for AD in
-        ["AutoForwardDiff", "AutoReverseDiff", "AutoReverseDiff(true)", "AutoMooncake"]
+    for AD in [
+        "ForwardDiff",
+        "ReverseDiff",
+        "ReverseDiff Compiled",
+        "Mooncake",
+        "Enzyme Forward",
+        "Enzyme Reverse",
+        "FiniteDifferences",
+    ]
 
         #Select appropriate AD backend
-        if AD == "AutoForwardDiff"
+        if AD == "ForwardDiff"
             ad_type = AutoForwardDiff()
-        elseif AD == "AutoReverseDiff"
+        elseif AD == "ReverseDiff"
             ad_type = AutoReverseDiff()
-        elseif AD == "AutoReverseDiff(true)"
+        elseif AD == "ReverseDiff Compiled"
             ad_type = AutoReverseDiff(; compile = true)
-        elseif AD == "AutoMooncake"
+        elseif AD == "Mooncake"
             ad_type = AutoMooncake(; config = nothing)
+        elseif AD == "Enzyme Forward"
+            ad_type = AutoEnzyme(; mode = set_runtime_activity(Forward, true))
+        elseif AD == "Enzyme Reverse"
+            ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true))
+        elseif AD == "FiniteDifferences"
+            ad_type = AutoFiniteDifferences(; fdm = central_fdm(5, 1))
         end
 
         @testset "intercept only ($ad_type)" begin
@@ -79,7 +102,6 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
                 n_samples = n_samples,
                 n_chains = n_chains,
             )
-
         end
         @testset "intercept + random effect only ($ad_type)" begin
             model = create_model(
@@ -231,11 +253,10 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             model = create_model(
                 action_model,
                 [
-                    @formula(learning_rate ~ age + (1 | id)),
-                    @formula(action_noise ~ age + (1 | id)),
+                    Regression(@formula(learning_rate ~ age + (1 | id))),
+                    Regression(@formula(action_noise ~ age + (1 | id)), exp),
                 ],
                 data;
-                inv_links = [identity, LogExpFunctions.exp],
                 action_cols = action_cols,
                 observation_cols = observation_cols,
                 session_cols = session_cols,
@@ -258,18 +279,20 @@ using Turing: AutoForwardDiff, AutoReverseDiff, AutoMooncake
             model = create_model(
                 action_model,
                 [
-                    @formula(learning_rate ~ age + (1 + age | treatment) + (1 | id)),
-                    @formula(action_noise ~ age + (1 | id)),
+                    Regression(
+                        @formula(learning_rate ~ age + (1 | id)),
+                        RegressionPrior(
+                            β = [Normal(0, 1), Normal(0, 1)],
+                            σ = [[LogNormal(0, 1), LogNormal(0, 1)], [LogNormal(0, 1)]],
+                        ),
+                    ),
+                    Regression(
+                        @formula(action_noise ~ age + (1 | id)),
+                        exp,
+                        RegressionPrior(β = Normal(0, 1)),
+                    ),
                 ],
                 data;
-                inv_links = [logistic, LogExpFunctions.exp],
-                priors = [
-                    RegressionPrior(
-                        β = [Normal(0, 1), Normal(0, 1)],
-                        σ = [[LogNormal(0, 1), LogNormal(0, 1)], [LogNormal(0, 1)]],
-                    ),
-                    RegressionPrior(β = Normal(0, 1)),
-                ],
                 action_cols = action_cols,
                 observation_cols = observation_cols,
                 session_cols = session_cols,

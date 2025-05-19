@@ -27,10 +27,8 @@
 ###################################
 function create_model(
     action_model::ActionModel,
-    regression_formulas::Union{F,Vector{F}},
+    regressions::Union{F,Vector{F}},
     data::DataFrame;
-    priors::Union{R,Vector{R}} = RegressionPrior(),
-    inv_links::Union{Function,Vector{Function}} = identity,
     observation_cols::Union{
         NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
@@ -44,16 +42,27 @@ function create_model(
     session_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     verbose::Bool = true,
     kwargs...,
-) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, observation_names, action_names}
+) where {F<:Union{Regression, FormulaTerm}, observation_names,action_names}
+
+    ## Setup ##
+    #If there is only one regression
+    if regressions isa F
+        #Put it in a vector
+        regressions = F[regressions]
+    end
+
+    #Make sure that single formulas are made into Regression objects
+    regressions = [
+        regression isa Regression ? regression : Regression(regression)
+        for regression in regressions
+    ]
 
     #Check population_model
     check_population_model(
         RegressionPopulationModel(),
         action_model,
-        regression_formulas,
+        regressions,
         data,
-        priors,
-        inv_links,
         observation_cols,
         action_cols,
         session_cols,
@@ -61,48 +70,23 @@ function create_model(
         kwargs...,
     )
 
-    ## Setup ##
-    #If there is only one formula
-    if regression_formulas isa F
-        #Put it in a vector
-        regression_formulas = F[regression_formulas]
-    end
-
-    #If there is only one prior specified
-    if priors isa RegressionPrior
-        #Make a copy of it for each formula
-        priors = RegressionPrior[priors for _ = 1:length(regression_formulas)]
-    end
-
-    #If there is only one link function specified
-    if inv_links isa Function
-        #Put it in a vector
-        inv_links = Function[inv_links for _ = 1:length(regression_formulas)]
-    end
-
-    #Check that lengths are all the same
-    if !(length(regression_formulas) == length(priors) == length(inv_links))
-        throw(
-            ArgumentError(
-                "The number of regression formulas, priors, and link functions must be the same",
-            ),
-        )
-    end
-
     #Extract just the data needed for the linear regression
     population_data = unique(data, session_cols)
-    #Extract number of agents
-    n_agents = nrow(population_data)
+    #Extract number of sessions
+    n_sessions = nrow(population_data)
 
     ## Condition single regression models ##
-
     #Initialize vector of sinlge regression models
-    regression_models = Vector{DynamicPPL.Model}(undef, length(regression_formulas))
-    estimated_parameter_names = Vector{Symbol}(undef, length(regression_formulas))
+    regression_models = Vector{DynamicPPL.Model}(undef, length(regressions))
+    estimated_parameter_names = Vector{Symbol}(undef, length(regressions))
 
     #For each formula in the regression formulas, and its corresponding prior and link function
-    for (model_idx, (formula, prior, inv_link)) in
-        enumerate(zip(regression_formulas, priors, inv_links))
+    for (model_idx, regression) in enumerate(regressions)
+
+        #Extract information from the regression object
+        formula = regression.formula
+        prior = regression.prior
+        inv_link = regression.inv_link
 
         #Prepare the data for the regression model
         X, Z = prepare_regression_data(formula, population_data)
@@ -167,11 +151,14 @@ function create_model(
         estimated_parameter_names[model_idx] = Symbol(formula.lhs)
     end
 
-    #Create the combined regression statistical model
-    population_model =
-        regression_population_model(regression_models, estimated_parameter_names, n_agents)
+    #Create the combined regression population model
+    population_model = regression_population_model(
+        regression_models,
+        estimated_parameter_names,
+        n_sessions,
+    )
 
-    #Create a full model combining the agent model and the statistical model
+    #Create a full model combining the session model and the population model
     return create_model(
         action_model,
         population_model,
@@ -189,13 +176,14 @@ end
 @model function regression_population_model(
     linear_submodels::Vector{T},
     estimated_parameter_names::Vector{Symbol},
-    n_agents::Int,
+    n_sessions::Int,
 ) where {T<:DynamicPPL.Model}
 
     #Sample the parameters for each regression
     sampled_parameters = Tuple(
         p ~ to_submodel(prefix(linear_submodel, parameter_name), false) for
-        (linear_submodel, parameter_name) in zip(linear_submodels, estimated_parameter_names)
+        (linear_submodel, parameter_name) in
+        zip(linear_submodels, estimated_parameter_names)
     )
 
     return zip(sampled_parameters...)
@@ -279,7 +267,7 @@ end
 ###############################
 ## Prepare the regression data structures ##
 function prepare_regression_data(
-    formula::MixedModels.FormulaTerm,
+    formula::FormulaTerm,
     population_data::DataFrame,
 )
     #Inset column with the name fo the agetn parameter, to avoid error from MixedModel
@@ -325,10 +313,8 @@ end
 function check_population_model(
     model_type::RegressionPopulationModel,
     action_model::ActionModel,
-    regression_formulas::Union{F,Vector{F}},
+    regressions::Union{F,Vector{F}},
     data::DataFrame,
-    priors::Union{R,Vector{R}},
-    inv_links::Union{Function,Vector{Function}},
     observation_cols::Union{
         NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
         Vector{Symbol},
@@ -342,7 +328,7 @@ function check_population_model(
     session_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
-) where {F<:MixedModels.FormulaTerm,R<:RegressionPrior, observation_names, action_names}
+) where {F<:Regression,observation_names,action_names}
 
     #TODO: Make a check for whether there are NaN values in the predictors
     # if any(isnan.(data[!, predictor_cols]))
