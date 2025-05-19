@@ -27,7 +27,7 @@ function rescorla_wagner(attributes::ModelAttributes, observation::Float64)
     α = parameters.learning_rate
     β = parameters.action_noise
     Vₜ₋₁ = states.expected_value
-    
+
     #The Rescorla-Wagner update rule updates the expected value U, based on the observation and the learning rate α
     Vₜ = Vₜ₋₁ + α * (observation - Vₜ₋₁)
 
@@ -98,18 +98,12 @@ show(data)
 # We include a random intercept for each participant, making this a hierarchical model.
 # The initial value parameter is not estimated, and is fixed to it's default: 0. 
 
-# model = create_model(
-#     action_model,
-#     [@formula(learning_rate ~ treatment + (1 | id)), @formula(action_noise ~ treatment + (1 | id))],
-#     data;
-#     action_cols = :actions,
-#     observation_cols = :observations,
-#     session_cols = [:id, :treatment],
-# )
-
 model = create_model(
     action_model,
-    [@formula(learning_rate ~ treatment + (1 | id))],
+    [
+        Regression(@formula(learning_rate ~ treatment + (1 | id)), logistic), #use a logistic link function to ensure that the learning rate is between 0 and 1
+        Regression(@formula(action_noise ~ treatment + (1 | id)), exp),        #use an exponential link function to ensure that the action noise is positive
+    ],
     data;
     action_cols = :actions,
     observation_cols = :observations,
@@ -144,11 +138,11 @@ agent = init_agent(action_model, save_history = [:expected_value]) #Create an ag
 # We can set parameter values for the agent, and simulate behaviour for some set of observations
 
 #Set the parameters of the agent
-set_parameters!(agent, (learning_rate = 0.8, action_noise = 0.01)) 
+set_parameters!(agent, (learning_rate = 0.8, action_noise = 0.01))
 
 #Simulate the agent for 6 timesteps, with some the specified observations
 observations = [0.1, 0.1, 0.2, 0.3, 0.1, 0.2]
-simulated_actions = simulate!(agent, observations) 
+simulated_actions = simulate!(agent, observations)
 
 #Plot the change in expected value over time
 plot(agent, :expected_value, label = "expected value", ylabel = "value")
