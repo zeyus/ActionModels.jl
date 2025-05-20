@@ -1,0 +1,1 @@
+![im_action_loop](../images/action_loop.svg)

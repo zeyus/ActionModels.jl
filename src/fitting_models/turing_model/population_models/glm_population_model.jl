@@ -12,6 +12,7 @@
 # TODO: allow using GLM with multivariate parameters - set an aray of regression models
 
 ## FUNCTIONALITY ##
+# TODO: look at Turing's suggestions for regression models: https://turinglang.org/docs/tutorials/bayesian-linear-regression/
 # TODO: use an mvnormal to sample all the random effects, instead of a huge constructed arraydist
 # TODO: add covariance between random effects
 # TODO: add option for independence between random effect groups (like brms' group_by = )
