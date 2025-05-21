@@ -62,12 +62,6 @@ include(joinpath("defining_models", "prints.jl"))
 include(joinpath("defining_models", "model_attributes.jl"))
 include(joinpath("defining_models", "manipulate_attributes.jl"))
 include(joinpath("defining_models", "no_submodel_dispatches.jl"))
-#Read in all premade models
-for premade_model_file in readdir(joinpath("src", "defining_models", "premade_models"))
-    if endswith(premade_model_file, ".jl")
-        include(joinpath("defining_models", "premade_models", premade_model_file))
-    end
-end
 
 ### Functions for simulation ###
 include(joinpath("simulation", "prints.jl"))
@@ -94,5 +88,9 @@ include(joinpath("fitting_models", "plots", "plot_parameters_single_session.jl")
 include(joinpath("fitting_models", "plots", "plot_parameters_all_sessions.jl"))
 include(joinpath("fitting_models", "plots", "plot_trajectories_single_session.jl"))
 include(joinpath("fitting_models", "plots", "plot_trajectories_all_sessions.jl"))
+
+### Premade model library ###
+include(joinpath("premade_models", "rescorla_wagner.jl"))
+include(joinpath("premade_models", "pvl_delta.jl"))
 
 end
