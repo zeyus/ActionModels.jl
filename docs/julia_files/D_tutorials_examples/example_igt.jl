@@ -1,3 +1,5 @@
+using Pkg; Pkg.activate("docs") #Remove later
+
 using ActionModels
 using CSV, DataFrames
 
@@ -42,15 +44,16 @@ if true
     ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344"], ahn_data)
 end
 
-action_cols = :deck
-observation_cols = (deck = :deck, reward = :reward)
-session_cols = :subjID
-
 
 #################
 ### PVL-DELTA ###
 #################
+## Create model ##
 action_model = ActionModel(PVLDelta(n_decks = 4, act_before_update = true))
+
+action_cols = :deck
+observation_cols = (deck = :deck, reward = :reward)
+session_cols = :subjID
 
 model = create_model(
     action_model,
@@ -66,11 +69,24 @@ model = create_model(
     session_cols = session_cols,
 )
 
-chains = sample_posterior!(model)
+
+## Set AD backend ##
+using ADTypes: AutoReverseDiff, AutoEnzyme
+import ReverseDiff
+import Enzyme: set_runtime_activity, Reverse 
+#ad_type = AutoForwardDiff() # For testing purposes, use ForwardDiff
+#ad_type = AutoReverseDiff(; compile = true)
+ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
+
+
+## Fit model ##
+chains = sample_posterior!(model, ad_type = ad_type)
+
+
 
 parameters_df = summarize(get_session_parameters!(model))
 
-states_df = get_state_trajectories!(model, :expected_value)
+states_df = summarize(get_state_trajectories!(model, :expected_value))
 
 
 

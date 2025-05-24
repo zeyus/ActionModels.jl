@@ -17,12 +17,14 @@ using ProgressLogging #For progress bars
 
 
 #ADType functionality
-using ADTypes: AutoForwardDiff#, AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
+using ADTypes: AutoForwardDiff
 import ForwardDiff
+## AD types to be compatible with  ##
+#using ADTypes: AutoReverseDiff, AutoMooncake, AutoEnzyme, AutoFiniteDifferences
 #import ReverseDiff
 #import Mooncake
 #import FiniteDifferences: central_fdm
-#import Enzyme: set_runtime_activity, Forward, Reverse #AD types to be compatible with
+#import Enzyme: set_runtime_activity, Forward, Reverse 
 
 ## For defining action models ##
 export ActionModel, Parameter, InitialStateParameter, State, Observation, Action

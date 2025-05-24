@@ -37,7 +37,11 @@ function ActionModel(config::PVLDelta)
             end
 
             #Calculate new expected value for the chosen deck
-            Ev[deck] = Ev[deck] + α * prediction_error
+            # Ev[deck] = Ev[deck] + α * prediction_error
+            Ev = [
+                Ev[deck_idx] + α * prediction_error * (deck == deck_idx) for deck_idx = 1:config.n_decks
+            ]
+            
 
             #Update the expected value for next timestep
             update_state!(attributes, :expected_value, Ev)
@@ -88,7 +92,10 @@ function ActionModel(config::PVLDelta)
             end
 
             #Calculate new expected value for the chosen deck
-            Ev[deck] = Ev[deck] + α * prediction_error
+            #Ev[deck] = Ev[deck] + α * prediction_error
+            Ev = [
+                Ev[deck_idx] + α * prediction_error * (deck == deck_idx) for deck_idx = 1:config.n_decks
+            ]
 
             #Update the expected value for next timestep
             update_state!(attributes, :expected_value, Ev)
