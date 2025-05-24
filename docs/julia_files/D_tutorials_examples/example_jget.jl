@@ -70,15 +70,10 @@ action_model = ActionModel(gaussian_choice, parameters = (action_noise = Paramet
 model = create_model(
     action_model,
     [
-        @formula(mean ~ 1 + session + pdi_total + (1 | ID)),
-        @formula(action_noise ~ 1 + session + pdi_total + (1 | ID))
+        Regression(@formula(mean ~ 1 + session + pdi_total + (1 | ID))),
+        Regression(@formula(action_noise ~ 1 + session + pdi_total + (1 | ID)), exp)
     ],
     JGET_data,
-    priors = [
-        RegressionPrior(β = Normal(50, 30), σ = Exponential(1)),
-        RegressionPrior(β = Normal(0, 1), σ = Exponential(1)),
-    ],
-    inv_links = Function[identity, exp],
     action_cols = action_cols,
     input_cols = input_cols,
     session_cols = session_cols,
@@ -104,9 +99,9 @@ action_model = ActionModel(ContinuousRescorlaWagnerGaussian())
 model = create_model(
     action_model,
     [
-        @formula(learning_rate ~ 1 + session + pdi_total + (1 | ID)),
-        @formula(action_noise ~ 1 + session + pdi_total + (1 | ID)),
-        @formula(initial_value ~ 1 + session + pdi_total + (1 | ID)),
+        Regression(@formula(learning_rate ~ 1 + session + pdi_total + (1 | ID)), logistic),
+        Regression(@formula(action_noise ~ 1 + session + pdi_total + (1 | ID)), exp),
+        Regression(@formula(initial_value ~ 1 + session + pdi_total + (1 | ID))),
     ],
     JGET_data,
     priors = [
