@@ -39,7 +39,7 @@ function init_agent(
         #If save_history is true, save all states
         if save_history
             save_history =
-                merge(collect(keys(model_attributes.states)), keys(submodel_state_types))
+                [collect(keys(model_attributes.states)); collect(keys(get_state_types(action_model.submodel)))]
         else
             #If save_history is false, don't save any states
             save_history = Symbol[]
