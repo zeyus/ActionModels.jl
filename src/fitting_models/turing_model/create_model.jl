@@ -17,7 +17,7 @@ function create_model(
     },
     session_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     parameters_to_estimate::Tuple{Vararg{Symbol}},
-    infer_missing_actions::Bool = false,
+    impute_missing_actions::Bool = false,
     check_parameter_rejections::Bool = false,
     population_model_type::AbstractPopulationModel = CustomPopulationModel(),
     verbose::Bool = true,
@@ -78,33 +78,33 @@ function create_model(
     end
 
     ## Check whether to skip or infer missing data ##
-    if !infer_missing_actions
+    if !impute_missing_actions
         #If there are no missing actions
         if !any(ismissing, Matrix(data[!, collect(action_cols)]))
             #Remove any potential Missing type
             disallowmissing!(data, collect(action_cols))
-            infer_missing_actions = NoMissingActions()
+            impute_missing_actions = NoMissingActions()
         else
             if verbose
                 @warn """
-                      There are missing values in the action columns, but infer_missing_actions is set to false. 
+                      There are missing values in the action columns, but impute_missing_actions is set to false. 
                       These actions will not be used to inform parameter estimation, and will be passed to the action model as missing values. 
                       Check that this is desired behaviour. This can be a problem for models which depend on their previous actions.
                       """
             end
-            infer_missing_actions = SkipMissingActions()
+            impute_missing_actions = SkipMissingActions()
         end
     else
         #If there are no missing actions
         if !any(ismissing, Matrix(data[!, collect(action_cols)]))
             if verbose
-                @warn "infer_missing_actions is set to true, but there are no missing values in the action columns. Setting infer_missing_actions to false"
+                @warn "impute_missing_actions is set to true, but there are no missing values in the action columns. Setting impute_missing_actions to false"
             end
             #Remove any potential Missing type
             disallowmissing!(data, collect(action_cols))
-            infer_missing_actions = NoMissingActions()
+            impute_missing_actions = NoMissingActions()
         else
-            infer_missing_actions = InferMissingActions()
+            impute_missing_actions = InferMissingActions()
         end
     end
 
@@ -167,7 +167,7 @@ function create_model(
     ### CREATE MODEL ###
     ## Create the session model ##
     session_model = create_session_model(
-        infer_missing_actions,
+        impute_missing_actions,
         Val(check_parameter_rejections),
         actions,
     )

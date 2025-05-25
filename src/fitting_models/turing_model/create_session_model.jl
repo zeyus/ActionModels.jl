@@ -2,7 +2,7 @@
 ####### NO MISSING ACTIONS #######
 ##################################
 function create_session_model(
-    infer_missing_actions::NoMissingActions,    #No missing actions
+    impute_missing_actions::NoMissingActions,    #No missing actions
     check_parameter_rejections::Val{false},     #No parameter rejections
     actions::Vector{Vector{AA}},
 ) where {A<:Real,AA<:Tuple{Vararg{Union{Array{A},A}}}}
@@ -89,7 +89,7 @@ end
 ####### WITH MISSING ACTIONS #######
 ####################################
 function create_session_model(
-    infer_missing_actions::AbstractMissingActions,
+    impute_missing_actions::AbstractMissingActions,
     check_parameter_rejections::Val{false},
     actions::Vector{Vector{AA}},
 ) where {A<:Union{Missing,Real},AA<:Tuple{Vararg{Union{Array{A},A}}}}
@@ -120,9 +120,9 @@ function create_session_model(
 
             #If it is missing, set the marker to the appropriate type
             if action isa Missing
-                missing_action_markers[session_idx][i] = infer_missing_actions
+                missing_action_markers[session_idx][i] = impute_missing_actions
             elseif action isa Tuple && any(x -> x isa Missing, action)
-                missing_action_markers[session_idx][i] = infer_missing_actions
+                missing_action_markers[session_idx][i] = impute_missing_actions
             else
                 missing_action_markers[session_idx][i] = NoMissingActions()
             end
@@ -340,13 +340,13 @@ end
 ####### PARAMETER REJECTIONS #######
 ####################################
 function create_session_model(
-    infer_missing_actions::AbstractMissingActions,
+    impute_missing_actions::AbstractMissingActions,
     check_parameter_rejections::Val{true},         #With parameter rejections
     actions::Vector{Vector{A}},
 ) where {A<:Tuple{Vararg{Real}}}
 
     #Get normal session model
-    session_submodel = create_session_model(infer_missing_actions, Val{false}(), actions)
+    session_submodel = create_session_model(impute_missing_actions, Val{false}(), actions)
 
     return @model function session_model(
         action_model::ActionModel,

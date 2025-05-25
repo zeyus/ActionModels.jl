@@ -940,7 +940,7 @@ using StatsPlots
 
         @testset "missing actions $(AD)" begin
 
-            @testset "infer missing actions ($AD)" begin
+            @testset "impute missing actions ($AD)" begin
 
                 #Create new dataframe where three actions = missing
                 new_data = allowmissing(data, :actions)
@@ -954,7 +954,7 @@ using StatsPlots
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     session_cols = session_cols,
-                    infer_missing_actions = true,
+                    impute_missing_actions = true,
                 )
 
                 #Fit model
@@ -980,7 +980,7 @@ using StatsPlots
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     session_cols = session_cols,
-                    infer_missing_actions = false,
+                    impute_missing_actions = false,
                 )
 
                 #Fit model
@@ -992,7 +992,7 @@ using StatsPlots
                 )
             end
 
-            @testset "single session, infer missing actions" begin
+            @testset "single session, impute missing actions" begin
 
                 #Create new dataframe where three actions = missing
                 new_data = allowmissing(data, :actions)
@@ -1008,7 +1008,7 @@ using StatsPlots
                     prior,
                     observations,
                     actions,
-                    infer_missing_actions = true,
+                    impute_missing_actions = true,
                 )
 
                 #Fit model
@@ -1036,7 +1036,7 @@ using StatsPlots
                     prior,
                     observations,
                     actions,
-                    infer_missing_actions = false,
+                    impute_missing_actions = false,
                 )
 
                 #Fit model
@@ -1048,7 +1048,7 @@ using StatsPlots
                 )
             end
 
-            @testset "multiple actions, infer missing actions ($AD)" begin
+            @testset "multiple actions, impute missing actions ($AD)" begin
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
@@ -1084,7 +1084,7 @@ using StatsPlots
                     observation_cols = observation_cols,
                     action_cols = [:actions, :actions_2],
                     session_cols = session_cols,
-                    infer_missing_actions = true,
+                    impute_missing_actions = true,
                 )
 
                 #Fit model
@@ -1096,7 +1096,7 @@ using StatsPlots
                 )
             end
 
-            @testset "single session, infer missing actions, multiple actions ($AD)" begin
+            @testset "single session, impute missing actions, multiple actions ($AD)" begin
 
                 function multi_action(attributes::ModelAttributes, observation::Float64)
 
@@ -1136,7 +1136,7 @@ using StatsPlots
                     new_prior,
                     observations,
                     actions,
-                    infer_missing_actions = true,
+                    impute_missing_actions = true,
                 )
 
                 #Fit model
@@ -1229,7 +1229,7 @@ using StatsPlots
                     observation_cols = observation_cols,
                     action_cols = [:actions, :actions_2],
                     session_cols = session_cols,
-                    infer_missing_actions = false,
+                    impute_missing_actions = false,
                 )
 
                 #Fit model
@@ -1241,7 +1241,7 @@ using StatsPlots
                 )
             end
 
-            @testset "depend on previous action, infer missing actions $(AD)" begin
+            @testset "depend on previous action, impute missing actions $(AD)" begin
 
                 function dependent_action(attributes::ModelAttributes, observation::Float64)
 
@@ -1282,7 +1282,7 @@ using StatsPlots
                     observation_cols = observation_cols,
                     action_cols = action_cols,
                     session_cols = session_cols,
-                    infer_missing_actions = true,
+                    impute_missing_actions = true,
                 )
 
                 #Fit model
