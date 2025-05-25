@@ -4,6 +4,12 @@
 # This includes prior and posterior checks, which ensure that the model produces appropriate behavioural, precision analysis and parameter recovery, which ensure that parameters can be accurately estimated from the data, and model comparison, which allows to comin terms of how well they describe the data.
 # ActionModels provides ready funtions to implement these methods, which are described in the following sections.
 
+# ## Chain diagnostics
+#TODO: use ArviZ
+
+# ## Parameter correlations
+#TODO: make plot function (or use ArviZ)
+
 # ## Predictive checks 
 #TODO: finish functions
 # ### Prior predictive checks
