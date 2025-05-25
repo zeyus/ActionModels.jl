@@ -46,18 +46,17 @@ JGET_data.outcome = Float64.(JGET_data.outcome)
 
 #Remove ID's with missing actions
 JGET_data = combine(
-    groupby(JGET_data, session_cols),
-    subdata -> any(ismissing, Matrix(subdata[!, action_cols])) ? DataFrame() : subdata,
+    groupby(JGET_data, [:ID, :session]),
+    subdata -> any(ismissing, Matrix(subdata[!, [:response]])) ? DataFrame() : subdata,
 )
-disallowmissing!(JGET_data, action_cols)
+disallowmissing!(JGET_data, [:response])
 
 #Remove ID's with missing pdi_scores
 JGET_data = combine(
-    groupby(JGET_data, session_cols),
+    groupby(JGET_data, [:ID, :session]),
     subdata -> any(ismissing, Matrix(subdata[!, [:pdi_total]])) ? DataFrame() : subdata,
 )
 disallowmissing!(JGET_data, [:pdi_total])
-
 
 show(JGET_data)
 
@@ -86,7 +85,7 @@ action_model = ActionModel(PremadeRescorlaWagner())
 # We then specify which column in the data corresponds to the action (the response) and which columns correspond to the input (the outcome).
 # There are twp columns which jointly specify the sessions: the ID of the participant and the experimental session number.
 action_cols = :response
-input_cols = :outcome
+observation_cols = :outcome
 session_cols = [:ID, :session]
 
 # We then create the fulle model. We use a hierarchical regression model to predict the parameters of the Rescorla-Wagner model based on the session number and the PDI score.
@@ -98,7 +97,7 @@ model = create_model(
     ],
     JGET_data,
     action_cols = action_cols,
-    input_cols = input_cols,
+    observation_cols = observation_cols,
     session_cols = session_cols,
 )
 
@@ -111,12 +110,11 @@ using ADTypes: AutoReverseDiff, AutoEnzyme
 import ReverseDiff
 import Enzyme: set_runtime_activity, Reverse 
 #ad_type = AutoForwardDiff() # For testing purposes, use ForwardDiff
-#ad_type = AutoReverseDiff(; compile = true)
-ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
+ad_type = AutoReverseDiff(; compile = true)
+#ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 
 ## Fit model ##
-chains = sample_posterior!(model, n_chains = 1, n_samples = 100, ad_type = ad_type, init_params = nothing)
-
+chains = sample_posterior!(model, n_chains = 1, n_samples = 500, ad_type = ad_type)
 
 #TODO: Finish the tutorial
 
@@ -159,7 +157,7 @@ states_df = summarize(get_state_trajectories!(model, :expected_value))
 #     ],
 #     JGET_data,
 #     action_cols = action_cols,
-#     input_cols = input_cols,
+#     observation_cols = observation_cols,
 #     session_cols = session_cols,
 # )
 
