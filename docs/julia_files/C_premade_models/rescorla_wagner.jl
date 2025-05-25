@@ -207,10 +207,10 @@ simulate!(agent, observations)
 
 expected_values = get_history(agent, :expected_value)
 
-plot([expected_values[i][1] for i = 1:length(expected_values)], label = "category 1")
-plot!([expected_values[i][2] for i = 1:length(expected_values)], label = "category 2")
-plot!([expected_values[i][3] for i = 1:length(expected_values)], label = "category 3")
-plot!([expected_values[i][4] for i = 1:length(expected_values)], label = "category 4")
+plot([expected_values[i][1] for i in 1:length(expected_values)], label = "category 1")
+plot!([expected_values[i][2] for i in 1:length(expected_values)], label = "category 2")
+plot!([expected_values[i][3] for i in 1:length(expected_values)], label = "category 3")
+plot!([expected_values[i][4] for i in 1:length(expected_values)], label = "category 4")
 title!("Expected values for each category over time")
 xlabel!("Time")
 
