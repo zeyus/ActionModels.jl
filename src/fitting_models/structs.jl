@@ -110,16 +110,9 @@ end
 
 
 ### Type for the save-resume functionality ###
-struct SampleSaveResume
-    save_every::Int
-    path::String
-    plot_progress::Bool
-    chain_prefix::String
+@Base.kwdef struct SampleSaveResume
+    save_every::Int = 100
+    path::String = "./.samplingstate"
+    chain_prefix::String = "ActionModels_chain_segment"
 end
-SampleSaveResume(;
-    save_every::Int = 100,
-    path = "./.samplingstate",
-    plot_progress::Bool = false,
-    chain_prefix = "ActionModels_chain_link",
-) = SampleSaveResume(save_every, path, plot_progress, chain_prefix)
 

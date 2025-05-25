@@ -12,3 +12,5 @@ Manifest.toml
 /build
 
 testing_scripts/*
+
+docs/.samplingstate
