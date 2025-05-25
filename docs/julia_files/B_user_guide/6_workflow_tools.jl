@@ -10,6 +10,9 @@
 # ## Parameter correlations
 #TODO: make plot function (or use ArviZ)
 
+# ## Model comparison 
+#TODO: use ArviZ
+
 # ## Predictive checks 
 #TODO: finish functions
 # ### Prior predictive checks
@@ -18,7 +21,5 @@
 # ## Precision analysis 
 #TODO: finish functions
 # ### Parameter recovery
+# ### Model recovery
 # ### Experiment tuning
-
-# ## Model comparison 
-#TODO: use ArviZ
