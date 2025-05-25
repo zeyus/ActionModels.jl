@@ -16,7 +16,7 @@ end
 
 #Attributes struct
 Base.@kwdef mutable struct RescorlaWagnerAttributes{T<:Real,AT<:Union{T,Array{T}}} <:
-                           AbstractRescorlaWagner
+                           AbstractSubmodelAttributes
     initial_value::AT
     learning_rate::T
     expected_value::AT
@@ -37,12 +37,11 @@ function update!(
 ) where {T<:Real,AT<:Real}
     #Get new value state
     attributes.expected_value +=
-        attributes.learning_rate *
-        (observation - logistic(attributes.expected_value))
+        attributes.learning_rate * (observation - logistic(attributes.expected_value))
 end
 ## Categorical RW ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T, AT},
+    attributes::RescorlaWagnerAttributes{T,AT},
     observation::Int64,
 ) where {T<:Real,AT<:Array{T}}
     #Make one-hot encoded observation
@@ -53,27 +52,25 @@ function update!(
 end
 ## Categorical RW with binary vector input ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T, AT},
+    attributes::RescorlaWagnerAttributes{T,AT},
     observation::Vector{Int64},
 ) where {T<:Real,AT<:Array{T}}
     attributes.expected_value = map(
         (expected_value, single_observation) ->
             expected_value +=
-                attributes.learning_rate *
-                (single_observation - logistic(expected_value)),
+                attributes.learning_rate * (single_observation - logistic(expected_value)),
         zip(attributes.expected_value, observation),
     )
 end
 ## Categorical RW with continuous vector input ##
 function update!(
-    attributes::RescorlaWagnerAttributes{T, AT},
+    attributes::RescorlaWagnerAttributes{T,AT},
     observation::Vector{Float64},
 ) where {T<:Real,AT<:Array{T}}
     attributes.expected_value = map(
         (expected_value, single_observation) ->
             expected_value +=
-                attributes.learning_rate *
-                (single_observation - expected_value),
+                attributes.learning_rate * (single_observation - expected_value),
         zip(attributes.expected_value, observation),
     )
 end
@@ -92,7 +89,7 @@ function initialize_attributes(
 ) where {TF,TI}
 
     #Initialize the attributes
-    attributes = RescorlaWagnerAttributes{TF, TF}(
+    attributes = RescorlaWagnerAttributes{TF,TF}(
         initial_value = model.initial_value,
         expected_value = model.initial_value,
         learning_rate = model.learning_rate,
@@ -108,7 +105,7 @@ function initialize_attributes(
 ) where {TF,TI}
 
     #Initialize the attributes
-    attributes = RescorlaWagnerAttributes{TF, Array{TF}}(
+    attributes = RescorlaWagnerAttributes{TF,Array{TF}}(
         initial_value = model.initial_value,
         expected_value = model.initial_value,
         learning_rate = model.learning_rate,

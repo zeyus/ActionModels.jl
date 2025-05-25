@@ -232,8 +232,13 @@ end
 #########################################
 ### TYPES FOR USE IN THE ACTION MODEL ###
 #########################################
+## Abstract type for submodel attributes ##
+abstract type AbstractSubmodelAttributes end
+## Submodel attributes for when no submodel is used ##
+struct NoSubModelAttributes <: AbstractSubmodelAttributes end
+
 ## Model attributes type which contains the information apssed to the action model ##
-struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple, TM<:AbstractSubmodel}
+struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple, TM<:AbstractSubmodelAttributes}
     parameters::TP
     states::TS
     actions::TA
