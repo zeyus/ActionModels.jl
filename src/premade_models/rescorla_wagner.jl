@@ -1,89 +1,81 @@
 ####################################
 ### RW STRUCT & UPDATE FUNCTIONS ###
 ####################################
-## RW structs ##
-abstract type AbstractRescorlaWagner <: AbstractSubmodel end
 
-#Model struct
-Base.@kwdef struct CategoricalRescorlaWagner <: AbstractRescorlaWagner
+
+
+#######################
+### SUBMODEL STRUCT ###
+#######################
+
+## Abstract type ##
+abstract type AbstractRescorlaWagnerSubmodel <: AbstractSubmodel end
+
+## Concrete types ##
+Base.@kwdef struct RescorlaWagner <: AbstractRescorlaWagnerSubmodel
+    initial_value::Float64 = 0.0
+    learning_rate::Float64 = 0.1
+end
+Base.@kwdef struct BinaryRescorlaWagner <: AbstractRescorlaWagnerSubmodel
+    initial_value::Float64 = 0.0
+    learning_rate::Float64 = 0.1
+end
+struct CategoricalRescorlaWagner <: AbstractRescorlaWagnerSubmodel
+    n_categories::Int64
     initial_value::Vector{Float64}
     learning_rate::Float64
-end
-Base.@kwdef struct RescorlaWagner <: AbstractRescorlaWagner
-    initial_value::Float64
-    learning_rate::Float64
+
+    function CategoricalRescorlaWagner(;
+        n_categories::Int64,
+        initial_value::Vector{Float64} = zeros(n_categories),
+        learning_rate::Float64 = 0.1,
+    )
+        #Check if the initial value is a vector of the correct length
+        if length(initial_value) != n_categories
+            error(
+                "Initial value must be a vector of length $n_categories for Categorical Rescorla-Wagner.",
+            )
+        end
+        return new(n_categories, initial_value, learning_rate)
+    end
 end
 
-#Attributes struct
+## Functions for getting the types of the parameters and states ##
+function get_parameter_types(model::RescorlaWagner)
+    return (initial_value = Float64, learning_rate = Float64)
+end
+function get_state_types(model::RescorlaWagner)
+    return (; expected_value = Float64,)
+end
+function get_parameter_types(model::BinaryRescorlaWagner)
+    return (initial_value = Float64, learning_rate = Float64)
+end
+function get_state_types(model::BinaryRescorlaWagner)
+    return (; expected_value = Float64,)
+end
+function get_parameter_types(model::CategoricalRescorlaWagner)
+    return (initial_value = Array{Float64}, learning_rate = Float64)
+end
+function get_state_types(model::CategoricalRescorlaWagner)
+    return (expected_value = Array{Float64},)
+end
+
+
+#########################
+### ATTRIBUTES STRUCT ###
+#########################
+## Attributes struct ##
 Base.@kwdef mutable struct RescorlaWagnerAttributes{T<:Real,AT<:Union{T,Array{T}}} <:
                            AbstractSubmodelAttributes
     initial_value::AT
     learning_rate::T
     expected_value::AT
 end
-## Continuous RW ##
-function update!(
-    attributes::RescorlaWagnerAttributes{T,AT},
-    observation::Float64,
-) where {T<:Real,AT<:Real}
-    # Update the expected value using the Rescorla-Wagner rule
-    attributes.expected_value +=
-        attributes.learning_rate * (observation - attributes.expected_value)
-end
-## Binary RW ##
-function update!(
-    attributes::RescorlaWagnerAttributes{T,AT},
-    observation::Int64,
-) where {T<:Real,AT<:Real}
-    #Get new value state
-    attributes.expected_value +=
-        attributes.learning_rate * (observation - logistic(attributes.expected_value))
-end
-## Categorical RW ##
-function update!(
-    attributes::RescorlaWagnerAttributes{T,AT},
-    observation::Int64,
-) where {T<:Real,AT<:Array{T}}
-    #Make one-hot encoded observation
-    one_hot_observation = zeros(length(attributes.expected_value))
-    one_hot_observation[observation] = 1
 
-    update!(attributes, one_hot_observation)
-end
-## Categorical RW with binary vector input ##
-function update!(
-    attributes::RescorlaWagnerAttributes{T,AT},
-    observation::Vector{Int64},
-) where {T<:Real,AT<:Array{T}}
-    attributes.expected_value = map(
-        (expected_value, single_observation) ->
-            expected_value +=
-                attributes.learning_rate * (single_observation - logistic(expected_value)),
-        zip(attributes.expected_value, observation),
-    )
-end
-## Categorical RW with continuous vector input ##
-function update!(
-    attributes::RescorlaWagnerAttributes{T,AT},
-    observation::Vector{Float64},
-) where {T<:Real,AT<:Array{T}}
-    attributes.expected_value = map(
-        (expected_value, single_observation) ->
-            expected_value +=
-                attributes.learning_rate * (single_observation - expected_value),
-        zip(attributes.expected_value, observation),
-    )
-end
-
-
-
-
-#############################
-### INITIALIZE ATTRIBUTES ###
-#############################
-## Continuous and binary RW ##
+## Initialise attributes function ##
+#Continuous and binary RW 
 function initialize_attributes(
-    model::RescorlaWagner,
+    model::Union{RescorlaWagner, BinaryRescorlaWagner},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {TF,TI}
@@ -97,7 +89,7 @@ function initialize_attributes(
 
     return attributes
 end
-## Categorical RW ##
+#Categorical RW
 function initialize_attributes(
     model::CategoricalRescorlaWagner,
     ::Type{TF} = Float64,
@@ -114,19 +106,6 @@ function initialize_attributes(
     return attributes
 end
 
-## Functions for getting the types of the parameters and states ##
-function get_parameter_types(model::RescorlaWagner)
-    return (initial_value = Float64, learning_rate = Float64)
-end
-function get_state_types(model::RescorlaWagner)
-    return (; expected_value = Float64,)
-end
-function get_parameter_types(model::CategoricalRescorlaWagner)
-    return (initial_value = Array{Float64}, learning_rate = Float64)
-end
-function get_state_types(model::CategoricalRescorlaWagner)
-    return (expected_value = Array{Float64},)
-end
 
 ##############################
 ### ATTRIBUTE MANIPULATION ###
@@ -165,7 +144,7 @@ function get_states(attributes::RescorlaWagnerAttributes)
     return (; expected_value = attributes.expected_value,)
 end
 
-## Set single attribute (used by attributes) ##
+## Set single attribute ##
 function set_parameters!(
     attributes::RescorlaWagnerAttributes,
     parameter_name::Symbol,
@@ -190,7 +169,6 @@ function set_states!(
     end
     return true
 end
-
 
 ## Set multiple attributes ##
 function set_parameters!(
@@ -228,6 +206,63 @@ end
 
 
 
+
+########################
+### UPDATE FUNCTIONS ###
+########################
+## Continuous RW ##
+function update!(
+    attributes::RescorlaWagnerAttributes{T,AT},
+    observation::Float64,
+) where {T<:Real,AT<:Real}
+    # Update the expected value using the Rescorla-Wagner rule
+    attributes.expected_value +=
+        attributes.learning_rate * (observation - attributes.expected_value)
+end
+## Binary RW ##
+function update!(
+    attributes::RescorlaWagnerAttributes{T,AT},
+    observation::Int64,
+) where {T<:Real,AT<:Real}
+    #Get new value state
+    attributes.expected_value +=
+        attributes.learning_rate * (observation - logistic(attributes.expected_value))
+end
+## Categorical RW with category input ##
+function update!(
+    attributes::RescorlaWagnerAttributes{T,AT},
+    observation::Int64,
+) where {T<:Real,AT<:Array{T}}
+    #Make one-hot encoded observation
+    one_hot_observation = zeros(length(attributes.expected_value))
+    one_hot_observation[observation] = 1
+
+    update!(attributes, one_hot_observation)
+end
+## Categorical RW with binary vector input ##
+function update!(
+    attributes::RescorlaWagnerAttributes{T,AT},
+    observation::Vector{Int64},
+) where {T<:Real,AT<:Array{T}}
+    attributes.expected_value = map(
+        (expected_value, single_observation) ->
+            expected_value +=
+                attributes.learning_rate * (single_observation - logistic(expected_value)),
+        zip(attributes.expected_value, observation),
+    )
+end
+## Categorical RW with continuous vector input ##
+function update!(
+    attributes::RescorlaWagnerAttributes{T,AT},
+    observation::Vector{Float64},
+) where {T<:Real,AT<:Array{T}}
+
+    attributes.expected_value = [
+        expected_value + attributes.learning_rate * (single_observation - expected_value)
+        for (expected_value, single_observation) in
+            zip(attributes.expected_value, observation)
+    ]
+end
 
 
 
