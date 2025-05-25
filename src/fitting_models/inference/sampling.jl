@@ -8,7 +8,7 @@ function sample_posterior!(
     #Whether to use save_resume
     save_resume::Union{SampleSaveResume,Nothing} = nothing,
     #Which way to choose initial parameters for the sampler
-    init_params::Union{Nothing,Symbol,Vector{Float64}} = :MAP,
+    init_params::Union{Nothing,Symbol,Vector{Float64}} = :sample_prior,
     #Sampling configurations
     n_samples::Integer = 1000,
     n_chains::Integer = 2,
