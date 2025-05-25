@@ -183,8 +183,7 @@ median_df = summarize(session_parameters)
 
 std_df = summarize(session_parameters, std)
 
-# This can be saved to disk or used for plotting in whihever way the user prefers.
-#TODO: ggplot example
+# This can be saved to disk or used for plotting in whichever way the user prefers.
 
 # ### State trajectories per session
 # Users can also extract the trajectory of states for each session with the `get_state_trajectories!` function, which returns an ActionModels.StateTrajectories object.
@@ -211,4 +210,3 @@ density(state_trajectories.value.expected_value[1][timestep=2])
 median_df = summarize(state_trajectories)
 
 #And from here, it can be used for plotting or further analysis as desired by the user.
-#TODO: ggplot example
