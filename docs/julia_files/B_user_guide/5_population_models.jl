@@ -78,6 +78,27 @@ get_session_parameters!(model)
 #TODO: plot(model)
 
 
+# ## single session population models
+# Notably, it is also possible to use ActionModels with only a single session.
+# In this case, the actions and observations can be passed as two vectors, instead of passing a DataFrame.
+# For single session models, only the independent session population model is appropriate, since there is no session structure to model.
+
+#Create a single session dataset
+observations = [1.0, 1, 1, 2, 2, 2]
+actions = [0, 0.2, 0.3, 0.4, 0.5, 0.6]
+
+population_model = (learning_rate = LogitNormal(), action_noise = LogNormal())
+
+model = create_model(
+    action_model,
+    population_model,
+    observations,
+    actions
+)
+
+chains = sample_posterior!(model)
+
+
 
 # ## Linear regression population models
 # To specify a linear regression popluation model, we create a tuple of `Regression` objects, where each `Regression` object specifies a regression model for one of the parameters to estimate.
