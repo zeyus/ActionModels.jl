@@ -28,7 +28,7 @@ test_path = joinpath(ActionModels_path, "test")
         end
 
         # List the julia filenames in the premade models testsuite
-        premade_models_filenames = glob("*.jl", joinpath(test_path, "testsuite", "premade_model_testsuite"))
+        premade_models_filenames = glob("*.jl", joinpath(test_path, "testsuite", "premade_models"))
 
         for filename in premade_models_filenames
             #Run it
