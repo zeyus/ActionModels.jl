@@ -31,7 +31,7 @@
     #The x-axis starts at 0
     x_axis = collect(0:(length(state_history)-1))
 
-    xlabel --> "timestep"
+    xlabel --> "Timestep"
     yguide --> "$target_state"
 
     #Plot the history
