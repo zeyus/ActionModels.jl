@@ -1,4 +1,18 @@
-# predictive checks
-# 				- precision analysis
-# 					- parameter recovery
-# 					- experimental parameters
+# # Addtional tools for Bayesian analysis workflows in Julia
+# Although individual workdflows may vary depending on the requirements of the given project, there exists a range of standard methods that are recommended to be part of cognitive modelling workflows to ensure that analysis is completed correctly.
+# These are often introduced in more detail by various sources: see Hess et al., 2025, Wilson & Collins, 2019 or Lee & Wagenmakers, 2014 for examples.
+# This includes prior and posterior checks, which ensure that the model produces appropriate behavioural, precision analysis and parameter recovery, which ensure that parameters can be accurately estimated from the data, and model comparison, which allows to comin terms of how well they describe the data.
+# ActionModels provides ready funtions to implement these methods, which are described in the following sections.
+
+# ## Predictive checks 
+#TODO: finish functions
+# ### Prior predictive checks
+# ### Posterior predictive checks
+
+# ## Precision analysis 
+#TODO: finish functions
+# ### Parameter recovery
+# ### Experiment tuning
+
+# ## Model comparison 
+#TODO: use ArviZ
