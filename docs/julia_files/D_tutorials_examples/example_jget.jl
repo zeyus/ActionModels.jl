@@ -119,7 +119,7 @@ model = create_model(
 # We are now ready to fit the model to the data.
 # For this model, we will use the Enzyme automatic differentiation backend, which is a high-performance automatic differentiation library. 
 # Crucially, it supports parallelization within the model, which can speed up the fitting process significantly.
-# Additoinally, to keep the runtime of this tutorial short, we will only fit a single chain with 300 samples.
+# Additoinally, to keep the runtime of this tutorial short, we will only fit a single chain with 500 samples.
 
 ## Set AD backend ##
 using ADTypes: AutoEnzyme
