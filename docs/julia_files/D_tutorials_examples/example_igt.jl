@@ -191,51 +191,36 @@ show(states_df)
 # ## Comparing to a simple random model
 # We can also compare the PVL-Delta to a simple random model, which simply samples actions from a fixed Categorical distribution.
 
-# ### Creating the Gaussian random action model 
+# ### Creating the Categorical random choice action model 
 # In this model, actions are sampled from a Gaussian distribution with a fixed mean and standard deviation.
 # This meanst that there are two parameters in the action model: the action noise $\beta$ and the action mean $\mu$.
 
-function gaussian_random(agent::Agent, input::T) where {T<:Real}
+function categorical_random(attributes::ModelAttributes, chosen_option::Int64, reward::Float64)
 
-    β = agent.parameters[:action_noise]
-    μ = agent.parameters[:mean]
+    action_probabilities = load_parameters(attributes).action_probabilities
 
-    return Normal(μ, β)
+    return Categorical(action_probabilities)
 end
 
 action_model = ActionModel(
-    gaussian_random,
-    parameters = (action_noise = Parameter(1), mean = Parameter(50)),
+    categorical_random,
+    observations = (chosen_option = Observation(Int64), reward = Observation()),
+    actions = (;deck = Action(Categorical)),
+    parameters = (;action_probabilities = Parameter([0.3,0.3,0.3, 0.1])),
 )
 
 # ### Fitting the model
-# We also set priors hfor this simpler model.
-# Here we set the priors separately for the mean and the noise, since they are on very different scales.
-# We center the priors for the mean at 50, as that is the iddle of the range of actions.
-# The priors for the noise are similar to those used with the Rescorla-Wagner model.
+# For this model, we use an independent session population model.
+# We set the prior for the action probabilities to be a Dirichlet distribution, which is a common prior for categorical distributions.
 
-mean_regression_prior = RegressionPrior(
-    β = [Normal(50, 10), Normal(0, 10)],
-    σ = truncated(Normal(0, 10), lower = 0),
+population_model = (;
+    action_probabilities = Dirichlet([1,1,1,1]),
 )
-noise_regression_prior = RegressionPrior(
-    β = [Normal(0, 0.3), Normal(0, 0.5)],
-    σ = truncated(Normal(0, 0.3), lower = 0),
-)
-
-population_model = [
-    Regression(@formula(mean ~ 1 + pdi_total + (1 | ID)), mean_regression_prior),
-    Regression(
-        @formula(action_noise ~ 1 + pdi_total + (1 | ID)),
-        exp,
-        noise_regression_prior,
-    ),
-]
 
 simple_model = create_model(
     action_model,
     population_model,
-    JGET_data,
+    ahn_data,
     action_cols = action_cols,
     observation_cols = observation_cols,
     session_cols = session_cols,
@@ -252,41 +237,3 @@ chns = sample_posterior!(simple_model, n_chains = 1, n_samples = 500, ad_type = 
 #TODO: plot the results
 
 #TODO: model comparison
-
-
-
-
-# ### CATEGORICAL RANDOM ####
-# function categorical_random(agent::Agent, input::Tuple{Int64,Float64})
-
-#     deck, reward = input
-
-#     action_noise = exp(agent.parameters[:action_noise])
-
-#     #Set the probability 
-#     base_probs = [0.1, 0.4, 0.1, 0.1]
-
-#     #Do a softmax of the values
-#     action_probabilities = softmax(base_probs * action_noise)
-
-#     return Categorical(action_probabilities)
-# end
-
-# action_model = ActionModel(
-#     categorical_random,
-#     parameters = (; action_noise = Parameter(1)),
-#     observations = (deck = Observation(Int64), reward = Observation(Float64)),
-#     actions = (; deck = Action(Categorical)),
-# )
-
-
-# model = create_model(
-#     action_model,
-#     Regression(@formula(action_noise ~ clinical_group + (1 | subjID)), exp),
-#     ahn_data,
-#     action_cols = action_cols,
-#     observation_cols = observation_cols,
-#     session_cols = session_cols,
-# )
-
-# chains = sample_posterior!(model)

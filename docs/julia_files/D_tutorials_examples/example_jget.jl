@@ -178,16 +178,20 @@ show(states_df)
 # In this model, actions are sampled from a Gaussian distribution with a fixed mean and standard deviation.
 # This meanst that there are two parameters in the action model: the action noise $\beta$ and the action mean $\mu$.
 
-function gaussian_random(agent::Agent, input::T) where {T<:Real}
+function gaussian_random(attributes::ModelAttributes, observation::Float64)
 
-    β = agent.parameters[:action_noise]
-    μ = agent.parameters[:mean]
+    parameters = load_parameters(attributes)
+
+    β = parameters.action_noise
+    μ = parameters.mean
 
     return Normal(μ, β)
 end
 
 action_model = ActionModel(
     gaussian_random,
+    observations = (; observation = Observation()),
+    actions = (;report = Action(Normal)),
     parameters = (action_noise = Parameter(1), mean = Parameter(50)),
 )
 
