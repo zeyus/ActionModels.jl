@@ -6,9 +6,6 @@
 # The PDI is a self-report questionnaire that measures delusional ideation, and we will use it as a predictor in our model.
 # Data is taken from https://github.com/nacemikus/jget-schizotypy, where more information can also be found.
 
-using Pkg;
-Pkg.activate("docs") #Remove later
-
 # ## Loading data
 # First, we load the ActionModels package. We also load CSV and Dataframes for loading the data, and StatsPlots for plotting the results.
 using ActionModels
@@ -22,7 +19,7 @@ docs_path = joinpath(ActionModels_path, "docs") #hide
 
 #Trial-level data
 JGET_data = CSV.read(
-    joinpath(docs_path, "example_data/JGET/JGET_data_trial_preprocessed.csv"),
+    joinpath(docs_path, "example_data", "JGET", "JGET_data_trial_preprocessed.csv"),
     DataFrame,
     missingstring = ["NaN", ""],
 )
@@ -30,7 +27,7 @@ JGET_data = select(JGET_data, [:trials, :ID, :session, :outcome, :response, :con
 
 #Subject-level data
 subject_data = CSV.read(
-    joinpath(docs_path, "example_data/JGET/JGET_data_sub_preprocessed.csv"),
+    joinpath(docs_path, "example_data", "JGET", "JGET_data_sub_preprocessed.csv"),
     DataFrame,
     missingstring = ["NaN", ""],
 )
@@ -61,15 +58,10 @@ disallowmissing!(JGET_data, [:pdi_total])
 show(JGET_data)
 
 
-
-# For this example, we will subset the data to only include two subjects in total, across the three epxerimental sessions.
+# For this example, we will subset the data to only include six subjects in total, across the three epxerimental sessions.
 # This makes the runtime much shorter. Simply skip this step if you want to use the full dataset.
 
-if false
-    JGET_data = filter(row -> row[:ID] in [20, 74], JGET_data)
-end
-
-
+JGET_data = filter(row -> row[:ID] in [20, 30, 40, 50, 60, 74], JGET_data)
 
 
 # ## Creating the model
@@ -101,26 +93,43 @@ model = create_model(
     session_cols = session_cols,
 )
 
-
 # ## Fitting the model
 # We are now ready to fit the model to the data.
+# For this model, we will use the Enzyme automatic differentiation backend, which is a high-performance automatic differentiation library. 
+# Crucially, it supports parallelization within the model, which can speed up the fitting process significantly.
+# Additoinally, to keep the runtime of this tutorial short, we will only fit a single chain with 300 samples.
 
 ## Set AD backend ##
-using ADTypes: AutoReverseDiff, AutoEnzyme
-import ReverseDiff
+using ADTypes: AutoEnzyme
 import Enzyme: set_runtime_activity, Reverse 
-#ad_type = AutoForwardDiff() # For testing purposes, use ForwardDiff
-ad_type = AutoReverseDiff(; compile = true)
-#ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
+ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 
 ## Fit model ##
-chains = sample_posterior!(model, n_chains = 1, n_samples = 500, ad_type = ad_type)
+chns = sample_posterior!(model, n_chains = 1, n_samples = 300, ad_type = ad_type)
 
-#TODO: Finish the tutorial
+# We can now inspect the results of the fitting process.
 
-parameters_df = summarize(get_session_parameters!(model))
+#TODO: look at the beta values of the chains
 
-states_df = summarize(get_state_trajectories!(model, :expected_value))
+# We can also extract the session parameters and state trajectories from the model.
+session_parameters = get_session_parameters!(model)
+state_trajectories = get_state_trajectories!(model, :expected_value)
+
+# We can investigate the estimated session parameters in more detail
+
+#TODO: plot the session parameters
+
+#And we can extract a dataframe with the median of the posterior for each session parameter
+parameters_df = summarize(session_parameters)
+show(parameters_df)
+
+# We can also look at the implied state trajectories, in this case the expected value.
+# These can be plotted, or they can be summarized in a dataframe, which can then be used for further analysis, such as correlating with physiological states.
+
+#TODO: plot the state trajectories
+
+states_df = summarize(state_trajectories)
+show(states_df)
 
 
 
