@@ -1,12 +1,12 @@
 export PVLDelta
 
 Base.@kwdef struct PVLDelta <: AbstractPremadeModel
-    n_decks::Int64
+    n_options::Int64
     learning_rate::Float64 = 0.1
     action_precision::Float64 = 1
     reward_sensitivity::Float64 = 0.5
     loss_aversion::Float64 = 1
-    initial_value::Array{Float64} = zeros(Float64, n_decks)
+    initial_value::Array{Float64} = zeros(Float64, n_options)
     act_before_update::Bool = false
 end
 
@@ -14,7 +14,7 @@ function ActionModel(config::PVLDelta)
 
     if !config.act_before_update
 
-        am_function = function pvl_delta(attributes::ModelAttributes, deck::Int64, reward::Float64)
+        am_function = function pvl_delta(attributes::ModelAttributes, chosen_option::Int64, reward::Float64)
 
             ## Read in parameters and states ##
             parameters = load_parameters(attributes)
@@ -31,15 +31,15 @@ function ActionModel(config::PVLDelta)
             ## Update expected values ##
             #Calculate prediction error
             if reward >= 0
-                prediction_error = (reward^A) - Ev[deck]
+                prediction_error = (reward^A) - Ev[chosen_option]
             else
-                prediction_error = -w * (abs(reward)^A) - Ev[deck]
+                prediction_error = -w * (abs(reward)^A) - Ev[chosen_option]
             end
 
-            #Calculate new expected value for the chosen deck
-            # Ev[deck] = Ev[deck] + α * prediction_error
+            #Calculate new expected value for the chosen option
+            # Ev[chosen_option] = Ev[chosen_option] + α * prediction_error
             Ev = [
-                Ev[deck_idx] + α * prediction_error * (deck == deck_idx) for deck_idx = 1:config.n_decks
+                Ev[option_idx] + α * prediction_error * (chosen_option == option_idx) for option_idx = 1:config.n_options
             ]
             
 
@@ -48,7 +48,7 @@ function ActionModel(config::PVLDelta)
 
 
             ## Get action probabilities ##
-            #Softmax over expected values for each deck
+            #Softmax over expected values for each option
             action_probabilities = softmax(Ev * β)
 
             #Avoid underflow and overflow
@@ -60,7 +60,7 @@ function ActionModel(config::PVLDelta)
 
     else
         
-        am_function = function pvl_delta_act_before_update(attributes::ModelAttributes, deck::Int64, reward::Float64)
+        am_function = function pvl_delta_act_before_update(attributes::ModelAttributes, chosen_option::Int64, reward::Float64)
 
             ## Read in parameters and states ##
             parameters = load_parameters(attributes)
@@ -75,7 +75,7 @@ function ActionModel(config::PVLDelta)
 
 
             ## Get action probabilities ##
-            #Softmax over expected values for each deck
+            #Softmax over expected values for each option
             action_probabilities = softmax(Ev * β)
 
             #Avoid underflow and overflow
@@ -86,15 +86,15 @@ function ActionModel(config::PVLDelta)
             ## Update expected values ##
             #Calculate prediction error
             if reward >= 0
-                prediction_error = (reward^A) - Ev[deck]
+                prediction_error = (reward^A) - Ev[chosen_option]
             else
-                prediction_error = -w * (abs(reward)^A) - Ev[deck]
+                prediction_error = -w * (abs(reward)^A) - Ev[chosen_option]
             end
 
-            #Calculate new expected value for the chosen deck
-            #Ev[deck] = Ev[deck] + α * prediction_error
+            #Calculate new expected value for the chosen option
+            #Ev[chosen_option] = Ev[chosen_option] + α * prediction_error
             Ev = [
-                Ev[deck_idx] + α * prediction_error * (deck == deck_idx) for deck_idx = 1:config.n_decks
+                Ev[option_idx] + α * prediction_error * (chosen_option == option_idx) for option_idx = 1:config.n_options
             ]
 
             #Update the expected value for next timestep
@@ -114,7 +114,7 @@ function ActionModel(config::PVLDelta)
 
     states = (; expected_value = State(Array{Float64}))
 
-    observations = (; deck = Observation(Int64), reward = Observation())
+    observations = (; chosen_option = Observation(Int64), reward = Observation())
 
     actions = (; choice = Action(Categorical),)
 

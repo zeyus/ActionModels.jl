@@ -16,8 +16,8 @@
 # $a_t \sim \mathcal{N}(V_t, \beta)$
 # The continuous Rescorla-Wagner model model with a Gaussian report actions therefore has a total of three parameters:
 # - The initial expected value $V_0$ (by default set to 0)
-# - The learning rate $\alpha$ (by default set to 0.1)
-# - The action noise $\beta$ (by default set to 1)
+# - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
+# - The action noise $\beta > 0$ (by default set to 1)
 
 # ### Binary variant
 # In its binary variant, the Rescorla-Wagner model receives a binary observation (as opposed to a continuous one), and its task is to learn the probability of the binary outcome.
@@ -28,8 +28,8 @@
 # $a_t \sim \text{Bernoulli}(\sigma(V_t * \beta^{-1}))$
 # The binary Rescorla-Wagner model with a Bernoulli report action therefore has a total of three parameters:
 # - The initial expected value $V_0$ (by default set to 0)
-# - The learning rate $\alpha$ (by default set to 0.1)
-# - The action noise $\beta$ (by default set to 1)
+# - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
+# - The action noise $\beta > 0$ (by default set to 1)
 
 # ### Categorical variant
 # In its categorical variant, the Rescorla-Wagner model receives a categorical observation (as opposed to a continuous one), and its task is to learn the probability of each observation category occuring.
@@ -42,8 +42,8 @@
 # where s(x) is the softmax function, which ensures that the probabilities sum to 1.
 # The categorical Rescorla-Wagner model with a categorical report action therefore has a total of three parameters:
 # - The initial expected values $V_0$, which is a vector of values for each category (by default set to a vector of zeros)
-# - The learning rate $\alpha$ (by default set to 0.1)
-# - The action noise $\beta$ (by default set to 1)
+# - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
+# - The action noise $\beta > 0$ (by default set to 1)
 
 
 # ## The RescorlaWagner submodel
