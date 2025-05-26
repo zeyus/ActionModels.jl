@@ -3,7 +3,7 @@ export PVLDelta
 Base.@kwdef struct PVLDelta <: AbstractPremadeModel
     n_options::Int64
     learning_rate::Float64 = 0.1
-    action_precision::Float64 = 1
+    action_noise::Float64 = 1
     reward_sensitivity::Float64 = 0.5
     loss_aversion::Float64 = 1
     initial_value::Array{Float64} = zeros(Float64, n_options)
@@ -23,7 +23,7 @@ function ActionModel(config::PVLDelta)
             α = parameters.learning_rate
             A = parameters.reward_sensitivity
             w = parameters.loss_aversion
-            β = parameters.action_precision
+            β = 1 / parameters.action_noise
 
             Ev = states.expected_value
 
@@ -69,7 +69,7 @@ function ActionModel(config::PVLDelta)
             α = parameters.learning_rate
             A = parameters.reward_sensitivity
             w = parameters.loss_aversion
-            β = parameters.action_precision
+            β = 1 / parameters.action_noise
 
             Ev = states.expected_value
 
@@ -107,7 +107,7 @@ function ActionModel(config::PVLDelta)
     parameters = (
         learning_rate = Parameter(config.learning_rate),
         reward_sensitivity = Parameter(config.reward_sensitivity),
-        action_precision = Parameter(config.action_precision),
+        action_noise = Parameter(config.action_noise),
         loss_aversion = Parameter(config.loss_aversion),
         initial_value = InitialStateParameter(config.initial_value, :expected_value),
     )

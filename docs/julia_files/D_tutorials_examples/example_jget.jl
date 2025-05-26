@@ -84,7 +84,7 @@ session_cols = [:ID, :session]
 # We then create the fulle model. We use a hierarchical regression model to predict the parameters of the Rescorla-Wagner model based on the session number and the PDI score.
 # First we will set appropriate priors for the regression coefficients.
 # For the action noise, the outcome of the regression will be exponentiated before it is used in the model, so pre-transformed outcomes around 3 (exp(3) ≈ 20) are among the most extreme values to be expected.
-# For the learning rate, the outcome of the regression will be passed through a logistic function, so valuespre-transformed outcomes around around 5 (logistic(5) ≈ 0.993) are among the most extreme values to be expected.
+# For the learning rate, the outcome of the regression will be passed through a logistic function, so pre-transformed outcomes around around 5 (logistic(5) ≈ 0.993) are among the most extreme values to be expected.
 # This means that we should limit priors to be fairly narrow, so that the linear regression does not go too far into inappropriate parameter space, which will increase the runtime of the fitting process.
 # 
 
@@ -119,7 +119,7 @@ model = create_model(
 # We are now ready to fit the model to the data.
 # For this model, we will use the Enzyme automatic differentiation backend, which is a high-performance automatic differentiation library. 
 # Crucially, it supports parallelization within the model, which can speed up the fitting process significantly.
-# Additoinally, to keep the runtime of this tutorial short, we will only fit a single chain with 500 samples.
+# Additionally, to keep the runtime of this tutorial short, we will only fit a single chain with 500 samples.
 
 ## Set AD backend ##
 using ADTypes: AutoEnzyme
@@ -129,11 +129,24 @@ ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 ## Fit model ##
 chns = sample_posterior!(model, n_chains = 1, n_samples = 500, ad_type = ad_type)
 
-
-plot(chns)
 # We can now inspect the results of the fitting process.
-
-#TODO: look at the beta values of the chains
+# We can plot the posterior distributions of the beta parameter for PDI's effect on the action model parameters.
+title =
+    plot(title = "Posterior over effect of PDI", grid = false, showaxis = false, bottom_margin = -30Plots.px)
+plot(
+    title,
+    density(
+        chns[Symbol("learning_rate.β[2]")],
+        title = "learning rate",
+        label = nothing,
+    ),
+    density(
+        chns[Symbol("action_noise.β[2]")],
+        title = "action noise",
+        label = nothing,
+    ),
+    layout = @layout([A{0.01h}; [B C]])
+)
 
 # We can also extract the session parameters and state trajectories from the model.
 session_parameters = get_session_parameters!(model)

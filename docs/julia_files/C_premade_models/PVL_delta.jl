@@ -42,7 +42,7 @@ action_model = ActionModel(
         n_options = 4,
         initial_value = zeros(4),
         learning_rate = 0.1,
-        action_precision = 1,
+        action_noise = 1,
         reward_sensitivity = 0.5,
         loss_aversion = 1,
     ),
@@ -109,7 +109,7 @@ action_model = ActionModel(PVLDelta(n_options = 4, act_before_update = true))
 # We can then create the full model, and sample from the posterior.
 population_model = (
     learning_rate = LogitNormal(),
-    action_precision = LogNormal(),
+    action_noise = LogNormal(),
     reward_sensitivity = LogitNormal(),
     loss_aversion = LogNormal(),
 )
