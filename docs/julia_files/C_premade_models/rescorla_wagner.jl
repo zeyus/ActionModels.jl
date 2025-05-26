@@ -42,7 +42,7 @@ using StatsPlots
 
 # ### Continuous variant
 # We can then create a Rescorla-Wagner submodel with the Rescorla-Wagner constructor.
-submodel = ActionModels.RescorlaWagner(
+submodel = ActionModels.ContinuousRescorlaWagner(
     initial_value = 0.0,  # Initial expected value
     learning_rate = 0.1,  # Learning rate
 )

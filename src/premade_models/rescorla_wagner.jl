@@ -12,7 +12,7 @@
 abstract type AbstractRescorlaWagnerSubmodel <: AbstractSubmodel end
 
 ## Concrete types ##
-Base.@kwdef struct RescorlaWagner <: AbstractRescorlaWagnerSubmodel
+Base.@kwdef struct ContinuousRescorlaWagner <: AbstractRescorlaWagnerSubmodel
     initial_value::Float64 = 0.0
     learning_rate::Float64 = 0.1
 end
@@ -41,10 +41,10 @@ struct CategoricalRescorlaWagner <: AbstractRescorlaWagnerSubmodel
 end
 
 ## Functions for getting the types of the parameters and states ##
-function get_parameter_types(model::RescorlaWagner)
+function get_parameter_types(model::ContinuousRescorlaWagner)
     return (initial_value = Float64, learning_rate = Float64)
 end
-function get_state_types(model::RescorlaWagner)
+function get_state_types(model::ContinuousRescorlaWagner)
     return (; expected_value = Float64,)
 end
 function get_parameter_types(model::BinaryRescorlaWagner)
@@ -75,7 +75,7 @@ end
 ## Initialise attributes function ##
 #Continuous and binary RW 
 function initialize_attributes(
-    model::Union{RescorlaWagner, BinaryRescorlaWagner},
+    model::Union{ContinuousRescorlaWagner, BinaryRescorlaWagner},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {TF,TI}
