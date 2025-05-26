@@ -14,14 +14,22 @@
 # where $o_t$ is the observed outcome at time $t$, and $\alpha$ is the learning rate.
 # The expected value $V_t$ can then be used to determine the action. This is often done with a report action, where the action is sampled from a Gaussian distribution with the expected value $V_t$ as mean and a noise parameter $\beta$ as standard deviation:
 # $a_t \sim \mathcal{N}(V_t, \beta)$
+# The continuous Rescorla-Wagner model model with a Gaussian report actions therefore has a total of three parameters:
+# - The initial expected value $V_0$ (by default set to 0)
+# - The learning rate $\alpha$ (by default set to 0.1)
+# - The action noise $\beta$ (by default set to 1)
 
 # ### Binary variant
 # In its binary variant, the Rescorla-Wagner model receives a binary observation (as opposed to a continuous one), and its task is to learn the probability of the binary outcome.
 # Here, the expected value $V_t$ is transformed with a logistic or sigmoid function to ensure it is between 0 and 1, before it is used to calculate the prediction error:
 # $V_t = V_{t-1} + \alpha (o_t - \sigma(V_{t-1}))$
 # where $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function.
-# A binary report action is then often sampled from a Bernoulli distribution with the sigmoid-transformed expected value $V_t$ as probability:
-# $a_t \sim \text{Bernoulli}(\sigma(V_t))$
+# A binary report action is then often sampled from a Bernoulli distribution with the sigmoid-transformed expected value $V_t$ as probability. An action precision (the inverse action noise $\beta$) is used to control the noise of the action:
+# $a_t \sim \text{Bernoulli}(\sigma(V_t * \beta^{-1}))$
+# The binary Rescorla-Wagner model with a Bernoulli report action therefore has a total of three parameters:
+# - The initial expected value $V_0$ (by default set to 0)
+# - The learning rate $\alpha$ (by default set to 0.1)
+# - The action noise $\beta$ (by default set to 1)
 
 # ### Categorical variant
 # In its categorical variant, the Rescorla-Wagner model receives a categorical observation (as opposed to a continuous one), and its task is to learn the probability of each observation category occuring.
@@ -29,13 +37,20 @@
 # For each category, the expected value $V_t$ is updated with the binary Rescorla-Wagner update rule:
 # $V_{t, c} = V_{t-1, c} + \alpha (o_{t, c} - \sigma(V_{t-1, c}))$
 # where $o_{t, c}$ is the observation for category $c$ at time $t$, and $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function.
-# TODO: check whether expected values should be transformed with a softmax function before saving them.
 # A categorical report action is then often sampled from a Categorical distribution with the sigmoid-transformed expected values $V_t$ as probabilities (and a noise parameter $\beta$):
-# $a_t \sim \text{Categorical}(s(V_t * \beta))$ 
+# $a_t \sim \text{Categorical}(s(V_t * \beta^{-1}))$ 
 # where s(x) is the softmax function, which ensures that the probabilities sum to 1.
+# The categorical Rescorla-Wagner model with a categorical report action therefore has a total of three parameters:
+# - The initial expected values $V_0$, which is a vector of values for each category (by default set to a vector of zeros)
+# - The learning rate $\alpha$ (by default set to 0.1)
+# - The action noise $\beta$ (by default set to 1)
 
-# ## Implementation in ActionModels.jl
-# Here we will demonstrate how to implement each of these variants in ActionModels.jl.
+
+# ## The RescorlaWagner submodel
+# The three varianta of the Rescorla-Wagner model described above are implemented as submodels in ActionModels.jl.
+# Here we will demonstrate how to use each of these variants as submodels in ActionModels.jl.
+# We will in each case combine them with the standard report action described above, but they can also be combined with other response models too.
+
 # First we load the ActionModels package, and StatsPlots for plotting the results:
 using ActionModels
 using StatsPlots
@@ -81,13 +96,33 @@ action_model = ActionModel(
 )
 
 # And proceed to simulate or fit the model as usual.
+#Initialize agent
 agent = init_agent(action_model, save_history = :expected_value)
 
+#Create observation
 observations = collect(0:0.1:2) .+ randn(21) * 0.1
 
-simulate!(agent, observations)
+#Simulate actions
+simulated_actions = simulate!(agent, observations)
 
+#Plot trajectory of expected values
 plot(agent, :expected_value)
+
+#Fit the model to the simulated actions
+model = create_model(
+    action_model,
+    (
+        learning_rate = LogitNormal(),
+        action_noise = LogNormal(),
+        initial_value = Normal(),
+    ),
+    observations,
+    simulated_actions,
+)
+
+chns = sample_posterior!(model)
+
+#TODO: plot the posteriors
 
 # ### Binary variant
 # We can also create a binary Rescorla-Wagner submodel:
@@ -137,13 +172,33 @@ action_model = ActionModel(
 )
 
 # And proceed to simulate or fit the model as usual.
+#Initialize agent
 agent = init_agent(action_model, save_history = :expected_value)
 
+#Create observation
 observations = [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
 
-simulate!(agent, observations)
+#Simulate actions
+simulated_actions = simulate!(agent, observations)
 
+#Plot trajectory of expected values
 plot(agent, :expected_value)
+
+#Fit the model to the simulated actions
+model = create_model(
+    action_model,
+    (
+        learning_rate = LogitNormal(),
+        action_noise = LogNormal(),
+        initial_value = Normal(),
+    ),
+    observations,
+    Int64.(simulated_actions),
+)
+
+chns = sample_posterior!(model)
+
+#TODO: plot the posteriors
 
 # ### Categorical variant
 # We can also create a categorical Rescorla-Wagner submodel:
@@ -197,16 +252,17 @@ action_model = ActionModel(
 )
 
 # And proceed to simulate or fit the model as usual.
+#Initialize agent
 agent = init_agent(action_model, save_history = :expected_value)
 
+#Create observation
 observations = [2, 1, 2, 2, 1, 2, 3, 4, 3, 2, 2, 2, 1, 1]
 
-simulate!(agent, observations)
+#Simulate actions
+simulated_actions = simulate!(agent, observations)
 
 #TODO: make plot_trajectory function compatible with multivariate states
-
 expected_values = get_history(agent, :expected_value)
-
 plot([expected_values[i][1] for i in 1:length(expected_values)], label = "category 1")
 plot!([expected_values[i][2] for i in 1:length(expected_values)], label = "category 2")
 plot!([expected_values[i][3] for i in 1:length(expected_values)], label = "category 3")
@@ -214,15 +270,40 @@ plot!([expected_values[i][4] for i in 1:length(expected_values)], label = "categ
 title!("Expected values for each category over time")
 xlabel!("Time")
 
+#Fit the model to the simulated actions
+model = create_model(
+    action_model,
+    (
+        learning_rate = LogitNormal(),
+        action_noise = LogNormal(),
+        initial_value = MvNormal(zeros(4), I),
+    ),
+    observations,
+    Int64.(simulated_actions),
+)
 
+chns = sample_posterior!(model)
+
+#TODO: plot the posteriors
 
 
 
 # ## The premade model constructor
+# In the previous section, we have demonstrated how to use the Rescorla-Wagner submodels to create action models.
+# However, ActionModels also provides a premade model constructor for the Rescorla-Wagner model, which allows you to create a full action model with a single function call.
+
+
+
+
+
+
+
 
 # ### Custom response model
 
 # ### Multiple observation sources
 # In some experiments, there are multiple soruces of observations. It is then a common strategy to use a single Rescorla-Wagner model to learn the expected value of each observation source, and then combine these expected values in a custom response model.
 # TODO: This needs multiple submodels implemented
+
+
 

@@ -59,7 +59,7 @@ using StatsPlots
     session_cols = [:id, :treatment]
 
     #Create model
-    action_model = ActionModel(PremadeRescorlaWagner())
+    action_model = ActionModel(RescorlaWagner())
 
     #Set prior
     prior = (

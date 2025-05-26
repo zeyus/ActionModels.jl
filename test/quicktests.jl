@@ -1,7 +1,7 @@
 using ActionModels, DataFrames
 
 ## Define model ##
-action_model = ActionModel(PremadeRescorlaWagner())
+action_model = ActionModel(RescorlaWagner())
 
 ## Simulate with agent ##
 agent = init_agent(action_model, save_history = [:expected_value])

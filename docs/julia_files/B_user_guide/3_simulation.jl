@@ -10,7 +10,7 @@
 # This model is identical to the model used in the [defining action models](./2_defining_action_models.md) section.
 using ActionModels
 
-action_model = ActionModel(PremadeRescorlaWagner())
+action_model = ActionModel(RescorlaWagner())
 
 # We can now instantiate an Agent object using this action model. 
 # We can specify the states for which we want to save the history when simulating. Here we choose the expected_value.

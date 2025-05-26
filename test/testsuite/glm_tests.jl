@@ -51,7 +51,7 @@ using StatsPlots
     session_cols = [:id, :treatment]
 
     #Create action model
-    action_model = ActionModel(PremadeRescorlaWagner())
+    action_model = ActionModel(RescorlaWagner())
 
     #Inference parameters
     n_samples = 200

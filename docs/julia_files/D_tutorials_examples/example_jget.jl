@@ -80,7 +80,7 @@ end
 # There are then two parameters in the action model: the learning rate $\alpha$ and the action noise $\beta$.
 
 # We create the Rescorla-Wagner action model using the premade model from ActionModels.jl.
-action_model = ActionModel(PremadeRescorlaWagner())
+action_model = ActionModel(RescorlaWagner())
 
 # We then specify which column in the data corresponds to the action (the response) and which columns correspond to the input (the outcome).
 # There are twp columns which jointly specify the sessions: the ID of the participant and the experimental session number.

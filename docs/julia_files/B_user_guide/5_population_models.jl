@@ -47,7 +47,7 @@ observation_cols = :observations
 session_cols = [:id, :treatment]
 
 # Finally, we specify the action model. We here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the [defining action models](./2_defining_action_models.md) section.
-action_model = ActionModel(PremadeRescorlaWagner())
+action_model = ActionModel(RescorlaWagner())
 
 
 # ## Independent session population models

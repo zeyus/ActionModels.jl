@@ -149,7 +149,7 @@ function set_parameters!(
     attributes::RescorlaWagnerAttributes,
     parameter_name::Symbol,
     parameter_value::T,
-) where {T<:Union{Real,Array{Real}}}
+) where {R<:Real, T<:Union{R,AbstractArray{R}}}
     if parameter_name in [:learning_rate, :initial_value]
         setfield!(attributes, parameter_name, parameter_value)
     else
@@ -161,7 +161,7 @@ function set_states!(
     attributes::RescorlaWagnerAttributes,
     state_name::Symbol,
     state_value::T,
-) where {T<:Union{Real,Array{Real}}}
+) where {R<:Real, T<:Union{R,AbstractArray{R}}}
     if state_name in [:expected_value]
         setfield!(attributes, state_name, state_value)
     else
@@ -175,7 +175,7 @@ function set_parameters!(
     attributes::RescorlaWagnerAttributes,
     parameter_names::Tuple{Vararg{Symbol}},
     parameter_values::Tuple{Vararg{T}},
-) where {T<:Union{Real,Array{Real}}}
+) where {R<:Real, T<:Union{R,AbstractArray{R}}}
     for (parameter_name, parameter_value) in zip(parameter_names, parameter_values)
 
         out = set_parameters!(attributes, parameter_name, parameter_value)
@@ -191,7 +191,7 @@ function set_states!(
     attributes::RescorlaWagnerAttributes,
     state_names::Tuple{Vararg{Symbol}},
     state_values::Tuple{Vararg{T}},
-) where {T<:Union{Real,Array{Real}}}
+) where {R<:Real, T<:Union{R,AbstractArray{R}}}
     for (state_name, state_value) in zip(state_names, state_values)
 
         out = set_states!(attributes, state_name, state_value)
@@ -270,9 +270,9 @@ end
 ###################
 ### CONFIG TYPE ###
 ###################
-export PremadeRescorlaWagner
+export RescorlaWagner
 
-struct PremadeRescorlaWagner <: AbstractPremadeModel
+struct RescorlaWagner <: AbstractPremadeModel
     #RW preceptual model attributes
     type::Symbol
     initial_value::Union{Float64,Vector{Float64}}
@@ -294,7 +294,7 @@ struct PremadeRescorlaWagner <: AbstractPremadeModel
     } where {action_names}
     act_before_update::Bool
 
-    function PremadeRescorlaWagner(;
+    function RescorlaWagner(;
         type::Symbol = :continuous,
         initial_value::Union{Float64,Vector{Float64}} = 0.0,
         learning_rate::Float64 = 0.1,
@@ -447,7 +447,7 @@ end
 ########################################
 ### FUNCTION FOR GENERATING SUBMODEL ###
 ########################################
-function ActionModel(config::PremadeRescorlaWagner)
+function ActionModel(config::RescorlaWagner)
 
     #Extract response model
     response_model = config.response_model

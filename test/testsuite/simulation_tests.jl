@@ -3,7 +3,7 @@ using ActionModels
 
 @testset "simulation" begin
     ### SETUP ###
-    action_model = ActionModel(PremadeRescorlaWagner())
+    action_model = ActionModel(RescorlaWagner())
 
     agent = init_agent(action_model, save_history = :expected_value)
 

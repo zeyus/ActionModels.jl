@@ -11,7 +11,7 @@
 using ActionModels, StatsPlots
 
 # We will here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the [defining action models](./2_defining_action_models.md) section.
-action_model = ActionModel(PremadeRescorlaWagner())
+action_model = ActionModel(RescorlaWagner())
 
 # We will then specfiy the data that we want to fit the model to.
 # For this example, we will use a simple manually created dataset, where three participants have completed an experiment where they must predict the next location of a moving target.
