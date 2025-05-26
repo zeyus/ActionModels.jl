@@ -75,7 +75,7 @@ end
 ## Initialise attributes function ##
 #Continuous and binary RW 
 function initialize_attributes(
-    model::Union{ContinuousRescorlaWagner, BinaryRescorlaWagner},
+    model::Union{ContinuousRescorlaWagner,BinaryRescorlaWagner},
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {TF,TI}
@@ -149,7 +149,7 @@ function set_parameters!(
     attributes::RescorlaWagnerAttributes,
     parameter_name::Symbol,
     parameter_value::T,
-) where {R<:Real, T<:Union{R,AbstractArray{R}}}
+) where {R<:Real,T<:Union{R,AbstractArray{R}}}
     if parameter_name in [:learning_rate, :initial_value]
         setfield!(attributes, parameter_name, parameter_value)
     else
@@ -161,7 +161,7 @@ function set_states!(
     attributes::RescorlaWagnerAttributes,
     state_name::Symbol,
     state_value::T,
-) where {R<:Real, T<:Union{R,AbstractArray{R}}}
+) where {R<:Real,T<:Union{R,AbstractArray{R}}}
     if state_name in [:expected_value]
         setfield!(attributes, state_name, state_value)
     else
@@ -175,7 +175,7 @@ function set_parameters!(
     attributes::RescorlaWagnerAttributes,
     parameter_names::Tuple{Vararg{Symbol}},
     parameter_values::Tuple{Vararg{T}},
-) where {R<:Real, T<:Union{R,AbstractArray{R}}}
+) where {R<:Real,T<:Union{R,AbstractArray{R}}}
     for (parameter_name, parameter_value) in zip(parameter_names, parameter_values)
 
         out = set_parameters!(attributes, parameter_name, parameter_value)
@@ -191,7 +191,7 @@ function set_states!(
     attributes::RescorlaWagnerAttributes,
     state_names::Tuple{Vararg{Symbol}},
     state_values::Tuple{Vararg{T}},
-) where {R<:Real, T<:Union{R,AbstractArray{R}}}
+) where {R<:Real,T<:Union{R,AbstractArray{R}}}
     for (state_name, state_value) in zip(state_names, state_values)
 
         out = set_states!(attributes, state_name, state_value)
@@ -258,9 +258,8 @@ function update!(
 ) where {T<:Real,AT<:Array{T}}
 
     attributes.expected_value = [
-        expected_value + attributes.learning_rate * (single_observation - expected_value)
-        for (expected_value, single_observation) in
-            zip(attributes.expected_value, observation)
+        expected_value + attributes.learning_rate * (single_observation - expected_value) for
+        (expected_value, single_observation) in zip(attributes.expected_value, observation)
     ]
 end
 
@@ -277,6 +276,8 @@ struct RescorlaWagner <: AbstractPremadeModel
     type::Symbol
     initial_value::Union{Float64,Vector{Float64}}
     learning_rate::Float64
+
+    n_categories::Union{Nothing,Int64} #Only used for categorical RW
 
     #Response model attributes
     response_model::Function
@@ -296,8 +297,10 @@ struct RescorlaWagner <: AbstractPremadeModel
 
     function RescorlaWagner(;
         type::Symbol = :continuous,
-        initial_value::Union{Float64,Vector{Float64}} = 0.0,
+        initial_value::Union{Nothing,Float64,Vector{Float64}} = nothing,
         learning_rate::Float64 = 0.1,
+
+        n_categories::Union{Nothing,Int64} = nothing, #Only used for categorical RW
 
         response_model::Union{Nothing,Function} = nothing,
         response_model_parameters::Union{
@@ -318,6 +321,23 @@ struct RescorlaWagner <: AbstractPremadeModel
         #Check if the type is valid
         if !(type in [:continuous, :binary, :categorical])
             error("Type $type is not a valid Rescorla-Wagner type.")
+        end
+
+        #Check if the n_categories is set for categorical RW
+        if type == :categorical && isnothing(n_categories)
+            error(
+                "Categorical Rescorla-Wagner models must have the number of categories set with the n_categories keyword argument.",
+            )
+        end
+
+        #Check if the initial value is set
+        if isnothing(initial_value)
+            #Set the initial value to the default value
+            if type == :categorical
+                initial_value = zeros(n_categories)
+            else
+                initial_value = 0.0
+            end
         end
 
         #Check if the type mathes the initial value
@@ -366,45 +386,41 @@ struct RescorlaWagner <: AbstractPremadeModel
 
             #Set the response model
             if type == :continuous
-                response_model = function gaussian_report(
-                    rescorla_wagner::RescorlaWagnerAttributes,
-                    attributes::ModelAttributes,
-                )
-                    return Distributions.Normal(
-                        rescorla_wagner.expected_value,
-                        load_parameters(attributes).action_noise,
-                    )
+                
+                response_model = function gaussian_report(attributes::ModelAttributes)
+                    rescorla_wagner = attributes.submodel
+                    Vₜ = rescorla_wagner.expected_value
+                    β = load_parameters(attributes).action_noise
+                    return Normal(Vₜ, β)
                 end
+            
                 response_model_observations = (; observation = Observation(Float64))
                 response_model_actions = (; report = Action(Normal))
+            
             elseif type == :binary
-                response_model = function bernoulli_report(
-                    rescorla_wagner::RescorlaWagnerAttributes,
-                    attributes::ModelAttributes,
-                )
-                    return Distributions.Bernoulli(
-                        logistic(
-                            rescorla_wagner.expected_value *
-                            load_parameters(attributes).action_noise,
-                        ),
-                    )
+
+                response_model = function bernoulli_report(attributes::ModelAttributes)
+                    rescorla_wagner = attributes.submodel
+                    Vₜ = rescorla_wagner.expected_value
+                    β = 1/load_parameters(attributes).action_noise
+                    return Bernoulli(logistic(Vₜ * β))
                 end
+
                 response_model_observations = (; observation = Observation(Int64))
                 response_model_actions = (; report = Action(Bernoulli))
+            
             elseif type == :categorical
-                response_model = function categorical_report(
-                    rescorla_wagner::RescorlaWagnerAttributes,
-                    attributes::ModelAttributes,
-                )
-                    return Distributions.Categorical(
-                        softmax(
-                            rescorla_wagner.expected_value *
-                            load_parameters(attributes).action_noise,
-                        ),
-                    )
+
+                response_model = function categorical_report(attributes::ModelAttributes)
+                    rescorla_wagner = attributes.submodel
+                    Vₜ = rescorla_wagner.expected_value
+                    β = 1/load_parameters(attributes).action_noise
+                    return Categorical(softmax(Vₜ .* β))
                 end
+
                 response_model_observations = (; observation = Observation(Int64))
                 response_model_actions = (; report = Action(Categorical))
+
             end
         else
             #Disallow setting the action noise keyword argument if a custom response model is provided
@@ -433,6 +449,7 @@ struct RescorlaWagner <: AbstractPremadeModel
             type,
             initial_value,
             learning_rate,
+            n_categories,
             response_model,
             response_model_parameters,
             response_model_observations,
@@ -465,7 +482,7 @@ function ActionModel(config::RescorlaWagner)
             rescorla_wagner = attributes.submodel
 
             #Run response model
-            action_distribution = response_model(rescorla_wagner, attributes)
+            action_distribution = response_model(attributes)
 
             #Update the Rescorla-Wagner expectation
             update!(rescorla_wagner, observation)
@@ -487,7 +504,7 @@ function ActionModel(config::RescorlaWagner)
             update!(rescorla_wagner, observation)
 
             #Run response model
-            action_distribution = response_model(rescorla_wagner, attributes)
+            action_distribution = response_model(attributes)
 
             return action_distribution
         end
@@ -499,13 +516,22 @@ function ActionModel(config::RescorlaWagner)
         RW_submodel = CategoricalRescorlaWagner(
             initial_value = config.initial_value,
             learning_rate = config.learning_rate,
+            n_categories = config.n_categories,
         )
-    else
+    elseif config.type == :binary
         #Create the submodel
-        RW_submodel = RescorlaWagner(
+        RW_submodel = BinaryRescorlaWagner(
             initial_value = config.initial_value,
             learning_rate = config.learning_rate,
         )
+    elseif config.type == :continuous
+        #Create the submodel
+        RW_submodel = ContinuousRescorlaWagner(
+            initial_value = config.initial_value,
+            learning_rate = config.learning_rate,
+        )
+    else
+        error("Unknown Rescorla-Wagner type: $(config.type)")
     end
 
     return ActionModel(
