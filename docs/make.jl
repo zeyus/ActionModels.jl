@@ -35,7 +35,7 @@ end
 
 #Including the index file 
 Literate.markdown(
-    joinpath(julia_files_folder, "E_others", "index.jl"),
+    joinpath(julia_files_folder, "index.jl"),
     markdown_files_folder,
     execute = true,
     documenter = true,
@@ -43,7 +43,7 @@ Literate.markdown(
 
 #And the README
 Literate.markdown(
-    joinpath(julia_files_folder, "E_others", "README.jl"),
+    joinpath(julia_files_folder, "README.jl"),
     project_dir,
     execute = true,
 )
@@ -68,7 +68,7 @@ makedocs(;
         prettyurls = get(ENV, "CI", "false") == "true",
         canonical = "https://ComputationalPsychiatry.github.io/ActionModels.jl",
         assets = String[],
-        size_threshold = 1_500_000, ##MAKE THIS SMALLER?
+        size_threshold = 10_000_000, ##MAKE THIS SMALLER?
     ),
     doctest = true,
     pages = [

@@ -10,40 +10,40 @@
 # ### The continuous Rescorla-Wagner model
 # The classic rescorla wagner model has a single changing state, the expected value $V_t$ of an outcome at time $t$.
 # This is done by the Rescorla-Wagner update rule:
-# $V_t = V_{t-1} + \alpha (o_t - V_{t-1})$
+# $$V_t = V_{t-1} + \alpha (o_t - V_{t-1})$$
 # where $o_t$ is the observed outcome at time $t$, and $\alpha$ is the learning rate.
 # The expected value $V_t$ can then be used to determine the action. This is often done with a report action, where the action is sampled from a Gaussian distribution with the expected value $V_t$ as mean and a noise parameter $\beta$ as standard deviation:
-# $a_t \sim \mathcal{N}(V_t, \beta)$
+# $$a_t \sim \mathcal{N}(V_t, \beta)$$
 # The continuous Rescorla-Wagner model model with a Gaussian report actions therefore has a total of three parameters:
-# - The initial expected value $V_0$ (by default set to 0)
+# - The initial expected value $V_0 \in \mathbb{R}$ (by default set to 0)
 # - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
-# - The action noise $\beta > 0$ (by default set to 1)
+# - The action noise $\beta \in [0, \infty]$ (by default set to 1)
 
 # ### Binary variant
 # In its binary variant, the Rescorla-Wagner model receives a binary observation (as opposed to a continuous one), and its task is to learn the probability of the binary outcome.
 # Here, the expected value $V_t$ is transformed with a logistic or sigmoid function to ensure it is between 0 and 1, before it is used to calculate the prediction error:
-# $V_t = V_{t-1} + \alpha (o_t - \sigma(V_{t-1}))$
+# $$V_t = V_{t-1} + \alpha (o_t - \sigma(V_{t-1}))$$
 # where $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function.
 # A binary report action is then often sampled from a Bernoulli distribution with the sigmoid-transformed expected value $V_t$ as probability. An action precision (the inverse action noise $\beta$) is used to control the noise of the action:
-# $a_t \sim \text{Bernoulli}(\sigma(V_t * \beta^{-1}))$
+# $$a_t \sim \text{Bernoulli}(\sigma(V_t * \beta^{-1}))$$
 # The binary Rescorla-Wagner model with a Bernoulli report action therefore has a total of three parameters:
-# - The initial expected value $V_0$ (by default set to 0)
+# - The initial expected value $V_0 \in \mathbb{R}$ (by default set to 0)
 # - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
-# - The action noise $\beta > 0$ (by default set to 1)
+# - The action noise $\beta \in [0, \infty]$ (by default set to 1)
 
 # ### Categorical variant
 # In its categorical variant, the Rescorla-Wagner model receives a categorical observation (as opposed to a continuous one), and its task is to learn the probability of each observation category occuring.
 # Here the observation is transformed into a one-hot encoded vector, representing for each category whether it was observed or not.
 # For each category, the expected value $V_t$ is updated with the binary Rescorla-Wagner update rule:
-# $V_{t, c} = V_{t-1, c} + \alpha (o_{t, c} - \sigma(V_{t-1, c}))$
+# $$V_{t, c} = V_{t-1, c} + \alpha (o_{t, c} - \sigma(V_{t-1, c}))$$
 # where $o_{t, c}$ is the observation for category $c$ at time $t$, and $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function.
 # A categorical report action is then often sampled from a Categorical distribution with the sigmoid-transformed expected values $V_t$ as probabilities (and a noise parameter $\beta$):
-# $a_t \sim \text{Categorical}(s(V_t * \beta^{-1}))$ 
+# $$a_t \sim \text{Categorical}(s(V_t * \beta^{-1}))$$ 
 # where s(x) is the softmax function, which ensures that the probabilities sum to 1.
 # The categorical Rescorla-Wagner model with a categorical report action therefore has a total of three parameters:
-# - The initial expected values $V_0$, which is a vector of values for each category (by default set to a vector of zeros)
+# - The initial expected values $V_0 \in \mathbb{R}$, which is a vector of values for each category (by default set to a vector of zeros)
 # - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
-# - The action noise $\beta > 0$ (by default set to 1)
+# - The action noise $\beta \in [0, \infty]$ (by default set to 1)
 
 
 # ## The RescorlaWagner submodel

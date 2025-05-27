@@ -6,19 +6,19 @@
 # The PVL-Delta model combines principles from Prospect Value Learning (PVL) models and Expectancy Valence (EV) models.
 # It consists of three steps. First, the observed reward is transformed according to Prospect Theory, to make it into a subjective value.
 # This is done by transofrming the value of the reward according to a power function, which is defined by the reward sensitivity parameter $A$, and adding a loss aversion parameter $w$ that controls how much losses and rewards differ in subjective value.
-# $ u_t = \begin{cases}
+# $$ u_t = \begin{cases}
 #     r_t^{A} & \text{if } r_t \geq 0 \\
 #     -w \cdot |r_t|^{A} & \text{if } r_t < 0
-# \end{cases} $
+# \end{cases} $$
 # where $r_t$ is the observed reward, $A$ is the reward sensitivity, and $w$ is the loss aversion.
 # The next step uses a classic Rescorla-Wagner learning rule to update the expected value of each choice, which is defined as:
-# $ E_t = E_{t-1} + \alpha \cdot (u_t - E_{t-1}) $
+# $$ E_t = E_{t-1} + \alpha \cdot (u_t - E_{t-1}) $$
 # where $E_t$ is the expected value at time $t$, $E_{t-1}$ is the expected value at time $t-1$, $\alpha$ is the learning rate, and $u_t$ is the subjective value fo the reward.
 # Finally, the action probabilities are calculated using a softmax function over the expected values, weighted by a noise parameter $\beta$ which is defined as:
-# P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$
+# $$P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$$
 # where $P(a_t = i)$ is the probability of choosing action $i$ at time $t$, $E_{t,i}$ is the expected value of action $i$ at time $t$, and $\beta$ is the action precision.
 # $\sigma$ is the softmax function, which ensures that the action probabilities sum to 1, defined as:
-# $ \sigma(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}} $
+# $$ \sigma(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}} $$
 # In total, the PVL-Delta model then has five parameters:
 # - the learning rate $\alpha \in [0,1]$, which controls how quickly the expected values are updated
 # - the reward sensitivity $A \in [0,1]$, which controls how quickly increases in the subjective value drops in relation to increases in observed reward, with $A = 1$ meaning that the subjective value is equal to the observed reward
