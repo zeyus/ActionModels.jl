@@ -46,7 +46,7 @@ action_cols = :actions
 observation_cols = :observations
 session_cols = [:id, :treatment]
 
-# Finally, we specify the action model. We here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the [defining action models](./2_defining_action_models.md) section.
+# Finally, we specify the action model. We here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the defining action models REF section.
 action_model = ActionModel(RescorlaWagner())
 
 
@@ -71,7 +71,7 @@ model = create_model(
 chains = sample_posterior!(model)
 
 # We can see in the chains object that each parameter is estimated for each session.
-# From here, we can extract and plot the session parameters etc. as described in the [fitting models](./4_fitting_models.md) section.
+# From here, we can extract and plot the session parameters etc. as described in the fitting models REF section.
 
 get_session_parameters!(model)
 

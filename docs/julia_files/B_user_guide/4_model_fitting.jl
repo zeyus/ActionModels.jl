@@ -10,7 +10,7 @@
 # First we import ActionModels, as well as StatsPlots for plotting the results later.
 using ActionModels, StatsPlots
 
-# We will here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the [defining action models](./2_defining_action_models.md) section.
+# We will here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the defining action models REF section.
 action_model = ActionModel(RescorlaWagner())
 
 # We will then specfiy the data that we want to fit the model to.
@@ -42,7 +42,7 @@ data = DataFrame(
 show(data)
 
 # Finally, we will specify a population model, which is the model of how parameters vary between the different sessions in the data.
-# There are various options when doing this, which are described in the [population models](./5_population_models.md) section.
+# There are various options when doing this, which are described in the population model REF section.
 # Here, we will use a regression population model, where we assume that the learning rate and action noise parameters depend linearly on the experimental treatment.
 # It is a hierarchical model, which means assuming that the parameters are sampled from a Gaussian distribution, where the mean of the distribution is a linear function of the treatment condition.
 # This is specified with standard LMER syntax, and we use a logistic link function for the learning rate to ensure that it is between 0 and 1, and an exponential link function for the action noise to ensure that it is positive.

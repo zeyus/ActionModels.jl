@@ -7,7 +7,7 @@
 
 # ## Instantiating and manipulating agents
 # First we import ActionModels, and create the premade Rescorla-Wagner action model.
-# This model is identical to the model used in the [defining action models](./2_defining_action_models.md) section.
+# This model is identical to the model used in the defining action models REF section.
 using ActionModels
 
 action_model = ActionModel(RescorlaWagner())

@@ -144,7 +144,7 @@ end
 # For using a submodel to be worth the bother of creating it, there should usually be some more functionality than this, which is not easily implemented in the action model itself.
 
 function update!(attributes::RescorlaWagnerAttributes, observation::Float64)
-    # Equation: Vₜ = Vₜ₋₁ + α * (observation - Vₜ₋₁)
+    #Equation: Vₜ = Vₜ₋₁ + α * (observation - Vₜ₋₁)
     attributes.expected_value +=
         attributes.learning_rate * (observation - attributes.expected_value)
 end
@@ -185,7 +185,7 @@ end
 
 action_model = ActionModel(
     model_function,
-    submodel = RescorlaWagner(learning_rate = 0.1, initial_value = 0.0),
+    submodel = MyRescorlaWagner(learning_rate = 0.1, initial_value = 0.0),
     parameters = (; action_noise = Parameter(1.0)),
     observations = (; observation = Observation()),
     actions = (; report = Action(Normal)),

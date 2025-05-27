@@ -21,6 +21,8 @@
 # The function should take a ModelAttributes object as its first argument, which contains the parameters, states and previous actions of the model.
 # The observations to the model are passed as the following positional arguments. For this model, there is only a single continuous observation.
 
+using ActionModels
+
 function rescorla_wagner(attributes::ModelAttributes, observation::Float64)
     
     #Read in parameters and states
@@ -95,14 +97,14 @@ action_model = ActionModel(
 #Dummy example function with multiple observations and actions
 function example_actionmodel(attributes::ModelAttributes, first_observation::Float64, second_observation::Int64)
     
-    #-- model definition not shown here -- #
+    #model definition not shown here
 
     #Two example actions sampled from a Gaussian and a Bernoulli distribution
     first_action_distribution = Normal(0, 1)
     second_action_distribution = Bernoulli(0.5)
 
     return (first_action_distribution, second_action_distribution)
-end;
+end
 
 observations = (;
     first_observation = Observation(),         
@@ -144,7 +146,7 @@ function example_actionmodel(attributes::ModelAttributes, observation::Float64)
     first_action = prev_actions.first_action
     second_action = prev_actions.second_action
 
-    #-- rest of model definition not shown here -- #
+    #Rest of model definition not shown here#
 
     #As an example, the first action is sampled form a distribution that depends on the previous action
     first_action_distribution = Normal(first_action, 1)
@@ -166,5 +168,5 @@ function example_actionmodel(attributes::ModelAttributes, observation::Float64)
         throw(RejectParameters("The model is not defined for this parameter set"))
     end
 
-    #-- rest of model definition not shown here -- #
+    #Rest of model definition not shown here#
 end;
