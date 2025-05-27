@@ -365,6 +365,7 @@ chns = sample_posterior!(model)
 # In the examples above, we have used the default report action with the rescorla-wagner model.
 # The precreated model, however, also allows for using custom response models.
 # Here we show how to create the Gaussian report action as a custom response model - this is the default response model when using the continuous Rescorla-Wagner model.
+# We will make a minor change, and add a bias parameter to the response model, which will be added to the expected value before sampling the action.
 
 # The response model itself should be a function that takes the model attributes as input and returns a distribution.
 # The Rescorla-Wagner will have either been updated or not, depending on the `act_before_update` keyword, so the response model should be able to handle either case.
@@ -372,12 +373,13 @@ response_model = function gaussian_report(attributes::ModelAttributes)
     rescorla_wagner = attributes.submodel
     Vₜ = rescorla_wagner.expected_value
     β = load_parameters(attributes).action_noise
-    return Normal(Vₜ, β)
+    b = load_parameters(attributes).bias
+    return Normal(Vₜ + b, β)
 end
 
 # In addition to the response model function, we need to specify the parameters, observations, and actions that the response model uses.
 # This uses the same syntax as usual whne creating action models.
-response_model_parameters = (; action_noise = Parameter(1.0))
+response_model_parameters = (; action_noise = Parameter(1.0), bias = Parameter(0.0))
 response_model_observations = (; observation = Observation(Float64))
 response_model_actions = (; report = Action(Normal))
 
@@ -396,11 +398,16 @@ action_model = ActionModel(
 #Initialize agent
 agent = init_agent(action_model, save_history = :expected_value)
 
+set_parameters!(agent, (; bias = 2.0))
+
 #Create observation
-observations = [2, 1, 2, 2, 1, 2, 3, 4, 3, 2, 2, 2, 1, 1]
+observations = collect(0:0.1:2) .+ randn(21) * 0.1
 
 #Simulate actions
 simulated_actions = simulate!(agent, observations)
+
+#Plot trajectory of expected values
+plot(agent, :expected_value)
 
 #Fit the model to the simulated actions
 model = create_model(
@@ -408,14 +415,14 @@ model = create_model(
     (
         learning_rate = LogitNormal(),
         action_noise = LogNormal(),
-        initial_value = MvNormal(zeros(4), I),
+        initial_value = Normal(),
+        bias = Normal(),
     ),
     observations,
-    Int64.(simulated_actions),
+    simulated_actions,
 )
 
 chns = sample_posterior!(model)
-
 
 # ### Multiple observation sources
 # In some experiments, there are multiple soruces of observations. It is then a common strategy to use a single Rescorla-Wagner model to learn the expected value of each observation source, and then combine these expected values in a custom response model.

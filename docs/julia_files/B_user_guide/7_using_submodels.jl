@@ -16,17 +16,17 @@ using ActionModels
 # Then we create a Rescorla-Wagner submodel type, which should be passed to the ActionModel constructor.
 # The Rescorla-Wagner model model has two parameters: the initial value $V_0$ and the learning rate $\alpha$.
 # (Note that other parameters, such as the action noise $\beta$, are not part of the Rescorla-Wagner perceptual model, but rather part of the decision model that one can use with it)
-Base.@kwdef struct RescorlaWagner <: ActionModels.AbstractSubmodel
+Base.@kwdef struct MyRescorlaWagner <: ActionModels.AbstractSubmodel
     initial_value::Float64 = 0.0
     learning_rate::Float64 = 0.1
 end
 
 # We additionally need to define methods for the two following functions, which are used internally in ActionModels to ensure type stability.
 # The two functions need to return the types of the parameters and the state of the submodel, respectively.
-function ActionModels.get_parameter_types(submodel::RescorlaWagner)
+function ActionModels.get_parameter_types(submodel::MyRescorlaWagner)
     return (initial_value = Float64, learning_rate = Float64)
 end
-function ActionModels.get_state_types(submodel::RescorlaWagner)
+function ActionModels.get_state_types(submodel::MyRescorlaWagner)
     return (; expected_value = Float64)
 end
 
@@ -52,7 +52,7 @@ end
 # If parameters or states are multivariate, the attributes should be initialized with Array{TF} or Array{TI} types instead.
 # Additionally, the submodel struct should define the default parameters, which can be passed during the initialization function.
 function ActionModels.initialize_attributes(
-    submodel::RescorlaWagner,
+    submodel::MyRescorlaWagner,
     ::Type{TF} = Float64,
     ::Type{TI} = Int64,
 ) where {TF,TI}

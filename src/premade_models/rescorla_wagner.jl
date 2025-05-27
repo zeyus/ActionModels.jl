@@ -430,14 +430,14 @@ struct RescorlaWagner <: AbstractPremadeModel
                 )
             end
             #Disallow setting the response model observations keyword argument if a custom response model is provided
-            if !isnothing(response_model_observations)
+            if isnothing(response_model_observations)
                 #Disallow setting the response model observations keyword argument if a custom response model is provided
                 error(
                     "A custom response model has been provided. Set it's observations with the response_model_observations argument.",
                 )
             end
             #Disallow setting the response model actions keyword argument if a custom response model is provided
-            if !isnothing(response_model_actions)
+            if isnothing(response_model_actions)
                 #Disallow setting the response model actions keyword argument if a custom response model is provided
                 error(
                     "A custom response model has been provided. Set it's actions with the response_model_actions argument.",
