@@ -172,7 +172,7 @@ plot(chns[[Symbol("learning_rate.β[1]"), Symbol("learning_rate.β[2]"), Symbol(
 
 # ### Parameter per session
 # Beyond the population model parameters, users will often be intersted in the parameter estimates for each session in the data.
-# The session parameters can be extracted with the `get_session_parameters!` function, which returns a `ActionModels.SessionParameters`` object.
+# The session parameters can be extracted with the `get_session_parameters!` function, which returns a `ActionModels.SessionParameters` object.
 # Whether session parameter estimates should be extracted for the posterior or prior distribution can be specified as the second argument.
 
 #Extract posterior and prior estimates for session paramaters
@@ -199,19 +199,19 @@ density(learning_rate_singlesession, title = "Learning rate for session A in con
 
 median_df = summarize(session_parameters)
 
-first(median_df, 6)
+show(median_df)
 
 # This returns the median of each parameter for each session. 
 # The user can pass other functions for summarizing the samples, as for example to calculate the standard deviation of the posterior.
 
 std_df = summarize(session_parameters, std)
 
-first(std_df, 6)
+show(std_df)
 
 # This can be saved to disk or used for plotting or analysis in whichever way the user prefers.
 
 # ### State trajectories per session
-# Users can also extract the estimated trajectory of states for each session with the `get_state_trajectories!` function, which returns an `ActionModels.StateTrajectories`` object.
+# Users can also extract the estimated trajectory of states for each session with the `get_state_trajectories!` function, which returns an `ActionModels.StateTrajectories` object.
 # State trajectories are often used to correlate with some external measure, such as neuroimaging data.
 # The second argument specifies which state to extract. Again, the user can also specify to have the prior state trajectories extracted by passing `:prior` as the second argument.
 state_trajectories = get_state_trajectories!(model, :expected_value)
@@ -237,5 +237,5 @@ density(expected_value_singlesession[timestep=2], title = "Expectation at time 2
 
 median_df = summarize(state_trajectories, median)
 
-first(median_df, 10)
+show(median_df)
 #And from here, it can be used for plotting or further analysis as desired by the user.

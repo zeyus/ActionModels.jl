@@ -56,7 +56,7 @@ single_action = observe!(agent, 0.6);
 
 # These functions call the action model function on each timestep, and sample from the action distribution returned by the action model.
 # Notably, if the action models take multiple observations, we can pass the observations as a vector of tuples, or as a matrix where each row is one observation.
-# If the action model returns multiple actions, `simulate!`` will return a vector of tuples as the actions.
+# If the action model returns multiple actions, `simulate!` will return a vector of tuples as the actions.
 
 # We can extract the trajectory of expected values from the agent's history. 
 # If we don't specify a state name, the history of all states will be returned.

@@ -151,7 +151,7 @@ actions = (
 
 # ### Depending on previous actions
 # Some models can depend on previous actions.
-# Similar to how parameters and states are loaded within the action model function, previous actions can be loaded using the `load_actions()`` function.
+# Similar to how parameters and states are loaded within the action model function, previous actions can be loaded using the `load_actions()` function.
 # If there are multiple actions, the previous actions are returned as a named tuple.
 
 #Dummy example function with multiple observations and actions
