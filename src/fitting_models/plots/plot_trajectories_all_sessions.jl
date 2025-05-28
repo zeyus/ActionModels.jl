@@ -4,7 +4,11 @@
     states_to_plot = nothing, #::Union{Nothing, Symbol, Vector{Symbol}}
 )
 
-    throw(ArgumentError("plotting estimated state trajectories for all sessions is not yet implemented"))
+    throw(
+        ArgumentError(
+            "plotting estimated state trajectories for all sessions is not yet implemented",
+        ),
+    )
 
 end
 

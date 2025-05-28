@@ -187,7 +187,7 @@ function create_model(
     ## Extract population data ##
     if length(session_cols) == 0
         #If there are no session columns, the population data is the same as the data
-        population_data = data[1:1,:]
+        population_data = data[1:1, :]
     else
         #Otherwise, extract the population data from the grouped data
         population_data = unique(data, session_cols)

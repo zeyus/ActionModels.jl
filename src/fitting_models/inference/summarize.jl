@@ -186,7 +186,8 @@ function Turing.summarize(
                     colnames = state_colnames["$state"]
 
                     #For each Cartesian index and corresponding column name
-                    for (I, colname) in zip(CartesianIndices(size(first(samples))), colnames)
+                    for (I, colname) in
+                        zip(CartesianIndices(size(first(samples))), colnames)
                         #Unpack that index and summarize the samples
                         summarized_value =
                             summarize_samples(map(s -> s[I], samples), summary_function)

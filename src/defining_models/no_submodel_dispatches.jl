@@ -18,7 +18,7 @@ function reset!(submodel::NoSubModelAttributes)
     return nothing
 end
 ## Getting all attributes ##
-function get_parameters(submodel::NoSubModelAttributes) 
+function get_parameters(submodel::NoSubModelAttributes)
     return (;)
 end
 function get_states(submodel::NoSubModelAttributes)
@@ -32,7 +32,10 @@ function get_states(submodel::NoSubModelAttributes, target_state::Symbol)
     return AttributeError()
 end
 ## Getting multiple attributes ##
-function get_parameters(submodel::NoSubModelAttributes, target_parameters::Tuple{Vararg{Symbol}})
+function get_parameters(
+    submodel::NoSubModelAttributes,
+    target_parameters::Tuple{Vararg{Symbol}},
+)
     return AttributeError()
 end
 function get_states(submodel::NoSubModelAttributes, target_states::Tuple{Vararg{Symbol}})

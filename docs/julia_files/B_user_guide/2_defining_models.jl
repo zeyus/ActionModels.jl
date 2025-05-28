@@ -118,7 +118,8 @@ function example_actionmodel(
     return (first_action_distribution, second_action_distribution)
 end
 
-observations = (; first_observation = Observation(), second_observation = Observation(discrete = true));
+observations =
+    (; first_observation = Observation(), second_observation = Observation(discrete = true));
 actions = (; first_action = Action(Normal), second_action = Action(Bernoulli));
 
 #ActionModel object creation not shown here
@@ -134,18 +135,18 @@ actions = (; first_action = Action(Normal), second_action = Action(Bernoulli));
 
 parameters = (
     #A discrete parameter with a default value of 0
-    discrete_parameter = Parameter(0, discrete = true),   
+    discrete_parameter = Parameter(0, discrete = true),
     #A multivariate parameter with a default value of [0, 0]
-    multivariate_parameter = Parameter([0, 0]),         
+    multivariate_parameter = Parameter([0, 0]),
 );
 
 actions = (
     #A discrete action sampled from a Bernoulli distribution
-    discrete_action = Action(Bernoulli),  
+    discrete_action = Action(Bernoulli),
     #A multivariate action sampled from a multivariate normal distribution              
-    multivariate_action = Action(MvNormal),   
+    multivariate_action = Action(MvNormal),
     #If different types of distributiosn can be used, it is possible to specify an abstract type of distribution.
-    multivariate_action_2 = Action(Distribution{Multivariate, Continuous}), 
+    multivariate_action_2 = Action(Distribution{Multivariate,Continuous}),
 );
 
 # ### Depending on previous actions

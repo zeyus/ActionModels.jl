@@ -129,7 +129,10 @@ docs_path = joinpath(ActionModels_path, "docs") #hide
 
 chns = sample_posterior!(
     model,
-    save_resume = SampleSaveResume(path = joinpath(docs_path, ".samplingstate"), save_every = 200),
+    save_resume = SampleSaveResume(
+        path = joinpath(docs_path, ".samplingstate"),
+        save_every = 200,
+    ),
     n_samples = 600,
     resample = true,
 )
@@ -206,7 +209,7 @@ state_trajectories.value.expected_value[1] # The expectation state for the first
 
 # The third axis is the timestep axis, for which the probability distribution can be accessed:
 @show mean(state_trajectories.value.expected_value[1][timestep=2]) #the mean of the expectation at the second timestep for the first session
-density(state_trajectories.value.expected_value[1][timestep=2]) 
+density(state_trajectories.value.expected_value[1][timestep=2])
 
 # This can also be summarized neatly in a DataFrame:
 

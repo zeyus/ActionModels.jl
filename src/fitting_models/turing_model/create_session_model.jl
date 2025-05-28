@@ -13,8 +13,8 @@ function create_session_model(
     #Make multivariate actions into single arrays
     flattened_actions = Tuple(
         first(single_action) isa AbstractArray ?
-        cat(single_action..., dims = ndims(first(single_action)) + 1) : single_action for
-        single_action in flattened_actions
+        cat(single_action..., dims = ndims(first(single_action)) + 1) : single_action
+        for single_action in flattened_actions
     )
 
     #Submodel for sampling all actions of a single action idx as an arraydist
@@ -235,7 +235,7 @@ end
     #Prepare the agent
     set_parameters!(model_attributes, estimated_parameter_names, session_parameters)
     reset!(model_attributes)
-    
+
     return [
         i ~ to_submodel(
             prefix(
@@ -282,7 +282,7 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    action::Tuple{Vararg{Union{Missing,A, Array{A}}}},
+    action::Tuple{Vararg{Union{Missing,A,Array{A}}}},
     missing_actions::SkipMissingActions,    #Skip missing actions
 ) where {O,A<:Union{Missing,Real}}
     #Give observation and get action distribution
@@ -296,7 +296,7 @@ end
     action_model::ActionModel,
     model_attributes::ModelAttributes,
     observation::O,
-    actions::Tuple{Vararg{Union{Missing,A, Array{A}}}},
+    actions::Tuple{Vararg{Union{Missing,A,Array{A}}}},
     missing_actions::InferMissingActions,   #Infer missing actions
 ) where {O,A<:Union{Missing,Real}}
 
@@ -326,7 +326,7 @@ end
 
 #Turing subsubmodel for sampling one of the actions in the timestep
 @model function sample_subaction(
-    action::Union{Missing,A, Array{A}},
+    action::Union{Missing,A,Array{A}},
     action_distribution::D,
 ) where {A<:Union{Real,Missing},D<:Distribution}
     action ~ action_distribution

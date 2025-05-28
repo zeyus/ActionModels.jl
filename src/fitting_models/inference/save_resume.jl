@@ -81,7 +81,7 @@ function load_segment(save_resume::SampleSaveResume, chain_n::Int, segment::Int)
     return chain
 end
 
-function save_segment(seg::Chains, save_resume::SampleSaveResume, chain_n::Int, seg_n::Int)    
+function save_segment(seg::Chains, save_resume::SampleSaveResume, chain_n::Int, seg_n::Int)
     # save the chain
     h5open(
         joinpath(save_resume.path, "$(save_resume.chain_prefix)_c$(chain_n)_s$(seg_n).h5"),
@@ -124,7 +124,11 @@ function sample_save_resume(
 )
 
     if save_resume.save_every > n_samples
-        throw(ArgumentError("save_every ($save_resume.save_every) must be less than n_samples ($n_samples)"))
+        throw(
+            ArgumentError(
+                "save_every ($save_resume.save_every) must be less than n_samples ($n_samples)",
+            ),
+        )
     end
 
     final_segment = n_samples % save_resume.save_every
@@ -144,7 +148,7 @@ function sample_save_resume(
         end
 
         # the inner loop must run sequentially
-        for cur_seg = last_complete_segment[chain]+1:n_segments
+        for cur_seg = (last_complete_segment[chain]+1):n_segments
             # use the save_every value unless there are some iterations left over
             n_iter =
                 final_segment > 0 && cur_seg == n_segments ? final_segment :
@@ -173,22 +177,3 @@ function sample_save_resume(
 
     return chains
 end
-
-
-
-    # ## Fit model ##
-    # if !isnothing(parallelization) && n_chains > 1
-    #     #With parallelization
-    #     chains = Logging.with_logger(sampling_logger) do
-    #         # see if it's a threads or distributed ensemble
-    #         if parallelization isa AbstractMCMC.AbstractMCMCThreads
-    #             sample(model, sampler, n_iterations, n_chains; progress=show_progress, sampler_kwargs...)
-    #         else
-    #             sample(model, sampler, n_iterations, n_chains=n_chains; progress=show_progress, sampler_kwargs...)
-    #         end
-    #     end
-    # elseif save_resume.save_every < 1
-    #     chains = Logging.with_logger(sampling_logger) do
-    #         sample(model, sampler, n_iterations, n_chains=n_chains; progress=show_progress, sampler_kwargs...)
-    #     end
-    # end

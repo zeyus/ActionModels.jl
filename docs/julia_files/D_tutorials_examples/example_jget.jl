@@ -88,23 +88,27 @@ session_cols = [:ID, :session]
 # This means that we should limit priors to be fairly narrow, so that the linear regression does not go too far into inappropriate parameter space, which will increase the runtime of the fitting process.
 # 
 
-plot(Normal(0,0.3), label = "Intercept")
-plot!(Normal(0,0.5), label = "Effect of PDI")
-plot!(truncated(Normal(0,0.3), lower = 0), label = "Random intercept std")
+plot(Normal(0, 0.3), label = "Intercept")
+plot!(Normal(0, 0.5), label = "Effect of PDI")
+plot!(truncated(Normal(0, 0.3), lower = 0), label = "Random intercept std")
 title!("Regression priors for the Rescorla-Wagner model")
 xlabel!("Regression coefficient")
 ylabel!("Density")
 
 
 regression_prior = RegressionPrior(
-            β = [Normal(0,0.3), Normal(0,0.5)],
-            σ = truncated(Normal(0, 0.3),lower = 0),
-        )
+    β = [Normal(0, 0.3), Normal(0, 0.5)],
+    σ = truncated(Normal(0, 0.3), lower = 0),
+)
 
 population_model = [
-        Regression(@formula(learning_rate ~ 1 + pdi_total + (1 | ID)), logistic, regression_prior),
-        Regression(@formula(action_noise ~ 1 +  pdi_total + (1 | ID)), exp, regression_prior),
-    ]
+    Regression(
+        @formula(learning_rate ~ 1 + pdi_total + (1 | ID)),
+        logistic,
+        regression_prior,
+    ),
+    Regression(@formula(action_noise ~ 1 + pdi_total + (1 | ID)), exp, regression_prior),
+]
 
 model = create_model(
     action_model,
@@ -123,7 +127,7 @@ model = create_model(
 
 ## Set AD backend ##
 using ADTypes: AutoEnzyme
-import Enzyme: set_runtime_activity, Reverse 
+import Enzyme: set_runtime_activity, Reverse
 ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 
 ## Fit model ##
@@ -131,20 +135,16 @@ chns = sample_posterior!(model, n_chains = 1, n_samples = 500, ad_type = ad_type
 
 # We can now inspect the results of the fitting process.
 # We can plot the posterior distributions of the beta parameter for PDI's effect on the action model parameters.
-title =
-    plot(title = "Posterior over effect of PDI", grid = false, showaxis = false, bottom_margin = -30Plots.px)
+title = plot(
+    title = "Posterior over effect of PDI",
+    grid = false,
+    showaxis = false,
+    bottom_margin = -30Plots.px,
+)
 plot(
     title,
-    density(
-        chns[Symbol("learning_rate.β[2]")],
-        title = "learning rate",
-        label = nothing,
-    ),
-    density(
-        chns[Symbol("action_noise.β[2]")],
-        title = "action noise",
-        label = nothing,
-    ),
+    density(chns[Symbol("learning_rate.β[2]")], title = "learning rate", label = nothing),
+    density(chns[Symbol("action_noise.β[2]")], title = "action noise", label = nothing),
     layout = @layout([A{0.01h}; [B C]])
 )
 
@@ -191,7 +191,7 @@ end
 action_model = ActionModel(
     gaussian_random,
     observations = (; observation = Observation()),
-    actions = (;report = Action(Normal)),
+    actions = (; report = Action(Normal)),
     parameters = (action_noise = Parameter(1), mean = Parameter(50)),
 )
 
@@ -202,18 +202,22 @@ action_model = ActionModel(
 # The priors for the noise are similar to those used with the Rescorla-Wagner model.
 
 mean_regression_prior = RegressionPrior(
-            β = [Normal(50,10), Normal(0,10)],
-            σ = truncated(Normal(0, 10), lower = 0),
-        )
+    β = [Normal(50, 10), Normal(0, 10)],
+    σ = truncated(Normal(0, 10), lower = 0),
+)
 noise_regression_prior = RegressionPrior(
-            β = [Normal(0,0.3), Normal(0,0.5)],
-            σ = truncated(Normal(0, 0.3), lower = 0),
-        )
+    β = [Normal(0, 0.3), Normal(0, 0.5)],
+    σ = truncated(Normal(0, 0.3), lower = 0),
+)
 
 population_model = [
-        Regression(@formula(mean ~ 1 + pdi_total + (1 | ID)), mean_regression_prior),
-        Regression(@formula(action_noise ~ 1 + pdi_total + (1 | ID)), exp, noise_regression_prior),
-    ]
+    Regression(@formula(mean ~ 1 + pdi_total + (1 | ID)), mean_regression_prior),
+    Regression(
+        @formula(action_noise ~ 1 + pdi_total + (1 | ID)),
+        exp,
+        noise_regression_prior,
+    ),
+]
 
 simple_model = create_model(
     action_model,
@@ -226,7 +230,7 @@ simple_model = create_model(
 
 ## Set AD backend ##
 using ADTypes: AutoEnzyme
-import Enzyme: set_runtime_activity, Reverse 
+import Enzyme: set_runtime_activity, Reverse
 ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 
 ## Fit model ##
@@ -235,4 +239,3 @@ chns = sample_posterior!(simple_model, n_chains = 1, n_samples = 500, ad_type = 
 #TODO: plot the results
 
 #TODO: model comparison
-

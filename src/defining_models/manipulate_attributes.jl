@@ -23,7 +23,7 @@ end
 function set_parameters!(
     model_attributes::ModelAttributes,
     parameter_name::Symbol,
-    parameter_value::Union{R, AbstractArray{R}},
+    parameter_value::Union{R,AbstractArray{R}},
 ) where {R<:Real}
 
     #Check if the parameter exists in the model attributes
@@ -31,11 +31,7 @@ function set_parameters!(
         model_attributes.parameters[parameter_name].value = parameter_value
     else
         #Set it in the submodel
-        out = set_parameters!(
-            model_attributes.submodel,
-            parameter_name,
-            parameter_value,
-        )
+        out = set_parameters!(model_attributes.submodel, parameter_name, parameter_value)
         if out isa AttributeError
             error(
                 "Parameter $parameter_name not found in model attributes or in the submodel.",
@@ -74,7 +70,7 @@ end
 function set_parameters!(
     model_attributes::ModelAttributes,
     parameter_names::Tuple{Vararg{Symbol}},
-    parameters::Tuple{Vararg{Union{R, AbstractArray{R}}}} where {R<:Real},
+    parameters::Tuple{Vararg{Union{R,AbstractArray{R}}}} where {R<:Real},
 )
     for (parameter_name, parameter_value) in zip(parameter_names, parameters)
         set_parameters!(model_attributes, parameter_name, parameter_value)
@@ -124,7 +120,10 @@ function get_actions(model_attributes::ModelAttributes)
 end
 
 ## Functions for extracting multiple model attributes ##
-function get_parameters(model_attributes::ModelAttributes, parameter_names::Tuple{Vararg{Symbol}})
+function get_parameters(
+    model_attributes::ModelAttributes,
+    parameter_names::Tuple{Vararg{Symbol}},
+)
     return NamedTuple(
         parameter_name => get_parameters(model_attributes, parameter_name) for
         parameter_name in parameter_names

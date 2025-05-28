@@ -1,7 +1,7 @@
 module ActionModels
 
 #Load packages
-using Reexport 
+using Reexport
 @reexport using Distributions #Make distributions available to the user
 @reexport using Turing #For fitting models
 using Turing: DynamicPPL, AbstractMCMC, LogDensityProblems
@@ -28,7 +28,8 @@ import ForwardDiff
 
 ## For defining action models ##
 export ActionModel, Parameter, InitialStateParameter, State, Observation, Action
-export ModelAttributes, load_parameters, load_states, load_actions, update_state!, RejectParameters
+export ModelAttributes,
+    load_parameters, load_states, load_actions, update_state!, RejectParameters
 
 ## For simulation ##
 export init_agent
@@ -76,9 +77,30 @@ include(joinpath("fitting_models", "prints.jl"))
 include(joinpath("fitting_models", "turing_model", "create_model.jl"))
 include(joinpath("fitting_models", "turing_model", "create_session_model.jl"))
 include(joinpath("fitting_models", "turing_model", "helper_functions.jl"))
-include(joinpath("fitting_models", "turing_model", "population_models", "independent_population_model.jl"))
-include(joinpath("fitting_models", "turing_model", "population_models", "glm_population_model.jl"))
-include(joinpath("fitting_models", "turing_model", "population_models", "single_session_population_model.jl"))
+include(
+    joinpath(
+        "fitting_models",
+        "turing_model",
+        "population_models",
+        "independent_population_model.jl",
+    ),
+)
+include(
+    joinpath(
+        "fitting_models",
+        "turing_model",
+        "population_models",
+        "glm_population_model.jl",
+    ),
+)
+include(
+    joinpath(
+        "fitting_models",
+        "turing_model",
+        "population_models",
+        "single_session_population_model.jl",
+    ),
+)
 include(joinpath("fitting_models", "inference", "sampling.jl"))
 include(joinpath("fitting_models", "inference", "save_resume.jl"))
 include(joinpath("fitting_models", "inference", "get_session_parameters!.jl"))

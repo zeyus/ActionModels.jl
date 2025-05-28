@@ -6,7 +6,7 @@ action_model = ActionModel(RescorlaWagner())
 ## Simulate with agent ##
 agent = init_agent(action_model, save_history = [:expected_value])
 
-simulate!(agent, [1.,0,0,1])
+simulate!(agent, [1.0, 0, 0, 1])
 
 using StatsPlots
 plot(agent, :expected_value)
@@ -23,7 +23,7 @@ get_states(agent)
 ## Fit model ##
 #Generate dataset
 data = DataFrame(
-    observations = repeat([1., 1, 1, 2, 2, 2], 6),
+    observations = repeat([1.0, 1, 1, 2, 2, 2], 6),
     actions = vcat(
         [0, 0.2, 0.3, 0.4, 0.5, 0.6],
         [0, 0.5, 0.8, 1, 1.5, 1.8],
@@ -58,11 +58,8 @@ session_cols = [:id, :treatment]
 
 
 #Create and fit model
-prior = (
-        learning_rate = LogitNormal(),
-        action_noise = LogNormal(),
-        initial_value = Normal(),
-    )
+prior =
+    (learning_rate = LogitNormal(), action_noise = LogNormal(), initial_value = Normal())
 
 #Create model
 model = create_model(

@@ -53,23 +53,23 @@ end;
 # Then we use the ActionModel constructor to create the model object.
 parameters = (
     #The learning rate, with a default value of 0.1
-    learning_rate = Parameter(0.1),     
+    learning_rate = Parameter(0.1),
     #The action noise, with a default value of 1                        
-    action_noise = Parameter(1), 
+    action_noise = Parameter(1),
     #And the initial expected value V₀, with a default value of 0                               
-    initial_value = InitialStateParameter(0, :expected_value),  
+    initial_value = InitialStateParameter(0, :expected_value),
 )
 states = (;
     #The expected value V, which is updated on each timestep
-    expected_value = State(),           
+    expected_value = State(),
 )
 observations = (;
     #The observation, which is passed to the model on each timestep and used to update V
-    observation = Observation()         
+    observation = Observation()
 )
 actions = (;
     #The report action, which reports the expected value with Gaussian noise
-    report = Action(Normal)             
+    report = Action(Normal)
 )
 
 action_model = ActionModel(
@@ -113,9 +113,9 @@ show(data)
 # The initial value parameter is not estimated, and is fixed to it's default: 0. 
 
 population_model = [
-        Regression(@formula(learning_rate ~ treatment + (1 | id)), logistic), #use a logistic link function to ensure that the learning rate is between 0 and 1
-        Regression(@formula(action_noise ~ treatment + (1 | id)), exp),        #use an exponential link function to ensure that the action noise is positive
-    ]
+    Regression(@formula(learning_rate ~ treatment + (1 | id)), logistic), #use a logistic link function to ensure that the learning rate is between 0 and 1
+    Regression(@formula(action_noise ~ treatment + (1 | id)), exp),        #use an exponential link function to ensure that the action noise is positive
+]
 
 model = create_model(
     action_model,
@@ -128,27 +128,27 @@ model = create_model(
 
 # We can now fit the model to the data:
 #Load statsplots for plotting results
-using StatsPlots 
+using StatsPlots
 
 #Fit the model to the data
-chns = sample_posterior!(model) 
+chns = sample_posterior!(model)
 #We can plot the estimated parameters
 plot(chns)
 
 # We can extract the estimated parameters for each participant, and summarize it as a dataframe for further analysis:
 #Extract the full distribution of parameters for each participant                   
-parameters_per_session = get_session_parameters!(model) 
+parameters_per_session = get_session_parameters!(model)
 #Populate a dataframe with the median of each posterior distribution          
-summarized_parameters = summarize(parameters_per_session, median) 
+summarized_parameters = summarize(parameters_per_session, median)
 
 show(summarized_parameters)
 #TODO: plot
 
 # We can also extract the estimated value of V at each timestep, for each participant:
 #Extract the estimated trajectory of V
-state_trajectories = get_state_trajectories!(model, :expected_value) 
+state_trajectories = get_state_trajectories!(model, :expected_value)
 #Summarize the trajectories
-summarized_trajectories = summarize(state_trajectories, median)     
+summarized_trajectories = summarize(state_trajectories, median)
 
 show(summarized_trajectories)
 #TODO: plot
@@ -158,7 +158,7 @@ show(summarized_trajectories)
 # Additionally, we can specify which states to save in the history of the agent.
 
 #Create an agent object
-agent = init_agent(action_model, save_history = [:expected_value]) 
+agent = init_agent(action_model, save_history = [:expected_value])
 
 # We can set parameter values for the agent, and simulate behaviour for some set of observations
 

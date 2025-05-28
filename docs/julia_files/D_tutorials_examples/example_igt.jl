@@ -138,31 +138,23 @@ chns = sample_posterior!(model, n_chains = 1, n_samples = 500, ad_type = ad_type
 # Here, we just briefly plot the posterior distributions for the beta parameters.
 # Since we are only using a subset of the data, we only see and indication of an effect, primarily in the learning rate.
 
-title =
-    plot(title = "Posterior over effect of clinical condition", grid = false, showaxis = false, bottom_margin = -30Plots.px)
+title = plot(
+    title = "Posterior over effect of clinical condition",
+    grid = false,
+    showaxis = false,
+    bottom_margin = -30Plots.px,
+)
 plot(
     title,
-    density(
-        chns[Symbol("learning_rate.β[2]")],
-        title = "learning rate",
-        label = nothing,
-    ),
+    density(chns[Symbol("learning_rate.β[2]")], title = "learning rate", label = nothing),
     density(
         chns[Symbol("reward_sensitivity.β[2]")],
         title = "reward sensitivity ",
         label = nothing,
     ),
-    density(
-        chns[Symbol("loss_aversion.β[2]")],
-        title = "loss aversion ",
-        label = nothing,
-    ),
-    density(
-        chns[Symbol("action_noise.β[2]")],
-        title = "action noise",
-        label = nothing,
-    ),
-    layout = @layout([A{0.01h}; [B C ; D E]])
+    density(chns[Symbol("loss_aversion.β[2]")], title = "loss aversion ", label = nothing),
+    density(chns[Symbol("action_noise.β[2]")], title = "action noise", label = nothing),
+    layout = @layout([A{0.01h}; [B C; D E]])
 )
 
 # We can also extract the session parameters and state trajectories from the model.
@@ -195,7 +187,11 @@ show(states_df)
 # In this model, actions are sampled from a Gaussian distribution with a fixed mean and standard deviation.
 # This meanst that there are two parameters in the action model: the action noise $\beta$ and the action mean $\mu$.
 
-function categorical_random(attributes::ModelAttributes, chosen_option::Int64, reward::Float64)
+function categorical_random(
+    attributes::ModelAttributes,
+    chosen_option::Int64,
+    reward::Float64,
+)
 
     action_probabilities = load_parameters(attributes).action_probabilities
 
@@ -205,17 +201,15 @@ end
 action_model = ActionModel(
     categorical_random,
     observations = (chosen_option = Observation(Int64), reward = Observation()),
-    actions = (;deck = Action(Categorical)),
-    parameters = (;action_probabilities = Parameter([0.3,0.3,0.3, 0.1])),
+    actions = (; deck = Action(Categorical)),
+    parameters = (; action_probabilities = Parameter([0.3, 0.3, 0.3, 0.1])),
 )
 
 # ### Fitting the model
 # For this model, we use an independent session population model.
 # We set the prior for the action probabilities to be a Dirichlet distribution, which is a common prior for categorical distributions.
 
-population_model = (;
-    action_probabilities = Dirichlet([1,1,1,1]),
-)
+population_model = (; action_probabilities = Dirichlet([1, 1, 1, 1]),)
 
 simple_model = create_model(
     action_model,

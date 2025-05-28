@@ -69,7 +69,12 @@ function get_state_trajectories!(
         for (sample_idx, chain_idx) in Iterators.product(1:n_samples, 1:n_chains)
 
             #Extract the parameter sample
-            parameter_sample = map(parameter_name -> all_session_parameters.value[parameter_name][session_idx][sample_idx, chain_idx],
+            parameter_sample = map(
+                parameter_name ->
+                    all_session_parameters.value[parameter_name][session_idx][
+                        sample_idx,
+                        chain_idx,
+                    ],
                 estimated_parameter_names,
             )
 
@@ -87,11 +92,20 @@ function get_state_trajectories!(
                 state_history = get_history(agent, state)
 
                 #Store it in the session_trajectories
-                state_trajectories[state][session_idx][sample_idx, chain_idx, :] .= state_history
+                state_trajectories[state][session_idx][sample_idx, chain_idx, :] .=
+                    state_history
             end
         end
     end
 
     #Return StateTrajectories struct
-    return StateTrajectories(state_trajectories, modelfit, target_states, session_ids, state_types, n_samples, n_chains)
+    return StateTrajectories(
+        state_trajectories,
+        modelfit,
+        target_states,
+        session_ids,
+        state_types,
+        n_samples,
+        n_chains,
+    )
 end

@@ -37,7 +37,8 @@ end
 # Additionally, in order to function with Turing, the aatributes struct needs to have a type parameter that is a subtype of Real.
 # This is because some AD backends, like FOrwardDiff and ReverseDiff, needs to switch between different subtypes of Real to calculate gradients.
 
-Base.@kwdef mutable struct RescorlaWagnerAttributes{T<:Real} <: ActionModels.AbstractSubmodelAttributes
+Base.@kwdef mutable struct RescorlaWagnerAttributes{T<:Real} <:
+                           ActionModels.AbstractSubmodelAttributes
     expected_value::T #the expected value of the observation, which is a state
     initial_value::T  #the parameter which sets the initial value on reset
     learning_rate::T  #the learning rate parameter
@@ -90,7 +91,10 @@ end
 
 # And functions for getting specific parameters and states. These functions should take the attributes as the first argument, and the parameter or state name as the second.
 # If the parameter or state name is not found, these methods should return an AttributeError, which will be handled by the higher level function.
-function ActionModels.get_parameters(attributes::RescorlaWagnerAttributes, parameter_name::Symbol)
+function ActionModels.get_parameters(
+    attributes::RescorlaWagnerAttributes,
+    parameter_name::Symbol,
+)
     if parameter_name in [:learning_rate, :initial_value]
         return getfield(attributes, parameter_name)
     else

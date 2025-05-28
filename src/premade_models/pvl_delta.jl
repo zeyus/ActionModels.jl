@@ -14,7 +14,11 @@ function ActionModel(config::PVLDelta)
 
     if !config.act_before_update
 
-        am_function = function pvl_delta(attributes::ModelAttributes, chosen_option::Int64, reward::Float64)
+        am_function = function pvl_delta(
+            attributes::ModelAttributes,
+            chosen_option::Int64,
+            reward::Float64,
+        )
 
             ## Read in parameters and states ##
             parameters = load_parameters(attributes)
@@ -39,9 +43,10 @@ function ActionModel(config::PVLDelta)
             #Calculate new expected value for the chosen option
             # Ev[chosen_option] = Ev[chosen_option] + α * prediction_error
             Ev = [
-                Ev[option_idx] + α * prediction_error * (chosen_option == option_idx) for option_idx = 1:config.n_options
+                Ev[option_idx] + α * prediction_error * (chosen_option == option_idx) for
+                option_idx = 1:config.n_options
             ]
-            
+
 
             #Update the expected value for next timestep
             update_state!(attributes, :expected_value, Ev)
@@ -59,8 +64,12 @@ function ActionModel(config::PVLDelta)
         end
 
     else
-        
-        am_function = function pvl_delta_act_before_update(attributes::ModelAttributes, chosen_option::Int64, reward::Float64)
+
+        am_function = function pvl_delta_act_before_update(
+            attributes::ModelAttributes,
+            chosen_option::Int64,
+            reward::Float64,
+        )
 
             ## Read in parameters and states ##
             parameters = load_parameters(attributes)
@@ -94,7 +103,8 @@ function ActionModel(config::PVLDelta)
             #Calculate new expected value for the chosen option
             #Ev[chosen_option] = Ev[chosen_option] + α * prediction_error
             Ev = [
-                Ev[option_idx] + α * prediction_error * (chosen_option == option_idx) for option_idx = 1:config.n_options
+                Ev[option_idx] + α * prediction_error * (chosen_option == option_idx) for
+                option_idx = 1:config.n_options
             ]
 
             #Update the expected value for next timestep

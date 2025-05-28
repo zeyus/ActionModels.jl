@@ -42,21 +42,12 @@ Literate.markdown(
 )
 
 #And the README
-Literate.markdown(
-    joinpath(julia_files_folder, "README.jl"),
-    project_dir,
-    execute = true,
-)
+Literate.markdown(joinpath(julia_files_folder, "README.jl"), project_dir, execute = true)
 
 
 
 ## GENERATE AND DEPLOY DOCS ##
-DocMeta.setdocmeta!(
-    ActionModels,
-    :DocTestSetup,
-    :(using ActionModels);
-    recursive = true,
-)
+DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
 
 #Create documentation
 makedocs(;
@@ -72,12 +63,8 @@ makedocs(;
     ),
     doctest = true,
     pages = [
-        "Welcome to ActionModels" => [
-            joinpath(".", "index.md"),
-        ],
-        "Theory" => [
-            joinpath(".", "markdowns", "theory.md")
-        ],
+        "Welcome to ActionModels" => [joinpath(".", "index.md")],
+        "Theory" => [joinpath(".", "markdowns", "theory.md")],
         "User Guide" => [
             joinpath(".", "generated", "2_defining_models.md"),
             joinpath(".", "generated", "3_simulation.md"),
@@ -87,7 +74,7 @@ makedocs(;
             joinpath(".", "generated", "7_using_submodels.md"),
             joinpath(".", "markdowns", "debugging.md"),
         ],
-        "Premade Models" =>[
+        "Premade Models" => [
             joinpath(".", "generated", "rescorla_wagner.md"),
             joinpath(".", "generated", "pvl_delta.md"),
         ],
@@ -95,10 +82,8 @@ makedocs(;
             joinpath(".", "generated", "example_jget.md"),
             joinpath(".", "generated", "example_igt.md"),
         ],
-        "Full API Reference" => [
-            joinpath(".", "markdowns", "full_API.md"),
-        ],
-    ]
+        "Full API Reference" => [joinpath(".", "markdowns", "full_API.md")],
+    ],
 )
 
 deploydocs(;

@@ -1,7 +1,11 @@
 ######################
 ### PRINT MODELFIT ###
 ######################
-function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:AbstractPopulationModel
+function Base.show(
+    io::IO,
+    ::MIME"text/plain",
+    modelfit::ModelFit{T},
+) where {T<:AbstractPopulationModel}
 
     #Make I/O buffer
     output = IOBuffer()
@@ -34,7 +38,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     if isnothing(modelfit.posterior)
         println(output, "Posterior not sampled")
     else
-        n_samples, _, n_chains = size(modelfit.posterior.chains) 
+        n_samples, _, n_chains = size(modelfit.posterior.chains)
 
         println(output, "Posterior: $n_samples samples, $n_chains chains")
     end
@@ -42,7 +46,7 @@ function Base.show(io::IO, ::MIME"text/plain", modelfit::ModelFit{T}) where T<:A
     if isnothing(modelfit.prior)
         println(output, "Prior not sampled")
     else
-        n_samples, _, n_chains = size(modelfit.prior.chains) 
+        n_samples, _, n_chains = size(modelfit.prior.chains)
 
         println(output, "Prior: $n_samples samples, $n_chains chains")
     end
@@ -110,6 +114,3 @@ function Base.show(io::IO, ::MIME"text/plain", session_parameters::SessionParame
     ## Print the final string
     print(io, String(take!(output)))
 end
-
-
-

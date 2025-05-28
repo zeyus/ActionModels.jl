@@ -14,7 +14,7 @@ using ActionModels
         actions = simulate!(agent, observations)
 
         @test length(actions) == length(observations)
-        
+
     end
 
     @testset "parameter and state API" begin
@@ -31,7 +31,7 @@ using ActionModels
         get_parameters(agent, (:initial_value, :learning_rate))
 
         #Variations of set_parameters
-        set_parameters!(agent, :initial_value, 1.)
+        set_parameters!(agent, :initial_value, 1.0)
 
         #Variations of get_history
         get_history(agent, :expected_value)

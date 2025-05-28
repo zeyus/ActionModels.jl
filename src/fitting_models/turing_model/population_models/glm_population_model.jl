@@ -43,7 +43,7 @@ function create_model(
     session_cols::Union{Vector{Symbol},Symbol} = Vector{Symbol}(),
     verbose::Bool = true,
     kwargs...,
-) where {F<:Union{Regression, FormulaTerm}, observation_names,action_names}
+) where {F<:Union{Regression,FormulaTerm},observation_names,action_names}
 
     ## Setup ##
     #If there is only one regression
@@ -54,8 +54,8 @@ function create_model(
 
     #Make sure that single formulas are made into Regression objects
     regressions = [
-        regression isa Regression ? regression : Regression(regression)
-        for regression in regressions
+        regression isa Regression ? regression : Regression(regression) for
+        regression in regressions
     ]
 
     #Check population_model
@@ -267,10 +267,7 @@ end
 ####### HELPER FUNCTIONS ######
 ###############################
 ## Prepare the regression data structures ##
-function prepare_regression_data(
-    formula::FormulaTerm,
-    population_data::DataFrame,
-)
+function prepare_regression_data(formula::FormulaTerm, population_data::DataFrame)
     #Inset column with the name fo the agetn parameter, to avoid error from MixedModel
     insertcols!(population_data, Symbol(formula.lhs) => 1) #TODO: FIND SOMETHING LESS HACKY
 

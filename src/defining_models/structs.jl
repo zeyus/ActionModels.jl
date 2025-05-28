@@ -238,7 +238,13 @@ abstract type AbstractSubmodelAttributes end
 struct NoSubModelAttributes <: AbstractSubmodelAttributes end
 
 ## Model attributes type which contains the information apssed to the action model ##
-struct ModelAttributes{TP<:NamedTuple,TS<:NamedTuple,TA<:NamedTuple,IS<:NamedTuple, TM<:AbstractSubmodelAttributes}
+struct ModelAttributes{
+    TP<:NamedTuple,
+    TS<:NamedTuple,
+    TA<:NamedTuple,
+    IS<:NamedTuple,
+    TM<:AbstractSubmodelAttributes,
+}
     parameters::TP
     states::TS
     actions::TA

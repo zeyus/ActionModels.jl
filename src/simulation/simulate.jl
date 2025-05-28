@@ -14,10 +14,7 @@ function observe!(agent::Agent, observation::T) where {T<:Any}
 
     #Save states in history
     for (state_name, state_value) in pairs(agent.history)
-        push!(
-            state_value,
-            get_states(agent, state_name),
-        )
+        push!(state_value, get_states(agent, state_name))
     end
 
     #Count the timestep
@@ -43,7 +40,7 @@ end
 ## With pre-specified observations ##
 #With a vector where each element is a single observation or a tuple of observations
 function simulate!(agent::Agent, observations::AbstractVector{T}) where {T<:Any}
-    
+
     #Simulate forward
     actions = [observe!(agent, observation) for observation in observations]
 
@@ -52,7 +49,7 @@ function simulate!(agent::Agent, observations::AbstractVector{T}) where {T<:Any}
 end
 #With a matrix where each row is a single observation
 function simulate!(agent::Agent, observations::AbstractMatrix{T}) where {T<:Any}
-    
+
     #Simulate forward
     actions = [observe!(agent, observation) for observation in eachrow(observations)]
 

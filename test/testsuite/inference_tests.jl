@@ -228,7 +228,10 @@ using StatsPlots
                     posterior_chains = sample_posterior!(
                         model,
                         resample = true,
-                        save_resume = SampleSaveResume(path = mktempdir(), save_every = Int64(n_samples / 2)),
+                        save_resume = SampleSaveResume(
+                            path = mktempdir(),
+                            save_every = Int64(n_samples / 2),
+                        ),
                         n_samples = n_samples,
                         n_chains = n_chains,
                     )
@@ -246,7 +249,10 @@ using StatsPlots
                         model,
                         MCMCDistributed(),
                         resample = true,
-                        save_resume = SampleSaveResume(path = mktempdir(), save_every = Int64(n_samples / 2)),
+                        save_resume = SampleSaveResume(
+                            path = mktempdir(),
+                            save_every = Int64(n_samples / 2),
+                        ),
                         n_samples = n_samples,
                         n_chains = n_chains,
                     )
@@ -258,7 +264,10 @@ using StatsPlots
                         model,
                         MCMCThreads(),
                         resample = true,
-                        save_resume = SampleSaveResume(path = mktempdir(), save_every = Int64(n_samples / 2)),
+                        save_resume = SampleSaveResume(
+                            path = mktempdir(),
+                            save_every = Int64(n_samples / 2),
+                        ),
                         n_samples = n_samples,
                         n_chains = n_chains,
                     )

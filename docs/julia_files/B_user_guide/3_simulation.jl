@@ -68,7 +68,7 @@ expected_value_trajectory = get_history(agent, :expected_value);
 reset!(agent)
 
 # The initial value is now 0.5, since we set the inital state parameter `intial_value` to that value.
-get_states(agent, :expected_value) 
+get_states(agent, :expected_value)
 
 # ActionModels also provide a convenient way to plot the trajectories of the agent's states.
 # We need to import the StatsPlots package for this.

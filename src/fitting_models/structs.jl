@@ -110,9 +110,8 @@ end
 
 
 ### Type for the save-resume functionality ###
-@Base.kwdef struct SampleSaveResume
+Base.@kwdef struct SampleSaveResume
     save_every::Int = 100
     path::String = "./.samplingstate"
     chain_prefix::String = "ActionModels_chain_segment"
 end
-

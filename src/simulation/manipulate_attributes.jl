@@ -9,10 +9,7 @@ function reset!(agent::Agent)
         #Empty the history
         empty!(state_history)
         #Add the initial state to the history
-        push!(
-            state_history,
-            get_states(agent.model_attributes, state_name),
-        )
+        push!(state_history, get_states(agent.model_attributes, state_name))
     end
 
     #Reset the number of timesteps
@@ -27,7 +24,7 @@ end
 function set_parameters!(
     agent::Agent,
     parameter_names::Tuple{Vararg{Symbol}},
-    parameter_values::Tuple{Vararg{Union{R, AbstractArray{R}}}} where {R<:Real},
+    parameter_values::Tuple{Vararg{Union{R,AbstractArray{R}}}} where {R<:Real},
 )
     set_parameters!(agent.model_attributes, parameter_names, parameter_values)
 end
@@ -48,7 +45,10 @@ end
 ## Setting multiple attributes with a namedtuple ##
 function set_parameters!(
     agent::Agent,
-    parameters::NamedTuple{parameter_keys,<:Tuple{Vararg{Union{R,AbstractArray{R}}}}} where {R<:Real, parameter_keys},
+    parameters::NamedTuple{
+        parameter_keys,
+        <:Tuple{Vararg{Union{R,AbstractArray{R}}}},
+    } where {R<:Real,parameter_keys},
 )
     set_parameters!(agent.model_attributes, keys(parameters), values(parameters))
 end
@@ -70,7 +70,7 @@ end
 function set_parameters!(
     agent::Agent,
     parameter_names::Vector{Symbol},
-    parameter_values::Tuple{Vararg{Union{R, AbstractArray{R}}}} where {R<:Real},
+    parameter_values::Tuple{Vararg{Union{R,AbstractArray{R}}}} where {R<:Real},
 )
     set_parameters!(agent.model_attributes, Tuple(parameter_names), parameter_values)
 end
@@ -94,22 +94,14 @@ end
 function set_parameters!(
     agent::Agent,
     target_param::Symbol,
-    target_value::Union{R, AbstractArray{R}} where {R<:Real},
+    target_value::Union{R,AbstractArray{R}} where {R<:Real},
 )
     set_parameters!(agent.model_attributes, target_param, target_value)
 end
-function set_states!(
-    agent::Agent,
-    target_state::Symbol,
-    target_value::Any,
-)
+function set_states!(agent::Agent, target_state::Symbol, target_value::Any)
     set_states!(agent.model_attributes, target_state, target_value)
 end
-function set_actions!(
-    agent::Agent,
-    target_action::Symbol,
-    target_value::Real,
-)
+function set_actions!(agent::Agent, target_action::Symbol, target_value::Real)
     set_actions!(agent.model_attributes, target_action, target_value)
 end
 

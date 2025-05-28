@@ -3,7 +3,7 @@
 #########################################################
 function create_model(
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
+    prior::NamedTuple{prior_names,<:Tuple{Vararg{Distribution}}},
     data::DataFrame;
     observation_cols::Union{
         NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
@@ -19,11 +19,7 @@ function create_model(
     population_model_type::Union{IndependentPopulationModel,SingleSessionPopulationModel} = IndependentPopulationModel(),
     verbose::Bool = true,
     kwargs...,
-) where {
-    prior_names,
-    observation_names, 
-    action_names
-}
+) where {prior_names,observation_names,action_names}
 
     #Check population_model
     check_population_model(
@@ -50,7 +46,8 @@ function create_model(
     ])
 
     #Create a statistical model where the agents are independent and sampled from the same prior
-    population_model = independent_population_model(priors_per_parameter, parameters_to_estimate)
+    population_model =
+        independent_population_model(priors_per_parameter, parameters_to_estimate)
 
     #Create a full model combining the agent model and the statistical model
     return create_model(
@@ -76,13 +73,17 @@ end
         i ~ to_submodel(
             prefix(sample_parameters_all_session(prior), parameter_name),
             false,
-        ) for (prior, parameter_name) in zip(priors_per_parameter, parameters_to_estimate)
+        ) for
+        (prior, parameter_name) in zip(priors_per_parameter, parameters_to_estimate)
     )
 
     #Slice, to allow for varying dimensionalities of parameters
     sampled_parameters = map(
-        single_parameter -> single_parameter isa Vector ? single_parameter : Array.(eachslice(single_parameter, dims = ndims(single_parameter))), 
-        sampled_parameters)
+        single_parameter ->
+            single_parameter isa Vector ? single_parameter :
+            Array.(eachslice(single_parameter, dims = ndims(single_parameter))),
+        sampled_parameters,
+    )
 
     return zip(sampled_parameters...)
 end
@@ -103,7 +104,7 @@ end
 function check_population_model(
     model_type::IndependentPopulationModel,
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
+    prior::NamedTuple{prior_names,<:Tuple{Vararg{Distribution}}},
     data::DataFrame,
     observation_cols::Union{
         NamedTuple{observation_names,<:Tuple{Vararg{Symbol}}},
@@ -118,7 +119,7 @@ function check_population_model(
     session_cols::Union{Vector{Symbol},Symbol},
     verbose::Bool;
     kwargs...,
-) where {prior_names, observation_names, action_names}
+) where {prior_names,observation_names,action_names}
     #If there are no parameters to sample
     if length(prior) == 0
         #Throw an error

@@ -5,7 +5,11 @@
     parameters_to_plot = nothing, #::Union{Nothing, Symbol, Vector{Symbol}}
 )
 
-    throw(ArgumentError("plotting estimated parameters for a single session is not yet implemented"))
+    throw(
+        ArgumentError(
+            "plotting estimated parameters for a single session is not yet implemented",
+        ),
+    )
 
 end
 

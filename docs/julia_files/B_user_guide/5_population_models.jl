@@ -89,12 +89,7 @@ actions = [0, 0.2, 0.3, 0.4, 0.5, 0.6]
 
 population_model = (learning_rate = LogitNormal(), action_noise = LogNormal())
 
-model = create_model(
-    action_model,
-    population_model,
-    observations,
-    actions
-)
+model = create_model(action_model, population_model, observations, actions)
 
 chains = sample_posterior!(model)
 
@@ -118,10 +113,7 @@ population_model = [
 # These are also the default priors, so we could have left them out.
 prior = RegressionPrior(β = TDist(3), σ = Exponential(1))
 
-plot(
-    plot(prior.β, label = "β prior"),
-    plot(prior.σ, label = "σ prior"),
-)
+plot(plot(prior.β, label = "β prior"), plot(prior.σ, label = "σ prior"))
 
 population_model = [
     Regression(@formula(learning_rate ~ 1 + treatment + (1 | id)), logistic, prior),

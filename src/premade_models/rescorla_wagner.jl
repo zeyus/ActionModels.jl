@@ -386,17 +386,17 @@ struct RescorlaWagner <: AbstractPremadeModel
 
             #Set the response model
             if type == :continuous
-                
+
                 response_model = function gaussian_report(attributes::ModelAttributes)
                     rescorla_wagner = attributes.submodel
                     Vₜ = rescorla_wagner.expected_value
                     β = load_parameters(attributes).action_noise
                     return Normal(Vₜ, β)
                 end
-            
+
                 response_model_observations = (; observation = Observation(Float64))
                 response_model_actions = (; report = Action(Normal))
-            
+
             elseif type == :binary
 
                 response_model = function bernoulli_report(attributes::ModelAttributes)
@@ -408,7 +408,7 @@ struct RescorlaWagner <: AbstractPremadeModel
 
                 response_model_observations = (; observation = Observation(Int64))
                 response_model_actions = (; report = Action(Bernoulli))
-            
+
             elseif type == :categorical
 
                 response_model = function categorical_report(attributes::ModelAttributes)

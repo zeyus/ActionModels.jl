@@ -16,7 +16,7 @@ function Base.show(io::IO, ::MIME"text/plain", action_model::ActionModel)
         n_states = 0
     end
     println(output, "Number of states: $n_states")
-    
+
 
     if !isnothing(action_model.observations)
         n_observations = length(action_model.observations)
@@ -24,7 +24,7 @@ function Base.show(io::IO, ::MIME"text/plain", action_model::ActionModel)
     else
         println(output, "Observations not defined")
     end
-    
+
     if !isnothing(action_model.actions)
         n_actions = length(action_model.actions)
         println(output, "Number of actions: $n_actions")

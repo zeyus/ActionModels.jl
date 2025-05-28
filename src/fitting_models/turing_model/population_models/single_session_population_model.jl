@@ -3,19 +3,19 @@
 #############################################
 function create_model(
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
+    prior::NamedTuple{prior_names,<:Tuple{Vararg{Distribution}}},
     observations::Vector{OO},
     actions::Vector{AA};
     verbose::Bool = true,
     kwargs...,
 ) where {
-    O <:Any,
+    O<:Any,
     OO<:Union{O,Tuple{Vararg{O}}},
-    A <:Union{Missing, Real},
-    AA<:Union{A, Tuple{Vararg{Union{Missing,A}}}},
+    A<:Union{Missing,Real},
+    AA<:Union{A,Tuple{Vararg{Union{Missing,A}}}},
     prior_names,
 }
-    
+
     #Check population_model
     check_population_model(
         SingleSessionPopulationModel(),
@@ -35,7 +35,7 @@ function create_model(
     if !multiple_observations
         n_observations = 1
     else
-        n_observations = length(first(observations))   
+        n_observations = length(first(observations))
     end
     if !multiple_actions
         n_actions = 1
@@ -49,13 +49,16 @@ function create_model(
 
     #Make observations and actions into tuples of vectors
     if observations isa Vector{<:Tuple}
-        observations = Tuple([observation[i] for observation in observations] for i in 1:length(first(observations)))
+        observations = Tuple(
+            [observation[i] for observation in observations] for
+            i = 1:length(first(observations))
+        )
     else
         observations = (observations,)
     end
     if actions isa Vector{<:Tuple}
-        actions = Tuple([action[i] for action in actions] for i in 1:length(first(actions)))
-    else 
+        actions = Tuple([action[i] for action in actions] for i = 1:length(first(actions)))
+    else
         actions = (actions,)
     end
 
@@ -90,19 +93,19 @@ end
 function check_population_model(
     model_type::SingleSessionPopulationModel,
     action_model::ActionModel,
-    prior::NamedTuple{prior_names, <:Tuple{Vararg{Distribution}}},
+    prior::NamedTuple{prior_names,<:Tuple{Vararg{Distribution}}},
     observations::II,
     actions::AA,
     verbose::Bool;
     kwargs...,
-) where {
-    prior_names,
-    II <: Vector,
-    AA <: Vector,
-}
+) where {prior_names,II<:Vector,AA<:Vector}
 
     if length(observations) != length(actions)
-        throw(ArgumentError("The observations and actions vectors must have the same length."))
+        throw(
+            ArgumentError(
+                "The observations and actions vectors must have the same length.",
+            ),
+        )
     end
 end
 

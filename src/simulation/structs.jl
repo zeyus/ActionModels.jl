@@ -33,13 +33,15 @@ function init_agent(
     #Extract state types from action model and submodel
     state_types =
         merge(get_state_types(action_model), get_state_types(action_model.submodel))
-    
+
     #Find states for which to save history
     if save_history isa Bool
         #If save_history is true, save all states
         if save_history
-            save_history =
-                [collect(keys(model_attributes.states)); collect(keys(get_state_types(action_model.submodel)))]
+            save_history = [
+                collect(keys(model_attributes.states));
+                collect(keys(get_state_types(action_model.submodel)))
+            ]
         else
             #If save_history is false, don't save any states
             save_history = Symbol[]
