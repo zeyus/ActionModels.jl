@@ -95,7 +95,7 @@ makedocs(;
             joinpath(".", "generated", "example_jget.md"),
             joinpath(".", "generated", "example_igt.md"),
         ],
-        "Full API" => [
+        "Full API Reference" => [
             joinpath(".", "markdowns", "full_API.md"),
         ],
     ]
