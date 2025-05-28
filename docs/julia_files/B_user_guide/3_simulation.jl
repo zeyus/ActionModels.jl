@@ -1,4 +1,4 @@
-# # Simulating behaviour and states
+# # Simulating states and behaviour
 
 # In this section, we will cover how to simulate behaviour and state trajectories using an action model.
 # This will consist in agent-based simulation, where we construct an agent that will act based on the action model it uses.

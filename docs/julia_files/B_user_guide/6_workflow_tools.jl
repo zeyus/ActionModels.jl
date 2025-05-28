@@ -5,7 +5,11 @@
 # ActionModels provides ready funtions to implement these methods, which are described in the following sections.
 
 # ## Chain diagnostics
+#TODO: diagnostics with Turing's own output
+# This includes the rhat value, which indicates whether the chains have converged, and which should be close to 1 for all parameters.
+# It also includes the `ess_bulk` and `ess_tail` values, which indicate the effective sample size of the chains.
 #TODO: use ArviZ
+#TODO: parameter correlations
 
 # ## Parameter correlations
 #TODO: make plot function (or use ArviZ)
