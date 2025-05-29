@@ -92,20 +92,54 @@ observations = [
 ]
 
 #Instantiate agent
-agent = init_agent(action_model)
+agent = init_agent(action_model, save_history = true)
 
-simulated_actions = simulate!(agent, observations)
+#Simulate behaviour
+simulated_actions = simulate!(agent, observations);
 
-#TODO: Do this with a proper environment
+#Extract the history of expected values
+expected_values = get_history(agent, :expected_value)
+
+#Collect into a Matrix
+expected_values = transpose(hcat(expected_values...))
+
+#Plot expectations over time
+expectation_plot = plot(
+    0:length(observations), expected_values,
+    ylabel = "Expected Value",
+    legend = :topright,
+    label = ["Deck 1" "Deck 2" "Deck 3" "Deck 4"],
+)
+# Plot rewards colored by deck choice
+deck_choices = [observation[1] for observation in observations]
+rewards = [observation[2] for observation in observations]
+rewards_plot = scatter(
+    1:length(rewards), rewards;
+    group = deck_choices,
+    xlabel = "Timestep",
+    ylabel = "Reward",
+    label = nothing,
+    markersize = 6,
+    ylims = (minimum(rewards)-20, maximum(rewards)+20),
+)
+#Plot together
+plot_title = plot(
+    title = "Expected rewards over time by deck",
+    grid = false,
+    showaxis = false,
+    bottom_margin = -180Plots.px,
+)
+plot(plot_title, expectation_plot, rewards_plot, layout = (3, 1))
+
+#TODO: Do this with a proper IGT environment
 
 # And finally, we can also fit it to data.
 # We will do this by fitting to behavioural data from an experiment where healthy controls and subbjects with addictions to heroin and amphetamine play the IGT, by Ahn et al. (2014).
 # We will here only use a subset of the data. See the [tutorial on the IGT](./example_igt.md) for more details the data, and an example of fitting the full dataset.
 
-# First, we load the data.
+# First, we load the data:
 ActionModels_path = dirname(dirname(pathof(ActionModels))) #hide
 docs_path = joinpath(ActionModels_path, "docs") #hide
-
 #Read in data on healthy controls
 data = CSV.read(
     joinpath(docs_path, "example_data", "ahn_et_al_2014", "IGTdata_healthy_control.txt"),
@@ -122,6 +156,7 @@ data[!, :subjID] = string.(data[!, :subjID])
 #Select the three first subjects
 data = filter(row -> row[:subjID] in ["103", "104", "337"], data)
 
+show(data)
 # We can then create the PVL-Delta action model.
 # In this case, the data is strutured so that actions are made on each timestep before the reward is observed, so we set `act_before_update = true`.
 action_model = ActionModel(PVLDelta(n_options = 4, act_before_update = true))
@@ -146,11 +181,3 @@ model = create_model(
 chns = sample_posterior!(model)
 
 # TODO: plot results
-
-
-
-
-
-
-# Notably, since the observation depends on the action taken, datasets are sometimes structured to that the choice and reward belong to the same timestep. 
-# In this case, the `act_before_update` argument should be set to `true` when creating the action model, so that the action is sampled before the expected value is updated.
