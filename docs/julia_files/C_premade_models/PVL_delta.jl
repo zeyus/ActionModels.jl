@@ -1,35 +1,55 @@
-# # The PVL-Delta model
+# # The PVL-Delta
 
 # ##  Introduction
-# The PVL-Delta model is a classic model in mathematical psychiatry, which can be used to model reward learning over a discrete set of choices.
-# It is in particular used with the Iowa Gambling Task (IGT), which is a standard task for cognitive modelling.
+# The PVL-Delta model is a classic model in mathematical psychology, which can be used to model reward learning over a discrete set of choices.
+# It is in particular used with the Iowa Gambling Task (IGT), which is a standard task for cognitive modelling, where participants choose between four decks of cards, each with different reward and loss probabilities, and must learn which decks are better to choose from.
 # The PVL-Delta model combines principles from Prospect Value Learning (PVL) models and Expectancy Valence (EV) models.
-# It consists of three steps. First, the observed reward is transformed according to Prospect Theory, to make it into a subjective value.
-# This is done by transofrming the value of the reward according to a power function, which is defined by the reward sensitivity parameter $A$, and adding a loss aversion parameter $w$ that controls how much losses and rewards differ in subjective value.
-# $$ u_t = \begin{cases}
-#     r_t^{A} & \text{if } r_t \geq 0 \\
+# It consists of three steps. First, the observed reward is transformed according to Prospect Theory, to make it into a subjective value $u_t$.
+# This is done by transforming the value of the reward according to a power function, which is defined by the reward sensitivity parameter $A$, and adding a loss aversion parameter $w$ that controls how much losses and rewards differ in subjective value.
+
+# $$
+# u_t = \begin{cases}
+#    r_t^{A} & \text{if } r_t \geq 0 \\
 #     -w \cdot |r_t|^{A} & \text{if } r_t < 0
-# \end{cases} $$
+# \end{cases}
+# $$
 # where $r_t$ is the observed reward, $A$ is the reward sensitivity, and $w$ is the loss aversion.
-# The next step uses a classic Rescorla-Wagner learning rule to update the expected value of each choice, which is defined as:
-# $$ E_t = E_{t-1} + \alpha \cdot (u_t - E_{t-1}) $$
-# where $E_t$ is the expected value at time $t$, $E_{t-1}$ is the expected value at time $t-1$, $\alpha$ is the learning rate, and $u_t$ is the subjective value fo the reward.
-# Finally, the action probabilities are calculated using a softmax function over the expected values, weighted by a noise parameter $\beta$ which is defined as:
+# The next step uses a classic Rescorla-Wagner learning rule to update the expected value of the chosen option:
+
+# $$ V_{t,c} = V_{t-1,c} + \alpha \cdot (u_t - V_{t-1,c}) $$
+
+# where $V_{t,c}$ is the expected value at time $t$ for option $c$, $V_{t-1, c}$ is the expected value at time $t-1$, $\alpha$ is the learning rate, and $u_t$ is the subjective value of the reward.
+# Options that were not chosen are not updated, so the expected values of all other options remain the same.
+# Finally, the action probabilities are calculated using a softmax function over the expected values, weighted by a noise parameter $\beta$:
+
 # $$P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$$
+
 # where $P(a_t = i)$ is the probability of choosing action $i$ at time $t$, $E_{t,i}$ is the expected value of action $i$ at time $t$, and $\beta$ is the action precision.
 # $\sigma$ is the softmax function, which ensures that the action probabilities sum to 1, defined as:
+
 # $$ \sigma(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}} $$
+
+# And the resulting actions denote which deck was chosen at each timestep.
+
 # In total, the PVL-Delta model then has five parameters:
 # - the learning rate $\alpha \in [0,1]$, which controls how quickly the expected values are updated
 # - the reward sensitivity $A \in [0,1]$, which controls how quickly increases in the subjective value drops in relation to increases in observed reward, with $A = 1$ meaning that the subjective value is equal to the observed reward
-# - the loss aversion $w \in [0, \infty)$, which controls how much losses are weighted more than gains, with $w = 1$ meaning that losses and gains are weighted equally
-# - the action precision $\beta \in [0, \infty)$, which controls how much noise there is in the action selection process
-# - the initial expected value $Ev_0 \in \mathbb{R}$ for each possible action, by default set to 0 for all actions.
+# - the loss aversion $w \in [0, \infty]$, which controls how much losses are weighted more than gains, with $w = 1$ meaning that losses and gains are weighted equally
+# - the action precision $\beta \in [0, \infty]$, which controls how much noise there is in the action selection process
+# - the initial expected value $V_0 \in \mathbb{R}$ for each option, by default set to 0 for all actions.
+
 # And there is one state:
-# - the expected value $Ev_t \in \mathbb{R}$ for each possible action at time $t$.
+# - the expected value $V_t \in \mathbb{R}$ for each option at time $t$.
+
+# It takes two observations:
+# - the index chosen option $c_t \in \{1, 2, \ldots, n\}$, which in the IGT is the index of the deck chosen at time $t$
+# - the observed reward $r_t \in \mathbb{R}$, which is the reward received for the chosen option at time $t-1$.
+
+# And returns one action:
+# - the chosen option $a_t \in \{1, 2, \ldots, n\}$, which is the index of the option chosen at time $t$.
 
 # ## Implementation in ActionModels
-# In this section, we will demonstrate how to use the premade PVL-Delta model in ActionModels.jl.
+# In this section, we will demonstrate how to use the premade PVL-Delta model in ActionModels.
 
 # We first load the ActionModels package, StatsPlots for plotting results, and DataFrames and CSV for loading data
 using ActionModels
@@ -126,3 +146,11 @@ model = create_model(
 chns = sample_posterior!(model)
 
 # TODO: plot results
+
+
+
+
+
+
+# Notably, since the observation depends on the action taken, datasets are sometimes structured to that the choice and reward belong to the same timestep. 
+# In this case, the `act_before_update` argument should be set to `true` when creating the action model, so that the action is sampled before the expected value is updated.

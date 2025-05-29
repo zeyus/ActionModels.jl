@@ -11,7 +11,7 @@
 using ActionModels, StatsPlots
 
 # ### Defining the action model
-# We will here use the premade Rescorla-Wagner action model provided by ActionModels.jl. This is identical to the model described in the defining action models REF section.
+# We will here use the premade Rescorla-Wagner action model provided by ActionModels. This is identical to the model described in the defining action models REF section.
 action_model = ActionModel(RescorlaWagner())
 
 # ### Loading the data

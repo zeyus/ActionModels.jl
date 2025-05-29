@@ -81,7 +81,7 @@ chains = sample_posterior!(model)
 # Often, the goal of cognitive modelling is to relate differences in parameter values to some external variables, such as treatment conditions or participant characteristics.
 # This is often done with a linear regression, where point estimates of the parameters are predicted from the external variables.
 # In this case, it is informationally advantageous to fit the linear model as part of the population model, rather than fitting the linear model separately and then using the point estimates as the population model.
-# ActionModels.jl provides a pre-made linear regression population model that can be used for this purpose.
+# ActionModels provides a pre-made linear regression population model that can be used for this purpose.
 
 # To specify a linear regression popluation model, we create a tuple of `Regression` objects, where each `Regression` object specifies a regression model for one of the parameters to estimate.
 # The regression is specified with standard LMER syntax, where the formula is specified as a `@formula` object.

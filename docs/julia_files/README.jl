@@ -6,7 +6,7 @@
 
 # # Welcome to ActionModels! 
 
-# ActionModels.jl is a Julia package for computational modeling of cognition and behaviour.
+# ActionModels is a Julia package for computational modeling of cognition and behaviour.
 # It can be used to fit cognitive models to data, as well as to simulate behaviour.
 # ActionModels allows for easy specification of hiearchical models, as well as including generalized linear regressions of model parameters, using standard LMER syntax.
 # ActionModels makes it easy to specify new models, but also contains a growing library of precreated models, and can easily be extended to include more complex model families.

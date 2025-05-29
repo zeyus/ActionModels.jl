@@ -72,7 +72,7 @@ JGET_data = filter(row -> row[:ID] in [20, 40, 60, 70], JGET_data)
 # The Gaussian report action model assumes that the agent reports a continuous value sampled from a Gaussian distribution, where the mean is the expected value of the action and the standard deviation is a noise parameter.
 # There are then two parameters in the action model: the learning rate $\alpha$ and the action noise $\beta$.
 
-# We create the Rescorla-Wagner action model using the premade model from ActionModels.jl.
+# We create the Rescorla-Wagner action model using the premade model from ActionModels.
 action_model = ActionModel(RescorlaWagner())
 
 # We then specify which column in the data corresponds to the action (the response) and which columns correspond to the input (the outcome).

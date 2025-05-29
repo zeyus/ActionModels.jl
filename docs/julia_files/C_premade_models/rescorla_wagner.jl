@@ -1,4 +1,4 @@
-# # The Rescorla-Wagner model
+# # The Rescorla-Wagner
 
 # ## Introduction
 # The Rescorla-Wagner model is a classical model of associative learning, which describes how expectations about outcomes are updated based on observed outcomes.
@@ -6,7 +6,7 @@
 # Since then, it has been applied in a variety of contexts, and is now a canonical model in reinforcement learning and cognitive psychology for modelling how agents learn from their environment.
 # In ActionModels, the Rescorla-Wagner model is provided as a premade model. It functions as a perceptual model, and can be combined with various response models to make a full action model.
 # In the following the Rescorla-Wagner model is described mathematically, and it's binary and categorical variants are introduced.
-# In the next sections, we will demonstrate how it can be used with ActionModels.jl 
+# In the next sections, we will demonstrate how it can be used with ActionModels 
 
 # ### The continuous Rescorla-Wagner model
 # The classic rescorla wagner model has a single changing state, the expected value $V_t$ of an outcome at time $t$.
@@ -79,7 +79,7 @@
 
 
 # ## The premade Rescorla-Wagner constructor
-# In this section, we demonstrate how to use the premade Rescorla-Wagner model constructor provided by ActionModels.jl.
+# In this section, we demonstrate how to use the premade Rescorla-Wagner model constructor provided by ActionModels.
 # This can construct continuous, binary and categorical Rescorla-Wagner model variants, as described above.
 # It can be used with the standard report actions above, or with custom response models.
 
@@ -241,7 +241,7 @@ plot(chns)
 
 
 # ## The RescorlaWagner submodel
-# In the previous section, we demonstrated how to use the premade Rescorla-Wagner model constructor provided by ActionModels.jl.
+# In the previous section, we demonstrated how to use the premade Rescorla-Wagner model constructor provided by ActionModels.
 # ActionModels also provides a RescorlaWagner submodel, which can be used to create custom action models with the Rescorla-Wagner updates as a submodel.
 # In this section, we will demonstrate how to use the RescorlaWagner submodel to create custom action models, which can be useful in more complex scenarios.
 # This also serves as a demonstration of how the premade Rescorla-Wagner model is implemented in ActionModels.

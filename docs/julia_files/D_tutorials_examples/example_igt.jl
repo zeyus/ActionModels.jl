@@ -1,5 +1,5 @@
 # # Tutorial: Fitting the PVL-Delta model to data from the Iowa Gambling Task
-# In this tutorial, we will fit the PVL-Delta model to data from the Iowa Gambling Task (IGT) using the ActionModels.jl package.
+# In this tutorial, we will fit the PVL-Delta model to data from the Iowa Gambling Task (IGT) using the ActionModels package.
 # In the IGT, participants choose cards from four decks, each with different reward and loss probabilities, and must learn over time which decks are advantageous.
 # We will use data from Ahn et al. (2014), which includes healthy controls and participants with heroin or amphetamine addictions.
 # There are more details about the collected data in the docs/example_data/ahn_et_al_2014/ReadMe.txt
@@ -61,7 +61,7 @@ ahn_data = filter(row -> row[:subjID] in ["103", "104", "337", "344"], ahn_data)
 # In summary, the PVL-Delta has four parameters: the learning rate $\alpha$, the reward sensitivity $A$, the loss aversion $w$, and the action precision $\beta$.
 # See the [section on the PVL-Delta premade model] REF in the documentation for more details.
 
-# We create the PVL-Delta using the premade model from ActionModels.jl.
+# We create the PVL-Delta using the premade model from ActionModels.
 # We specify the number of decks, and also that actions are selected before the expected values are updated.
 # This is because in the IGT, at least as structured in this dataset, participants select a deck before they receive the reward and update expectations.
 action_model = ActionModel(PVLDelta(n_options = 4, act_before_update = true))
