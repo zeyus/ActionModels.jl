@@ -122,7 +122,7 @@ model = create_model(
 # We are now ready to fit the model to the data.
 # For this model, we will use the Enzyme automatic differentiation backend, which is a high-performance automatic differentiation library. 
 # Additionally, to keep the runtime of this tutorial short, we will only fit two chains with 500 samples each.
-# We also use MCMCThreads to fit two chains in parallel. This should take up to 5 minutes on a standard laptop.
+# We also pass `MCMCThreads()` to fit two chains in parallel. This should take up to 5 minutes on a standard laptop.
 
 ## Set AD backend ##
 using ADTypes: AutoEnzyme
