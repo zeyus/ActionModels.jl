@@ -64,7 +64,8 @@ makedocs(;
     doctest = true,
     pages = [
         "Welcome to ActionModels" => [joinpath(".", "index.md")],
-        "Theory" => [joinpath(".", "markdowns", "theory.md")],
+        "Theory" => [joinpath(".", "markdowns", "theory.md"),
+                     joinpath(".", "markdowns", "references.md")],
         "User Guide" => [
             joinpath(".", "generated", "2_defining_models.md"),
             joinpath(".", "generated", "3_simulation.md"),
