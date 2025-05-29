@@ -406,7 +406,7 @@ plot(chns)
 submodel = ActionModels.CategoricalRescorlaWagner(
     n_categories = 4,           # Number of categories
     initial_value = zeros(4),   # Initial expected values for each category
-    learning_rate = 0.8,        # Learning rate
+    learning_rate = 0.5,        # Learning rate
 );
 
 # And an accompanying action model function with a categorical report action.
@@ -478,17 +478,19 @@ expected_values = hcat(
 #Use a softmax to normalize the expected values for each category into a proper categorical distribution
 expected_values = transpose(hcat(softmax.(eachrow(expected_values))...))
 
-# Plot the expected values over time, as well as the observed actions and the predicted action for the next timestep
+# Create plot title
 plot_title = plot(
     title = "Estimated probability of each category over time",
     grid = false,
     showaxis = false,
     bottom_margin = -180Plots.px,
 )
+#Create plot of probabilities changing
 prob_plot = plot(0:n_timesteps, expected_values, label = ["Cat 1" "Cat 2" "Cat 3" "Cat 4"])
+#Create plot of observations and simulated actions
 obs_plot = plot(observations, seriestype = :scatter, label = "Observed category")
 plot!(simulated_actions .+ 0.1, seriestype = :scatter, label = "Prediction for next timestep")  
-
+#Create full plot
 plot(plot_title, prob_plot, obs_plot, layout = (3, 1))
 
 # Or to fit the model
