@@ -234,7 +234,7 @@ function update!(
     observation::Int64,
 ) where {T<:Real,AT<:Array{T}}
     #Make one-hot encoded observation
-    one_hot_observation = zeros(length(attributes.expected_value))
+    one_hot_observation = zeros(Int64,length(attributes.expected_value))
     one_hot_observation[observation] = 1
 
     update!(attributes, one_hot_observation)
