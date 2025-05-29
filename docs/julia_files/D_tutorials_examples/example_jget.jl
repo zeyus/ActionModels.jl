@@ -121,7 +121,8 @@ model = create_model(
 # ## Fitting the model
 # We are now ready to fit the model to the data.
 # For this model, we will use the Enzyme automatic differentiation backend, which is a high-performance automatic differentiation library. 
-# Additionally, to keep the runtime of this tutorial short, we will only fit a single chain with 500 samples.
+# Additionally, to keep the runtime of this tutorial short, we will only fit two chains with 500 samples each.
+# We also use MCMCThreads to fit two chains in parallel. This should take up to 5 minutes on a standard laptop.
 
 ## Set AD backend ##
 using ADTypes: AutoEnzyme
@@ -129,7 +130,7 @@ import Enzyme: set_runtime_activity, Reverse
 ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 
 ## Fit model ##
-chns = sample_posterior!(model, n_chains = 1, n_samples = 500, ad_type = ad_type)
+chns = sample_posterior!(model, MCMCThreads(), n_chains = 2, n_samples = 500, ad_type = ad_type)
 
 # We can now inspect the results of the fitting process.
 # We can plot the posterior distributions of the beta parameter for PDI's effect on the action model parameters.
@@ -246,7 +247,7 @@ import Enzyme: set_runtime_activity, Reverse
 ad_type = AutoEnzyme(; mode = set_runtime_activity(Reverse, true));
 
 ## Fit model ##
-chns = sample_posterior!(simple_model, n_chains = 1, n_samples = 500, ad_type = ad_type)
+chns = sample_posterior!(simple_model, MCMCThreads(), n_chains = 2, n_samples = 500, ad_type = ad_type)
 
 #Plot the posteriors
 plot(
