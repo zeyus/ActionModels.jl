@@ -88,7 +88,7 @@ model_function = function rescorla_wagner_gaussian_report(
     return action_distribution
 end
 
-# We can then create an ActionModel object
+# We can then create an `ActionModel` object
 action_model = ActionModel(
     model_function,
     submodel = submodel,
@@ -160,7 +160,7 @@ model_function = function rescorla_wagner_bernoulli_report(
     return action_distribution
 end
 
-# We can then create an ActionModel object, with the observation as an integer (0 or 1) and the action as a Bernoulli distribution.
+# We can then create an `ActionModel` object, with the observation as an integer (0 or 1) and the action as a Bernoulli distribution.
 action_model = ActionModel(
     model_function,
     submodel = submodel,
@@ -236,7 +236,7 @@ model_function = function rescorla_wagner_categorical_report(
     return action_distribution
 end
 
-# We can then create an ActionModel object, with the observation as an integer (0 or 1) and the action as a Bernoulli distribution.
+# We can then create an `ActionModel` object, with the observation as an integer (0 or 1) and the action as a Bernoulli distribution.
 action_model = ActionModel(
     model_function,
     submodel = submodel,

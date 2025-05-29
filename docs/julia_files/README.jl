@@ -50,7 +50,7 @@ end;
 
 # We now create the model object.
 # We first define the attributes of the Rescorla Wagner model. This includes it's three parameters, the expected value state, the observation and the action.
-# Then we use the ActionModel constructor to create the model object.
+# Then we use the `ActionModel` constructor to create the model object.
 parameters = (
     #The learning rate, with a default value of 0.1
     learning_rate = Parameter(0.1),

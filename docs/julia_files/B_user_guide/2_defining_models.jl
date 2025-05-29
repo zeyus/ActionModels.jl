@@ -83,7 +83,7 @@ actions = (;
     report = Action(Normal)
 );
 
-# Finally, we create the model object using the ActionModel constructor.
+# Finally, we create the model object using the `ActionModel` constructor.
 action_model = ActionModel(
     rescorla_wagner,
     parameters = parameters,
@@ -100,7 +100,7 @@ action_model = ActionModel(
 # It is possible for action models to have multiple observations or multiple actions. 
 # Multiple observations just have to be specified as additional arguments in the action model function.
 # Multiple actions just need to be returned as a tuple from the action model function.
-# In both cases, multiple observations and actions need to be specified when constructing the ActionModel object.
+# In both cases, multiple observations and actions need to be specified when constructing the `ActionModel` object.
 
 #Dummy example function with multiple observations and actions
 function example_actionmodel(
