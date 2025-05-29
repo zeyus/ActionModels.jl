@@ -244,12 +244,11 @@ function update!(
     attributes::RescorlaWagnerAttributes{T,AT},
     observation::Vector{Int64},
 ) where {T<:Real,AT<:Array{T}}
-    attributes.expected_value = map(
-        (expected_value, single_observation) ->
-            expected_value +=
-                attributes.learning_rate * (single_observation - logistic(expected_value)),
-        zip(attributes.expected_value, observation),
-    )
+
+    attributes.expected_value = [
+            expected_value + attributes.learning_rate * (single_observation - logistic(expected_value)) for
+            (expected_value, single_observation) in zip(attributes.expected_value, observation)
+        ]
 end
 ## Categorical RW with continuous vector input ##
 function update!(
