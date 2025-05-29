@@ -1,5 +1,6 @@
-
 # References
+
+- Ahn, W. Y., Vasilev, G., Lee, S. H., Busemeyer, J. R., Kruschke, J. K., Bechara, A., & Vassileva, J. (2014). Decision-making in stimulant and opiate addicts in protracted abstinence: evidence from computational modeling with pure users. Frontiers in psychology, 5, 849.
 
 - Akaike, H. (2011). Akaike's information criterion. In M. Lovric (Ed.), International encyclopedia of statistical science (pp. 25-25). Springer.
 
