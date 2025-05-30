@@ -62,24 +62,67 @@ struct State{T} <: AbstractState
     initial_value::Union{Missing,T}
     type::Type{T}
 
-    function State(initial_value::T) where {T}
-        new{T}(initial_value, T)
+    function State(initial_value; discrete::Union{Nothing,Bool} = nothing)
+
+        #If a non-real value has been specified
+        if !(initial_value isa Real) && !(initial_value isa Array{R} where {R<:Real}) 
+            
+            if !isnothing(discrete)
+                throw(ArgumentError("The discrete keyword is only defined for Real or Array{<:Real} types initial values."))
+            end
+
+            return new{typeof(initial_value)}(initial_value, typeof(initial_value))
+        end
+
+        if discrete
+            if initial_value isa Array
+                return new{Array{Int64}}(initial_value, Array{Int64})
+            else
+                return new{Int64}(initial_value, Int64)
+            end
+        else
+            if initial_value isa Array
+                return new{Array{Float64}}(initial_value, Array{Float64})
+            else
+                return new{Float64}(initial_value, Float64)
+            end
+        end
     end
+
     function State(initial_value, ::Type{T}) where {T}
         new{T}(initial_value, T)
     end
-    function State(::Type{T} = Float64) where {T}
+
+    function State(; discrete::Bool = false)
+        if discrete
+            return new{Int64}(missing, Int64)
+        else
+            return new{Float64}(missing, Float64)
+        end
+    end
+
+    function State(::Type{T}) where {T}
         new{T}(missing, T)
     end
+
 end
+
 
 ## For creating observations ##
 abstract type AbstractObservation <: AbstractAttribute end
 struct Observation{T} <: AbstractObservation
     type::Type{T}
 
-    function Observation(::Type{T} = Float64) where {T}
-        new{T}(T)
+    function Observation(::Type{T}) where {T}
+        return new{T}(T)
+    end
+
+    function Observation(; discrete::Bool = false)
+        if discrete
+            return new{Int64}(Int64)
+        else
+            return new{Float64}(Float64)
+        end
     end
 end
 
