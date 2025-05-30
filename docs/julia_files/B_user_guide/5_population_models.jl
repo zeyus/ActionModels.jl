@@ -67,7 +67,7 @@ model = create_model(
     session_cols = session_cols,
 )
 
-chains = sample_posterior!(model)
+chns = sample_posterior!(model)
 
 # We can see in the `Chains` object that each parameter is estimated separately for each session.
 # This means that the population model parameters in this case are identical to the session parameters.
@@ -131,7 +131,7 @@ model = create_model(
     session_cols = session_cols,
 )
 
-chains = sample_posterior!(model)
+chns = sample_posterior!(model)
 
 # We can see that there are, for each parameter, two $\beta$ estimates, where the first is the intercept and the second is the treatment effect.
 # We can also see that there is, for each random effect, a $\sigma$ estimate, which is the standard deviation of the random intercepts, as well as each of the sampled random intercepts for each session. 
@@ -203,7 +203,7 @@ model = create_model(
     parameters_to_estimate = parameters_to_estimate,
 )
 
-chains = sample_posterior!(model)
+chns = sample_posterior!(model)
 
 # We can see that the parameter are estimated for each session, in non-transformed space.
 # We can still extract the session parameters as before. This extracts the parameters in the version that they are passed to the action model - i.e., transformed.
@@ -229,7 +229,7 @@ population_model = (learning_rate = LogitNormal(), action_noise = LogNormal())
 model = create_model(action_model, population_model, observations, actions)
 
 #Sample from the posterior
-chains = sample_posterior!(model)
+chns = sample_posterior!(model)
 
 # We can still plot the estimated parameters for the session
 #TODO: plot(model)
