@@ -51,7 +51,6 @@ DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursiv
 makedocs(;
     modules = [ActionModels],
     authors = "Peter Thestrup Waade ptw@cas.au.dk, Christoph Mathys chmathys@cas.au.dk and contributors",
-    #repo = "https://github.com/ComputationalPsychiatry/HierarchicalGaussianFiltering.jl/blob/{commit}{path}#{line}",
     sitename = "ActionModels.jl",
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
