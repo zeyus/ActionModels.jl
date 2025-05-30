@@ -63,6 +63,7 @@ function set_actions!(
     action::A,
 ) where {A<:Real}
     model_attributes.actions[action_name].value = action
+    return nothing
 end
 
 ## Functions for setting multiple attributes ##
