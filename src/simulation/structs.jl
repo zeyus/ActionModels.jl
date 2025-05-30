@@ -1,3 +1,24 @@
+"""
+    Agent{TH}
+
+Container for a simulated agent, including the action model, model attributes, state history, and number of timesteps.
+
+# Fields
+- `action_model`: The function implementing the agent's action model logic.
+- `model_attributes`: The `ModelAttributes` instance containing parameters, states, and actions.
+- `history`: NamedTuple of vectors storing the history of selected states.
+- `n_timesteps`: Variable tracking the number of timesteps simulated.
+
+# Examples
+```jldoctest
+julia> am = ActionModel(RescorlaWagner());
+
+julia> agent = init_agent(am, save_history=true)
+-- ActionModels Agent --
+Action model: rescorla_wagner_act_after_update
+This agent has received 0 observations
+```
+"""
 struct Agent{TH<:NamedTuple}
     action_model::Function
     model_attributes::ModelAttributes
@@ -5,6 +26,28 @@ struct Agent{TH<:NamedTuple}
     n_timesteps::Variable{Int64}
 end
 
+"""
+    init_agent(action_model::ActionModel; save_history=false)
+
+Initialize an `Agent` for simulation, given an `ActionModel`. Optionally specify which states to save in the agent's history.
+
+# Arguments
+- `action_model`: The `ActionModel` to use for the agent.
+- `save_history`: If `true`, save all states; if `false`, save none; if a `Symbol` or `Vector{Symbol}`, save only those states (default: `false`).
+
+# Returns
+- `Agent`: An initialized agent ready for simulation.
+
+# Examples
+```jldoctest
+julia> am = ActionModel(RescorlaWagner());
+
+julia> agent = init_agent(am, save_history=true)
+-- ActionModels Agent --
+Action model: rescorla_wagner_act_after_update
+This agent has received 0 observations
+```
+"""
 function init_agent(
     action_model::ActionModel;
     save_history::Union{Bool,Symbol,Vector{Symbol}} = false,

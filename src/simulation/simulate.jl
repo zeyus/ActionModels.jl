@@ -1,6 +1,26 @@
 ###################################
 ### MAKING A SINGLE OBSERVATION ###
 ###################################
+"""
+    observe!(agent::Agent, observation)
+
+Advance the agent by one timestep using the given observation, updating its state and returning the sampled action.
+
+# Arguments
+- `agent`: The `Agent` to update.
+- `observation`: The observation(s) for this timestep (tuple or value).
+
+# Returns
+- The sampled action(s) for this timestep.
+
+# Examples
+```jldoctest; setup = :(using ActionModels; agent = init_agent(ActionModel(RescorlaWagner()), save_history=true))
+julia> action = observe!(agent, 0.5);
+
+julia> action isa Real
+true
+```
+"""
 function observe!(agent::Agent, observation::T) where {T<:Any}
 
     #Run the action model to get the action distribution
@@ -39,6 +59,27 @@ end
 #####################################
 ## With pre-specified observations ##
 #With a vector where each element is a single observation or a tuple of observations
+"""
+    simulate!(agent::Agent, observations::AbstractVector)
+
+Simulate the agent forward for multiple timesteps, using a vector of observations. Returns a vector of actions for each timestep.
+
+# Arguments
+- `agent`: The `Agent` to simulate.
+- `observations`: Vector of observations (each element is a tuple or value for one timestep).
+
+# Returns
+- Vector of actions, one per timestep.
+
+# Examples
+```jldoctest; setup = :(using ActionModels; agent = init_agent(ActionModel(RescorlaWagner()), save_history=true))
+julia> actions = simulate!(agent, [0.5, 0.7, 0.9]);
+
+julia> actions isa AbstractVector
+true
+
+```
+"""
 function simulate!(agent::Agent, observations::AbstractVector{T}) where {T<:Any}
 
     #Simulate forward
@@ -48,6 +89,18 @@ function simulate!(agent::Agent, observations::AbstractVector{T}) where {T<:Any}
     return actions
 end
 #With a matrix where each row is a single observation
+"""
+    simulate!(agent::Agent, observations::AbstractMatrix)
+
+Simulate the agent forward for multiple timesteps, using a matrix of observations (each row is a timestep). Returns a vector of actions.
+
+# Arguments
+- `agent`: The `Agent` to simulate.
+- `observations`: Matrix of observations (each row is a tuple or value for one timestep).
+
+# Returns
+- Vector of actions, one per timestep.
+"""
 function simulate!(agent::Agent, observations::AbstractMatrix{T}) where {T<:Any}
 
     #Simulate forward
