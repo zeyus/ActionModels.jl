@@ -207,8 +207,11 @@ agent = init_agent(action_model, save_history = true)
 #Set parameters
 set_parameters!(agent, (; action_noise = 0.5))
 
+#Define observations
+observations = [0.1, 0.2, 0.3, 0.4]
+
 #Simulate behaviour
-simulated_actions = simulate!(agent, [0.1, 0.2, 0.3, 0.4])
+simulated_actions = simulate!(agent, observations)
 
 #Plot the expected value trajectory
 using StatsPlots
