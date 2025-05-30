@@ -85,7 +85,7 @@
 
 # $$a_t \sim \text{Categorical}(σ(V_t * \beta^{-1}))$$ 
 
-# where s(x) is the softmax function 
+# where $\sigma(x)$ is the softmax function 
 
 # $σ(x) = \frac{e^{x_i}}{\sum_{j=1}^n e^{x_j}}$
 
@@ -318,7 +318,7 @@ action_model = ActionModel(
 agent = init_agent(action_model, save_history = :expected_value)
 
 #Set parameters
-set_parameters!(agent, (; action_noise = 0.1))
+set_parameters!(agent, (; action_noise = 0.1, learning_rate = 0.5))
 
 #Create observations
 observations = collect(0:0.1:2) .+ randn(21) * 0.1

@@ -1,4 +1,4 @@
-# # The Iowa Gambling Task
+# # Iowa Gambling Task
 # In this tutorial, we will fit the PVL-Delta model to data from the Iowa Gambling Task (IGT) using the ActionModels package.
 # In the IGT, participants choose cards from four decks, each with different reward and loss probabilities, and must learn over time which decks are advantageous.
 # We will use data from Ahn et al. (2014), which includes healthy controls and participants with heroin or amphetamine addictions.

@@ -1,4 +1,4 @@
-# # The Jumping Gaussian Estimation Task
+# # Jumping Gaussian Estimation Task
 # In this tutorial, we will fit a Rescorla-Wagner model to data from the Jumping Gaussian Estimation Task (JGET).
 # In the JGET, participants observe continuous outcomes sampled from a Gaussian distribution which at some trials "jumps" to be centered somewhere else.
 # Participants must predict the outcome of the next trial based on the previous outcomes.

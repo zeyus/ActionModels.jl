@@ -12,18 +12,18 @@
 # where $r_t$ is the observed reward, $A$ is the reward sensitivity, and $w$ is the loss aversion.
 # The next step uses a classic Rescorla-Wagner learning rule to update the expected value of the chosen option:
 
-# $$ V_{t,c} = V_{t-1,c} + \alpha \cdot (u_t - V_{t-1,c}) $$
+# $$V_{t,c} = V_{t-1,c} + \alpha \cdot (u_t - V_{t-1,c})$$
 
 # where $V_{t,c}$ is the expected value at time $t$ for option $c$, $V_{t-1, c}$ is the expected value at time $t-1$, $\alpha$ is the learning rate, and $u_t$ is the subjective value of the reward.
 # Options that were not chosen are not updated, so the expected values of all other options remain the same.
 # Finally, the action probabilities are calculated using a softmax function over the expected values, weighted by a noise parameter $\beta$:
 
-# $$ P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$$
+# $$P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$$
 
 # where $P(a_t = i)$ is the probability of choosing action $i$ at time $t$, $E_{t,i}$ is the expected value of action $i$ at time $t$, and $\beta$ is the action precision.
 # $\sigma$ is the softmax function, which ensures that the action probabilities sum to 1, defined as:
 
-# $$ \sigma(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}} $$
+# $$\sigma(x_i) = \frac{e^{x_i}}{\sum_j e^{x_j}}$$
 
 # And the resulting actions denote which deck was chosen at each timestep.
 

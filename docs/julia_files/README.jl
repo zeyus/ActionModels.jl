@@ -163,7 +163,7 @@ agent = init_agent(action_model, save_history = [:expected_value])
 # We can set parameter values for the agent, and simulate behaviour for some set of observations
 
 #Set the parameters of the agent
-set_parameters!(agent, (learning_rate = 0.8, action_noise = 0.01))
+set_parameters!(agent, (learning_rate = 0.8, action_noise = 0.1))
 
 #Create an increasing set of observations with some noise
 observations = collect(0:0.1:2) .+ randn(21) * 0.1
