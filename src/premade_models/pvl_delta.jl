@@ -1,3 +1,34 @@
+"""
+    PVLDelta
+
+A premade model implementing the Prospect Valence Learning (PVL-Delta) algorithm, commonly used for modeling learning and decision-making in tasks like the Iowa Gambling Task (IGT).
+
+The PVL-Delta model updates expected values for each option based on observed rewards, using a prospect-theoretic transformation and a delta learning rule. Action probabilities are computed via a softmax over expected values.
+
+# Fields
+- `n_options::Int64`: Number of available options (e.g., decks in IGT).
+- `learning_rate::Float64`: Learning rate (α), controls the speed of value updating.
+- `action_noise::Float64`: (Inverse temperature β = 1/action_noise), controls choice stochasticity.
+- `reward_sensitivity::Float64`: Prospect theory power parameter (A), controls reward sensitivity.
+- `loss_aversion::Float64`: Loss aversion parameter (w), scales negative rewards.
+- `initial_value::Array{Float64}`: Initial expected values for each option.
+- `act_before_update::Bool`: If true, action is determined before reward is observed (for tasks where action and reward happen on the same timestep).
+
+# Examples
+```jldoctest
+julia> config = PVLDelta(n_options=4, learning_rate=0.1, action_noise=1.0, reward_sensitivity=0.5, loss_aversion=1.0, initial_value=zeros(4), act_before_update=true)
+PVLDelta(4, 0.1, 1.0, 0.5, 1.0, [0.0, 0.0, 0.0, 0.0], true)
+
+julia> action_model = ActionModel(config)
+-- ActionModel --
+Action model function: pvl_delta_act_before_update
+Number of parameters: 5
+Number of states: 1
+Number of observations: 2
+Number of actions: 1
+```
+"""
+
 export PVLDelta
 
 Base.@kwdef struct PVLDelta <: AbstractPremadeModel

@@ -9,17 +9,70 @@
 #######################
 
 ## Abstract type ##
+"""
+AbstractRescorlaWagnerSubmodel
+
+Abstract supertype for Rescorla-Wagner submodels. Used for dispatching between continuous, binary, and categorical variants.
+"""
 abstract type AbstractRescorlaWagnerSubmodel <: AbstractSubmodel end
 
 ## Concrete types ##
+"""
+ContinuousRescorlaWagner(; initial_value=0.0, learning_rate=0.1)
+
+Continuous Rescorla-Wagner submodel for use in action models.
+
+# Fields
+- `initial_value`: Initial expected value parameter (Float64).
+- `learning_rate`: Learning rate parameter (Float64).
+
+# Examples
+```jldoctest
+julia> ActionModels.ContinuousRescorlaWagner()
+ActionModels.ContinuousRescorlaWagner(0.0, 0.1)
+```
+"""
 Base.@kwdef struct ContinuousRescorlaWagner <: AbstractRescorlaWagnerSubmodel
     initial_value::Float64 = 0.0
     learning_rate::Float64 = 0.1
 end
+
+"""
+BinaryRescorlaWagner(; initial_value=0.0, learning_rate=0.1)
+
+Binary Rescorla-Wagner submodel for use in action models.
+
+# Fields
+- `initial_value`: Initial expected value parameter (Float64).
+- `learning_rate`: Learning rate parameter (Float64).
+
+# Examples
+```jldoctest
+julia> ActionModels.BinaryRescorlaWagner()
+ActionModels.BinaryRescorlaWagner(0.0, 0.1)
+```
+"""
 Base.@kwdef struct BinaryRescorlaWagner <: AbstractRescorlaWagnerSubmodel
     initial_value::Float64 = 0.0
     learning_rate::Float64 = 0.1
 end
+
+"""
+CategoricalRescorlaWagner(; n_categories, initial_value=zeros(n_categories), learning_rate=0.1)
+
+Categorical Rescorla-Wagner submodel for use in action models.
+
+# Fields
+- `n_categories`: Number of categories (Int64).
+- `initial_value`: Initial expected value vector parameter (Vector{Float64}).
+- `learning_rate`: Learning rate parameter (Float64).
+
+# Examples
+```jldoctest
+julia> ActionModels.CategoricalRescorlaWagner(n_categories=3)
+ActionModels.CategoricalRescorlaWagner(3, [0.0, 0.0, 0.0], 0.1)
+```
+"""
 struct CategoricalRescorlaWagner <: AbstractRescorlaWagnerSubmodel
     n_categories::Int64
     initial_value::Vector{Float64}
@@ -65,6 +118,26 @@ end
 ### ATTRIBUTES STRUCT ###
 #########################
 ## Attributes struct ##
+"""
+RescorlaWagnerAttributes{T,AT}
+
+Container for the parameters and state of a Rescorla-Wagner submodel. Has a type parameter `T` to allow using types supplied by the Turing header, and an attribute type `AT` to allow dispatching between categorical and continuous/binary models.
+
+# Type Parameters
+- `T`: Element type (e.g., Float64).
+- `AT`: Categorical vs continuous/binary typing (e.g., Float64 or Vector{Float64}).
+
+# Fields
+- `initial_value`: Initial value parameter for the expected value.
+- `learning_rate`: Learning rate parameter.
+- `expected_value`: Current expected value.
+
+# Examples
+```jldoctest
+julia> ActionModels.RescorlaWagnerAttributes{Float64,Float64}(initial_value=0.0, learning_rate=0.1, expected_value=0.0)
+ActionModels.RescorlaWagnerAttributes{Float64, Float64}(0.0, 0.1, 0.0)
+```
+"""
 Base.@kwdef mutable struct RescorlaWagnerAttributes{T<:Real,AT<:Union{T,Array{T}}} <:
                            AbstractSubmodelAttributes
     initial_value::AT
@@ -210,7 +283,46 @@ end
 ########################
 ### UPDATE FUNCTIONS ###
 ########################
-## Continuous RW ##
+"""
+    update!(attributes::RescorlaWagnerAttributes, observation)
+
+Update the expected value(s) in a Rescorla-Wagner submodel attributes according to the observation. This function is dispatched for continuous, binary, and categorical models.
+
+# Arguments
+- `attributes`: A `RescorlaWagnerAttributes` struct containing the current state and parameters.
+- `observation`: The observed outcome. Type depends on the model variant:
+    - `Float64` for continuous models
+    - `Int64` for binary or categorical models (category index)
+    - `Vector{Int64}` for categorical models (one-hot or binary vector)
+    - `Vector{Float64}` for categorical models (continuous vector)
+
+# Examples
+```jldoctest
+julia> attrs = ActionModels.RescorlaWagnerAttributes{Float64,Float64}(initial_value=0.0, learning_rate=0.2, expected_value=0.0);
+
+julia> ActionModels.update!(attrs, 1.0);  # Continuous update
+
+julia> attrs.expected_value
+0.2
+
+julia> attrs_bin = ActionModels.RescorlaWagnerAttributes{Float64,Float64}(initial_value=0.0, learning_rate=0.5, expected_value=0.0);
+
+julia> ActionModels.update!(attrs_bin, 1);  # Binary update
+
+julia> attrs_bin.expected_value
+0.25
+
+julia> attrs_cat = ActionModels.RescorlaWagnerAttributes{Float64,Vector{Float64}}(initial_value=[0.0, 0.0, 0.0], learning_rate=0.1, expected_value=[0.0, 0.0, 0.0]);
+
+julia> ActionModels.update!(attrs_cat, 2);  # Categorical update with category index
+
+julia> attrs_cat.expected_value
+3-element Vector{Float64}:
+ -0.05
+  0.05
+ -0.05
+```
+"""
 function update!(
     attributes::RescorlaWagnerAttributes{T,AT},
     observation::Float64,
@@ -270,6 +382,43 @@ end
 ###################
 export RescorlaWagner
 
+"""
+RescorlaWagner(; type=:continuous, initial_value=nothing, learning_rate=0.1, n_categories=nothing, response_model=nothing, response_model_parameters=nothing, response_model_observations=nothing, response_model_actions=nothing, action_noise=nothing, act_before_update=false)
+
+Premade configuration type for the Rescorla-Wagner model. Used to construct an `ActionModel` for continuous, binary, or categorical learning tasks.
+
+# Keyword Arguments
+- `type`: Symbol specifying the model type (`:continuous`, `:binary`, or `:categorical`).
+- `initial_value`: Initial value for the expected value (Float64 or Vector{Float64}).
+- `learning_rate`: Learning rate parameter (Float64).
+- `n_categories`: Number of categories (required for categorical models).
+- `response_model`: Custom response model function (optional).
+- `response_model_parameters`: NamedTuple of response model parameters (optional).
+- `response_model_observations`: NamedTuple of response model observations (optional).
+- `response_model_actions`: NamedTuple of response model actions (optional).
+- `action_noise`: Action noise parameter (Float64, optional; used if no custom response model is provided).
+- `act_before_update`: If true, action is selected before updating the expectation.
+
+# Examples
+```jldoctest
+julia> rw = RescorlaWagner(type=:continuous, initial_value=0.0, learning_rate=0.2)
+RescorlaWagner(:continuous, 0.0, 0.2, nothing, ActionModels.var"#gaussian_report#270"(), (action_noise = Parameter{Float64}(1.0, Float64),), (observation = Observation{Float64}(Float64),), (report = Action{Float64, Normal}(Float64, Normal),), false)
+
+julia> ActionModel(rw)
+
+julia> rw_cat = RescorlaWagner(type=:categorical, n_categories=3, initial_value=[0.0, 0.0, 0.0], learning_rate=0.1)
+RescorlaWagner(:categorical, [0.0, 0.0, 0.0], 0.1, 3, ActionModels.var"#categorical_report#272"(), (action_noise = Parameter{Float64}(1.0, Float64),), (observation = Observation{Int64}(Int64),), (report = Action{Int64, Categorical{P} where P<:Real}(Int64, Categorical{P} where P<:Real),), false)
+
+julia> ActionModel(rw_cat)
+
+julia> custom_response_model = (attributes) -> Normal(2 * attributes.submodel.expected_value, load_parameters(attributes).noise);
+
+julia> rw_custom_resp = RescorlaWagner(response_model=custom_response_model, response_model_observations=(observation=Observation(Float64),), response_model_actions=(report=Action(Normal),), response_model_parameters=(noise=Parameter(1.0, Float64),))
+RescorlaWagner(...)
+
+julia> ActionModel(rw_custom_resp)
+
+"""
 struct RescorlaWagner <: AbstractPremadeModel
     #RW preceptual model attributes
     type::Symbol
