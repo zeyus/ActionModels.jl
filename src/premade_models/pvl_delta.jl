@@ -11,7 +11,7 @@ The PVL-Delta model updates expected values for each option based on observed re
 - `action_noise::Float64`: (Inverse temperature β = 1/action_noise), controls choice stochasticity.
 - `reward_sensitivity::Float64`: Prospect theory power parameter (A), controls reward sensitivity.
 - `loss_aversion::Float64`: Loss aversion parameter (w), scales negative rewards.
-- `initial_value::Array{Float64}`: Initial expected values for each option.
+- `initial_value::Array{Float64}`: Initial expected values (V) for each option.
 - `act_before_update::Bool`: If true, action is determined before reward is observed (for tasks where action and reward happen on the same timestep).
 
 # Examples
