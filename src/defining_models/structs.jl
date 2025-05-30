@@ -8,17 +8,24 @@ abstract type AbstractAttribute end
 abstract type AbstractParameter <: AbstractAttribute end
 
 """
-Parameter type for defining parameters in action models. Can be continuous or discrete.
+Parameter(value; discrete=false)
+
+Type constructor for defining parameters in action models. Can be continuous or discrete.
 
 # Arguments
 - `value`: The default value of the parameter. Can be a single value or an array.
 - `discrete`: If true, parameter is treated as discrete (Int), otherwise as continuous (Float).
 
-# Example
-```julia
-learning_rate = Parameter(0.1)                  # continuous parameter
-use_info_gain = Parameter(1, discrete=true)     # discrete parameter
-weights = Parameter([0.0, 0.0])                 # multivariate parameter
+# Examples
+```jldoctest
+julia> Parameter(0.1)
+Parameter{Float64}(0.1, Float64)
+
+julia> Parameter(1, discrete=true)
+Parameter{Int64}(1, Int64)
+
+julia> Parameter([0.0, 0.0])
+Parameter{Array{Float64}}([0.0, 0.0], Array{Float64})
 ```
 """
 struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
@@ -46,20 +53,25 @@ struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
 end
 
 """
-InitialStateParameter type for defining initial state parameters in action models. 
-Initial state parameters define the initial value of a state in the model.
-Can be continuous or discrete.
+InitialStateParameter(initial_value, state_name; discrete=false)
+
+Type for defining initial state parameters in action models. Initial state parameters define the initial value of a state in the model. Can be continuous or discrete.
 
 # Arguments
 - `value`: The default value for the initial state parameter. Can be a single value or an array.
 - `state_name`: The symbol name of the state this parameter controls.
 - `discrete`: If true, value is treated as discrete (Int), otherwise as continuous (Float).
 
-# Example
-```julia
-initial_value = InitialStateParameter(0.0, :expected_value)             # continuous
-initial_count = InitialStateParameter(1, :counter, discrete=true)       # discrete
-initial_weights = InitialStateParameter([0.0, 0.0], :weights)           # multivariate
+# Examples
+```jldoctest
+julia> InitialStateParameter(0.0, :expected_value)
+InitialStateParameter{Float64}(:expected_value, 0.0, Float64)
+
+julia> InitialStateParameter(1, :counter, discrete=true)
+InitialStateParameter{Int64}(:counter, 1, Int64)
+
+julia> InitialStateParameter([0.0, 0.0], :weights)
+InitialStateParameter{Array{Float64}}(:weights, [0.0, 0.0], Array{Float64})
 ```
 """
 struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
@@ -89,6 +101,38 @@ end
 
 ## For creating states ##
 abstract type AbstractState <: AbstractAttribute end
+
+"""
+State(initial_value; discrete=nothing)
+State(initial_value, ::Type{T})
+State(; discrete=false)
+State(::Type{T})
+
+Construct a model state variable, which can be continuous, discrete, or a custom type.
+
+# Arguments
+- `initial_value`: The initial value for the state (can be Real, Array, or custom type). Set to `missing` for no initial value.
+- `discrete`: If true, state is treated as discrete (Int), otherwise as continuous (Float). Only valid for Real or Array{<:Real} types.
+- `T`: Type of the state (for non-Real types).
+
+# Examples
+```jldoctest
+julia> State(0.0)
+State{Float64}(0.0, Float64)
+
+julia> State(1, discrete=true)
+State{Int64}(1, Int64)
+
+julia> State([0.0, 0.0])
+State{Array{Float64}}([0.0, 0.0], Array{Float64})
+
+julia> State(discrete=true)
+State{Int64}(missing, Int64)
+
+julia> State(String)
+State{String}(missing, String)
+```
+"""
 struct State{T} <: AbstractState
     initial_value::Union{Missing,T}
     type::Type{T}
@@ -96,13 +140,22 @@ struct State{T} <: AbstractState
     function State(initial_value; discrete::Union{Nothing,Bool} = nothing)
 
         #If a non-real value has been specified
-        if !(initial_value isa Real) && !(initial_value isa Array{R} where {R<:Real}) 
-            
+        if !(initial_value isa Real) && !(initial_value isa Array{R} where {R<:Real})
+
             if !isnothing(discrete)
-                throw(ArgumentError("The discrete keyword is only defined for Real or Array{<:Real} types initial values."))
+                throw(
+                    ArgumentError(
+                        "The discrete keyword is only defined for Real or Array{<:Real} types initial values.",
+                    ),
+                )
             end
 
             return new{typeof(initial_value)}(initial_value, typeof(initial_value))
+        else
+            #If discrete is not specified, set it to false
+            if isnothing(discrete)
+                discrete = false
+            end
         end
 
         if discrete
@@ -138,9 +191,34 @@ struct State{T} <: AbstractState
 
 end
 
-
 ## For creating observations ##
 abstract type AbstractObservation <: AbstractAttribute end
+
+"""
+Observation(; discrete=false)
+Observation([T])
+
+Construct an observation input to the model. Can be continuous (Float64), discrete (Int64), or a custom type.
+
+# Arguments
+- `discrete`: If true, observation is treated as discrete (Int64), otherwise as continuous (Float64).
+- `T`: Type of the observation (e.g., Float64, Int64, Vector{Float64}). Used for setting specific types.
+
+# Examples
+```jldoctest
+julia> Observation()
+Observation{Float64}(Float64)
+
+julia> Observation(discrete=true)
+Observation{Int64}(Int64)
+
+julia> Observation(Vector{Float64})
+Observation{Vector{Float64}}(Vector{Float64})
+
+julia> Observation(String)
+Observation{String}(String)
+```
+"""
 struct Observation{T} <: AbstractObservation
     type::Type{T}
 
@@ -159,13 +237,38 @@ end
 
 ## For creating actions ##
 abstract type AbstractAction <: AbstractAttribute end
+
+"""
+Action(distribution_type, action_type)
+
+Construct an action output for the model, specifying the distribution type (e.g., Normal, Bernoulli).
+
+# Arguments
+- `T`: Type of the action (optional, inferred from distribution_type if not given).
+- `distribution_type`: The distribution type for the action (e.g., Normal, Bernoulli, MvNormal). Can also be an abstract type like `Distribution{Multivariate, Continuous}` to allow multiple types of distributions.
+
+# Examples
+```jldoctest
+julia> Action(Normal)
+Action{Float64, Normal}(Float64, Normal)
+
+julia> Action(Bernoulli)
+Action{Int64, Bernoulli}(Int64, Bernoulli)
+
+julia> Action(MvNormal)
+Action{Array{Float64}, MvNormal}(Array{Float64}, MvNormal)
+
+julia> Action(Distribution{Multivariate, Discrete})
+Action{Array{Int64}, Distribution{Multivariate, Discrete}}(Array{Int64}, Distribution{Multivariate, Discrete})
+```
+"""
 struct Action{T,TD} <: AbstractAction
     type::Type{T}
     distribution_type::Type{TD}
 
     function Action(
-        action_type::Type{T},
         distribution_type::Type{TD},
+        action_type::Type{T},
     ) where {T<:Union{Real,Array{<:Real}},TD<:Distribution}
 
         if !(get_action_type(TD) <: T)
@@ -183,6 +286,23 @@ struct Action{T,TD} <: AbstractAction
         new{T,TD}(action_type, distribution_type)
     end
 end
+"""
+get_action_type(distribution_type)
+
+Return the Julia type corresponding to a given Distributions.jl distribution type for actions.
+
+# Examples
+```jldoctest
+julia> ActionModels.get_action_type(Normal)
+Float64
+
+julia> ActionModels.get_action_type(Bernoulli)
+Int64
+
+julia> ActionModels.get_action_type(MvNormal)
+Array{Float64}
+```
+"""
 function get_action_type(
     action_dist_type::Type{T},
 ) where {T<:Distribution{Univariate,Continuous}}
@@ -207,11 +327,58 @@ end
 
 ## Supertype for submodels ##
 abstract type AbstractSubmodel end
+
+"""
+NoSubModel()
+
+Default submodel type used when no submodel is specified in an ActionModel.
+
+# Examples
+```jldoctest
+julia> ActionModels.NoSubModel()
+ActionModels.NoSubModel()
+```
+"""
 struct NoSubModel <: AbstractSubmodel end
 
 ## ActionModel struct ##
 abstract type AbstractActionModel end
 
+"""
+ActionModel(action_model; parameters, states, observations, actions, submodel, verbose)
+
+Main container for a user-defined or premade action model.
+
+# Arguments
+- `action_model`: The function implementing the model's update and action logic.
+- `parameters`: NamedTuple of model parameters or a single Parameter.
+- `states`: NamedTuple of model states or a single State (optional).
+- `observations`: NamedTuple of model observations or a single Observation (optional).
+- `actions`: NamedTuple of model actions or a single Action.
+- `submodel`: Optional submodel for hierarchical or modular models (default: NoSubModel()).
+- `verbose`: Print warnings for singletons (default: true).
+
+# Examples
+```jldoctest
+julia> model_fn = (attributes, obs) -> Normal(0, 1);
+
+julia> ActionModel(model_fn, parameters=(learning_rate=Parameter(0.1),), states=(expected_value=State(0.0),), observations=(observation=Observation(),), actions=(report=Action(Normal),))
+-- ActionModel --
+Action model function: #1
+Number of parameters: 1
+Number of states: 1
+Number of observations: 1
+Number of actions: 1
+
+julia> ActionModel(model_fn, parameters=Parameter(0.1), actions = Action(Normal), verbose = false)
+-- ActionModel --
+Action model function: #1
+Number of parameters: 1
+Number of states: 0
+Number of observations: 0
+Number of actions: 1
+```
+"""
 struct ActionModel{T<:AbstractSubmodel} <: AbstractActionModel
     action_model::Function
     parameters::NamedTuple{
@@ -239,7 +406,7 @@ struct ActionModel{T<:AbstractSubmodel} <: AbstractActionModel
         observations::Union{
             AbstractObservation,
             NamedTuple{observation_names,<:Tuple{Vararg{AbstractObservation}}},
-        } where {observation_names},
+        } where {observation_names} = (;),
         actions::Union{
             AbstractAction,
             NamedTuple{action_names,<:Tuple{Vararg{AbstractAction}}},
@@ -308,10 +475,38 @@ end
 #########################################
 ## Abstract type for submodel attributes ##
 abstract type AbstractSubmodelAttributes end
-## Submodel attributes for when no submodel is used ##
+
+"""
+NoSubModelAttributes()
+
+Default internal submodel attributes type used when no submodel is specified in an ActionModel.
+
+# Examples
+```jldoctest
+julia> ActionModels.NoSubModelAttributes()
+ActionModels.NoSubModelAttributes()
+```
+"""
 struct NoSubModelAttributes <: AbstractSubmodelAttributes end
 
-## Model attributes type which contains the information apssed to the action model ##
+"""
+ModelAttributes(parameters, states, actions, initial_states, submodel)
+
+Internal container for all model variables and submodel attributes used in an action model instance.
+
+# Arguments
+- `parameters`: NamedTuple of parameter variables 
+- `states`: NamedTuple of state variables 
+- `actions`: NamedTuple of action variables 
+- `initial_states`: NamedTuple of initial state values
+- `submodel`: Submodel attributes (or `NoSubModelAttributes` if not used)
+
+# Examples
+```jldoctest
+julia> ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes())
+ModelAttributes{@NamedTuple{learning_rate::ActionModels.Variable{Float64}}, @NamedTuple{expected_value::ActionModels.Variable{Float64}}, @NamedTuple{report::ActionModels.Variable{Missing}}, @NamedTuple{expected_value::ActionModels.Variable{Float64}}, ActionModels.NoSubModelAttributes}((learning_rate = ActionModels.Variable{Float64}(0.1),), (expected_value = ActionModels.Variable{Float64}(0.0),), (report = ActionModels.Variable{Missing}(missing),), (expected_value = ActionModels.Variable{Float64}(0.0),), ActionModels.NoSubModelAttributes())
+```
+"""
 struct ModelAttributes{
     TP<:NamedTuple,
     TS<:NamedTuple,
@@ -326,24 +521,77 @@ struct ModelAttributes{
     submodel::TM
 end
 
-## Type for instantiating a variable with a type that can vary ##
+"""
+Variable(value)
+
+A mutable container for a value of type `T`. Used for model parameters, states, and actions.
+
+# Arguments
+- `value`: The value to store (any type)
+
+# Examples
+```jldoctest
+julia> v = ActionModels.Variable(0.5)
+ActionModels.Variable{Float64}(0.5)
+
+julia> v.value = 1.0
+1.0
+
+julia> v
+ActionModels.Variable{Float64}(1.0)
+```
+"""
 mutable struct Variable{T}
     value::T
 end
 
-## Struct for denoting an initial state as depending on a parameter ##
+"""
+ParameterDependentState(parameter_name)
+
+Marker struct indicating a state whose initial value depends on a parameter.
+
+# Arguments
+- `parameter_name`: Symbol name of the parameter
+
+# Examples
+```jldoctest
+julia> ActionModels.ParameterDependentState(:learning_rate)
+ActionModels.ParameterDependentState(:learning_rate)
+```
+"""
 struct ParameterDependentState
     parameter_name::Symbol
 end
 
-
 """
-Custom error type which will result in rejection of a sample
+RejectParameters(errortext)
+
+Custom error type for rejecting parameter samples during inference.
+
+# Arguments
+- `errortext`: Explanation for the rejection
+
+# Examples
+```jldoctest
+julia> throw(RejectParameters("Parameter out of bounds"))
+ERROR: RejectParameters("Parameter out of bounds")
+```
 """
 struct RejectParameters <: Exception
     errortext::Any
 end
 
+"""
+AttributeError()
+
+Custom error type for missing or invalid attribute access. Used for error handling in custom submodels.
+
+# Examples
+```jldoctest
+julia> throw(AttributeError())
+ERROR: AttributeError()
+```
+"""
 struct AttributeError <: Exception end
 
 
