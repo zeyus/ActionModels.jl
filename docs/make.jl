@@ -40,7 +40,7 @@ Literate.markdown(joinpath(julia_files_folder, "README.jl"), project_dir, execut
 
 
 ## GENERATE AND DEPLOY DOCS ##
-DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels; attributes = ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes())); recursive = true)
+DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
 
 #Create documentation
 makedocs(;

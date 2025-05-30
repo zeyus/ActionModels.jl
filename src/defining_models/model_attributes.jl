@@ -141,7 +141,7 @@ Update the value of a state in the model attributes. This function is used withi
 ````
 
 # Example
-```jldoctest
+```jldoctest; setup = :(using ActionModels; attributes = ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes()))
 julia> update_state!(attributes, :expected_value, 2.0)  # Update state expected_value to 2.0
 ```
 """
@@ -166,7 +166,7 @@ Load the parameters from the model attributes. This is used within the action mo
 A vector of parameter values.
 
 # Example
-```jldoctest
+```jldoctest; setup = :(using ActionModels; attributes = ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes()))
 julia> params = load_parameters(attributes)
 (learning_rate = 0.1,)
 ```
@@ -186,7 +186,7 @@ Load the states from the model attributes. This is used within the action model 
 A vector of state values.
 
 # Example
-```jldoctest
+```jldoctest; setup = :(using ActionModels; attributes = ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes()))
 julia> states = load_states(attributes)
 (expected_value = 0.0,)
 ```
@@ -206,7 +206,7 @@ Load the actions from the model attributes. This is used within the action model
 A vector of action values.
 
 # Example
-```jldoctest
+```jldoctest; setup = :(using ActionModels; attributes = ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes()))
 julia> actions = load_actions(attributes)
 (report = missing,)
 ```
