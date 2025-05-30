@@ -1,4 +1,4 @@
-# # Using Submodels
+# # Using submodels
 
 # When making complex action models, it can be useful to have a structure with it's own set of methods and dat containers that can be used inside the model.
 # This can also be useful when one wants to pre-create part of the model outside of the model fitting function, for example to save time.
@@ -114,8 +114,8 @@ end
 
 # We also define methods for setting the parameters and states in the attributes.
 # These methods should take the attributes as the first argument, the parameter or state name as the second, and the value to set as the third.
-# Note that the value passed should be a subtype of ´Real´, or a subtype of ´AbstractArray{R} where {R<:Real}´ if the parameter or state is multivariate.
-# If the parameter or state name is incorrect, these methods should return an AttributeError, which will be handled by the higher level function.
+# Note that the value passed should be a subtype of `Real`, or a subtype of `AbstractArray{R} where {R<:Real}` if the parameter or state is multivariate.
+# If the parameter or state name is incorrect, these methods should return an `AttributeError`, which will be handled by the higher level function.
 # If they are found, they should set the value and return `true`.
 function ActionModels.set_parameters!(
     attributes::RescorlaWagnerAttributes,
@@ -205,10 +205,10 @@ action_model = ActionModel(
 agent = init_agent(action_model, save_history = true)
 
 #Set parameters
-set_parameters!(agent, (; action_noise = 0.5))
+set_parameters!(agent, (; action_noise = 0.2, learning_rate = 0.5))
 
 #Define observations
-observations = [0.1, 0.2, 0.3, 0.4]
+observations = collect(0:0.1:2) .+ randn(21) * 0.1
 
 #Simulate behaviour
 simulated_actions = simulate!(agent, observations)

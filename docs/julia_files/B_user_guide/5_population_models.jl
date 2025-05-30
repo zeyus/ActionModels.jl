@@ -77,6 +77,11 @@ chains = sample_posterior!(model)
 
 # We see that the learning rate (by construction) is lower in the treatment condition, and that sessions A, B C have the lowest, middle and highest learning rates, respectively.
 
+# We can also extract the session parameters as a `DataFrame` for further analysis.
+parameter_df = summarize(get_session_parameters!(model))
+
+show(parameter_df)
+
 # ## Linear regression population models
 # Often, the goal of cognitive modelling is to relate differences in parameter values to some external variables, such as treatment conditions or participant characteristics.
 # This is often done with a linear regression, where point estimates of the parameters are predicted from the external variables.
@@ -93,7 +98,7 @@ chains = sample_posterior!(model)
 population_model = [
     Regression(@formula(learning_rate ~ 1 + treatment + (1 | id)), logistic),
     Regression(@formula(action_noise ~ 1 + treatment + (1 | id)), exp),
-]
+];
 
 # It is possible to specify the priors for the regression population model with the RegressionPrior constructor.
 # It is possible to specify priors for the regression coefficients (β) and the standard deviation of the random effects (σ).
@@ -108,12 +113,13 @@ population_model = [
     Regression(@formula(action_noise ~ 1 + treatment + (1 | id)), exp, prior),
 ]
 
-plot(
-    plot(prior.β[1], title = "β[1] (intercept)", label = nothing),
-    plot(prior.β[2], title = "β[2] (treatment)", label = nothing),
-    plot(prior.σ, title = "σ[1] (ID)", label = nothing),
-    layout = (1,3)
-)
+
+plot(prior.β[1], label = "Intercept")
+plot!(prior.β[2], label = "Effect of treatment")
+plot!(prior.σ, label = "Random intercept std")
+title!("Regression priors for the Rescorla-Wagner model")
+xlabel!("Regression coefficient")
+ylabel!("Density")
 
 # We can then create the full model, and sample from the posterior
 model = create_model(
@@ -131,13 +137,25 @@ chains = sample_posterior!(model)
 # We can also see that there is, for each random effect, a $\sigma$ estimate, which is the standard deviation of the random intercepts, as well as each of the sampled random intercepts for each session. 
 # We can also see that the effect of the treatment is estimated to be negative for the learning rate, which is by construction.
 
-#TODO: show the beta results plotted etc
+title = plot(
+    title = "Posterior over treatment effect",
+    grid = false,
+    showaxis = false,
+    bottom_margin = -30Plots.px,
+)
+plot(
+    title,
+    density(chns[Symbol("learning_rate.β[2]")], title = "learning rate", label = nothing),
+    density(chns[Symbol("action_noise.β[2]")], title = "action noise", label = nothing),
+    layout = @layout([A{0.01h}; [B C]])
+)
 
 # When using the linear regression population model, the session parameters are not directly estimated, but rather the regression coefficients and random effects.
-# We can still extract the session parameters and plot them as before, however
+# We can still extract the session parameters as before, however.
 
-#TODO: plot(model, :parameters)
+parameter_df = summarize(get_session_parameters!(model))
 
+show(parameter_df)
 
 # ## Custom population models
 # Finally, it is also possible to specify a custom population model for use with ActionModels.
@@ -172,7 +190,7 @@ end
 population_model = custom_population_model(n_sessions)
 
 #Specify which parameters are estimated
-parameters_to_estimate = (:learning_rate, :action_noise)
+parameters_to_estimate = (:learning_rate, :action_noise);
 
 # We can then create the full model, and sample from the posterior
 model = create_model(
@@ -188,11 +206,11 @@ model = create_model(
 chains = sample_posterior!(model)
 
 # We can see that the parameter are estimated for each session, in non-transformed space.
-# We can still extract the session parameters and plot them as before. This extracts the parameters in the version that they are passed to the action model - i.e., transformed.
-summarize(get_session_parameters!(model))
+# We can still extract the session parameters as before. This extracts the parameters in the version that they are passed to the action model - i.e., transformed.
 
-#TODO: plot(model)
+parameter_df = summarize(get_session_parameters!(model))
 
+show(parameter_df)
 
 
 # ## Single session population model

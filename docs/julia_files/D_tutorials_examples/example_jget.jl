@@ -1,4 +1,4 @@
-# # Modeling the Jumping Gaussian Estimation Task
+# # The Jumping Gaussian Estimation Task
 # In this tutorial, we will fit a Rescorla-Wagner model to data from the Jumping Gaussian Estimation Task (JGET).
 # In the JGET, participants observe continuous outcomes sampled from a Gaussian distribution which at some trials "jumps" to be centered somewhere else.
 # Participants must predict the outcome of the next trial based on the previous outcomes.
@@ -64,7 +64,7 @@ JGET_data = filter(row -> row[:ID] in [20, 40, 60, 70], JGET_data);
 # The Rescorla-Wagner model is a simple reinforcement learning model that updates the expected value of an action based on the observed outcome.
 # The Gaussian report action model assumes that the agent reports a continuous value sampled from a Gaussian distribution, where the mean is the expected value of the action and the standard deviation is a noise parameter.
 # There are two parameters in the action model: the learning rate $\alpha$ and the action noise $\beta$.
-# See the section on the [Rescorla-Wagner model](./rescorla_wagner) for more details.
+# See the section on the [Rescorla-Wagner model](./rescorla_wagner.md) for more details.
 
 # We create the Rescorla-Wagner action model using the premade model from ActionModels.
 action_model = ActionModel(RescorlaWagner())
@@ -86,10 +86,10 @@ regression_prior = RegressionPrior(
     σ = truncated(Normal(0, 0.3), lower = 0),
 )
 
-plot(Normal(0, 0.3), label = "Intercept")
-plot!(Normal(0, 0.2), label = "Effect of session number")
-plot!(Normal(0, 0.5), label = "Effect of PDI")
-plot!(truncated(Normal(0, 0.3), lower = 0), label = "Random intercept std")
+plot(regression_prior.β[1], label = "Intercept")
+plot!(regression_prior.β[2], label = "Effect of session number")
+plot!(regression_prior.β[3], label = "Effect of PDI")
+plot!(regression_prior.σ, label = "Random intercept std")
 title!("Regression priors for the Rescorla-Wagner model")
 xlabel!("Regression coefficient")
 ylabel!("Density")
@@ -134,7 +134,7 @@ chns = sample_posterior!(model, MCMCThreads(), n_chains = 2, n_samples = 500, ad
 
 # We can now inspect the results of the fitting process.
 # We can plot the posterior distributions of the beta parameter for PDI's effect on the action model parameters.
-# Here we can see that there is an indication of an increase in action noise with increasing PDI score, although without the full dataset, the posterior is not very informative.
+# Here we can see that there may be a weak indication of an increase in action noise with increasing PDI score, although without the full dataset, the posterior is not very informative.
 title = plot(
     title = "Posterior over effect of PDI",
     grid = false,

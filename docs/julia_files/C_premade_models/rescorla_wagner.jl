@@ -11,7 +11,9 @@
 # ### The continuous Rescorla-Wagner model
 # The classic rescorla wagner model has a single changing state, the expected value $V_t$ of an outcome at time $t$.
 # This expectation is updated by the Rescorla-Wagner update rule:
+
 # $$V_t = V_{t-1} + \alpha (o_t - V_{t-1})$$
+
 # where $o_t$ is the observed outcome at time $t$, and $\alpha$ is the learning rate.
 # The continuous Rescorla-Wagner model therefore has a total of two parameters:
 # - The initial expected value $V_0 \in \mathbb{R}$ (by default set to 0)
@@ -23,7 +25,9 @@
 # A classic response model, which is the default in the ActionModels implementation, is a report with Gaussian noise.
 # Here an observation is used to update the Rescorla-Wagner, and the expectation is then reported as the action, with some noise.
 # The report action is sampled from a Gaussian distribution with the expected value $V_t$ as mean and a noise parameter $\beta$ as standard deviation:
+
 # $$a_t \sim \mathcal{N}(V_t, \beta)$$
+
 # This report action model then has one additional parameter:
 # - The action noise $\beta \in [0, \infty]$ (by default set to 1)
 # Takes one observation:
@@ -34,7 +38,9 @@
 # ### The binary Rescorla-Wagner model
 # In its binary variant, the Rescorla-Wagner model receives a binary observation (as opposed to a continuous one), and its task is to learn the probability of the binary outcome.
 # Here, the expected value $V_t$ is transformed with a logistic or sigmoid function to ensure it is between 0 and 1, before it is used to calculate the prediction error:
+
 # $$V_t = V_{t-1} + \alpha (o_t - \sigma(V_{t-1}))$$
+
 # where $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function.
 # The binary rescorla Wagner thus has a total of two parameters:
 # - The initial expected value $V_0 \in \mathbb{R}$ (by default set to 0)
@@ -45,7 +51,9 @@
 # A classic response model, which is the default in the ActionModels implementation, is a binary report with Bernoulli noise.
 # Here an observation is used to update the Rescorla-Wagner, and the expectation is then reported as the action, with some noise.
 # The binary report action is sampled from a Bernoulli distribution with the sigmoid-transformed expected value $V_t$ as probability. An action precision (the inverse action noise $\beta$) is used to control the noise of the action:
+
 # $$a_t \sim \text{Bernoulli}(\sigma(V_t * \beta^{-1}))$$
+
 # This report action model then has one additional parameter:
 # - The action noise $\beta \in [0, \infty]$ (by default set to 1)
 # Takes one observation:
@@ -57,19 +65,31 @@
 # In its categorical variant, the Rescorla-Wagner model receives a categorical observation (as opposed to a continuous one), and its task is to learn the probability of each observation category occuring.
 # Here the observation is transformed into a one-hot encoded vector, representing for each category whether it was observed or not.
 # For each category, the expected value $V_t$ is updated with the binary Rescorla-Wagner update rule:
+
 # $$V_{t, c} = V_{t-1, c} + \alpha (o_{t, c} - \sigma(V_{t-1, c}))$$
-# where $o_{t, c}$ is the observation for category $c$ at time $t$, and $\sigma(x) = \frac{1}{1 + e^{-x}}$ is the logistic function.
+
+# where $o_{t, c}$ is the observation for category $c$ at time $t$, and 
+
+# $\sigma(x) = \frac{1}{1 + e^{-x}}$ 
+
+# is the logistic function.
 # The categorical Rescorla-Wagner model therefore has a total of two parameters:
 # - The initial expected values $V_0 \in \mathbb{R}$, which is a vector of values for each category (by default set to a vector of zeros)
 # - The learning rate $\alpha \in [0,1]$ (by default set to 0.1)
 # And one state:
-# - The expected values $V_t \in \mathbb{R}^n$, which is a vector of expected values for each category, updated on each timestep
+# - The expected values $V_t \in \mathbb{R}$, which is a vector of expected values for each category, updated on each timestep
 
 # A classic response model, which is the default in the ActionModels implementation, is a categorical report with noise.
 # Here a categorical observation is used to update the Rescorla-Wagner, and the category with the highest expected probability is then reported as the action, with some noise.
 # The categorical report action is sampled from a Categorical distribution with the softmax-transformed expected values $V_t$ as probabilities, weighted by an action precision (the inverse action noise $\beta$).
+
 # $$a_t \sim \text{Categorical}(σ(V_t * \beta^{-1}))$$ 
-# where s(x) is the softmax function $σ(x) = \frac{e^{x_i}}{\sum_{j=1}^n e^{x_j}}$ for each category $i$, which ensures that the probabilities sum to 1.
+
+# where s(x) is the softmax function 
+
+# $σ(x) = \frac{e^{x_i}}{\sum_{j=1}^n e^{x_j}}$
+
+# for each category $i$, which ensures that the probabilities sum to 1.
 # This report action model then has one additional parameter:
 # - The action noise $\beta \in [0, \infty]$ (by default set to 1)
 # Takes one observation:
@@ -88,7 +108,7 @@ using ActionModels
 using StatsPlots
 
 # We can then create the configuration struct for the Rescorla-Wagner model.
-rescorla_wagner_config = RescorlaWagner()
+rescorla_wagner_config = RescorlaWagner();
 
 # And use that to create an action model.
 action_model = ActionModel(rescorla_wagner_config)
@@ -297,6 +317,9 @@ action_model = ActionModel(
 #Initialize agent
 agent = init_agent(action_model, save_history = :expected_value)
 
+#Set parameters
+set_parameters!(agent, (; action_noise = 0.1))
+
 #Create observations
 observations = collect(0:0.1:2) .+ randn(21) * 0.1
 
@@ -307,7 +330,7 @@ simulated_actions = simulate!(agent, observations)
 plot(agent, :expected_value)
 plot!(simulated_actions, seriestype = :scatter, label = "Actions")
 plot!(observations, seriestype = :scatter, label = "Observations")
-title!("Expectation trajectory and sampled actions")
+title!("Expectation trajectory and sampled actions", legend = :topright)
 
 # Or fit the model
 

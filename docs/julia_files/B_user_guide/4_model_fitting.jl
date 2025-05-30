@@ -113,7 +113,7 @@ chns = sample_posterior!(
     ad_type = AutoForwardDiff(),
     sampler = NUTS(),
     resample = true,
-)
+);
 
 # ActionModels also provides functionality for saving segments of a chain and then resuming during sampling, so that long sampling runs can be interrupted and resumed later.
 # This is done with passing a `SampleSaveResume` object to the `save_resume` keyword argument.

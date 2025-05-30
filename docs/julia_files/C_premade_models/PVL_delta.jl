@@ -7,12 +7,8 @@
 # It consists of three steps. First, the observed reward is transformed according to Prospect Theory, to make it into a subjective value $u_t$.
 # This is done by transforming the value of the reward according to a power function, which is defined by the reward sensitivity parameter $A$, and adding a loss aversion parameter $w$ that controls how much losses and rewards differ in subjective value.
 
-# $$
-# u_t = \begin{cases}
-#    r_t^{A} & \text{if } r_t \geq 0 \\
-#     -w \cdot |r_t|^{A} & \text{if } r_t < 0
-# \end{cases}
-# $$
+# $$u_t = \begin{cases} r_t^{A} & \text{if } r_t \geq 0 \\ -w \cdot |r_t|^{A} & \text{if } r_t < 0 \end{cases}$$
+
 # where $r_t$ is the observed reward, $A$ is the reward sensitivity, and $w$ is the loss aversion.
 # The next step uses a classic Rescorla-Wagner learning rule to update the expected value of the chosen option:
 
@@ -22,7 +18,7 @@
 # Options that were not chosen are not updated, so the expected values of all other options remain the same.
 # Finally, the action probabilities are calculated using a softmax function over the expected values, weighted by a noise parameter $\beta$:
 
-# $$P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$$
+# $$ P(a_t = i) = \sigma(E_{t,i} \cdot \beta)$$
 
 # where $P(a_t = i)$ is the probability of choosing action $i$ at time $t$, $E_{t,i}$ is the expected value of action $i$ at time $t$, and $\beta$ is the action precision.
 # $\sigma$ is the softmax function, which ensures that the action probabilities sum to 1, defined as:
@@ -36,17 +32,21 @@
 # - the reward sensitivity $A \in [0,1]$, which controls how quickly increases in the subjective value drops in relation to increases in observed reward, with $A = 1$ meaning that the subjective value is equal to the observed reward
 # - the loss aversion $w \in [0, \infty]$, which controls how much losses are weighted more than gains, with $w = 1$ meaning that losses and gains are weighted equally
 # - the action precision $\beta \in [0, \infty]$, which controls how much noise there is in the action selection process
-# - the initial expected value $V_0 \in \mathbb{R}$ for each option, by default set to 0 for all actions.
+# - the initial expected value $V_{0,c} \in \mathbb{R}$ for each option $c$, by default set to 0 for all actions.
 
 # And there is one state:
-# - the expected value $V_t \in \mathbb{R}$ for each option at time $t$.
+# - the expected value $V_{t,c} \in \mathbb{R}$ for each option $c$ at time $t$.
 
 # It takes two observations:
-# - the index chosen option $c_t \in \{1, 2, \ldots, n\}$, which in the IGT is the index of the deck chosen at time $t$
-# - the observed reward $r_t \in \mathbb{R}$, which is the reward received for the chosen option at time $t-1$.
+# - the index of the chosen option $c_t \in \{1, 2, \ldots, n\}$, which in the IGT is the index of the deck chosen at time $t$
+# - the observed reward $r_t \in \mathbb{R}$, which is the reward received for the chosen option at time $t$.
 
 # And returns one action:
-# - the chosen option $a_t \in \{1, 2, \ldots, n\}$, which is the index of the option chosen at time $t$.
+# - the chosen option $a_t \in \{1, 2, \ldots, n\}$, which is the index of the option chosen at time $t+1$.
+
+# Notably, in this example, as is common in many datasets, the action returned by the PVL-delta is the index of the deck chosen at that same timestep.
+# This means that actions must be sampled before the reward is observed, which is ensured by setting `act_before_update = true` when creating the model. See below.
+# Had it been a dataset where the action where the reward from the last trial was received in the same timestep as the action for this timestep was chosen, we would have set `act_before_update = false` when creating the model.
 
 # ## Implementation in ActionModels
 # In this section, we will demonstrate how to use the premade PVL-Delta model in ActionModels.
@@ -59,12 +59,17 @@ using DataFrames, CSV
 # Then we create the PVL-Delta action model.
 action_model = ActionModel(
     PVLDelta(
+        #The number of options, which is the number of decks in the IGT
         n_options = 4,
-        initial_value = zeros(4),
+        #The various parameters of the PVL-Delta
         learning_rate = 0.1,
         action_noise = 1,
         reward_sensitivity = 0.5,
         loss_aversion = 1,
+        #The initial expected value for each option. This should be the same length as `n_options`.
+        initial_value = zeros(4),
+        #Set to true if the action is made before the reward is observed
+        act_before_update = true, 
     ),
 )
 
@@ -110,7 +115,7 @@ expectation_plot = plot(
     legend = :topright,
     label = ["Deck 1" "Deck 2" "Deck 3" "Deck 4"],
 )
-# Plot rewards colored by deck choice
+#Plot rewards colored by deck choice
 deck_choices = [observation[1] for observation in observations]
 rewards = [observation[2] for observation in observations]
 rewards_plot = scatter(

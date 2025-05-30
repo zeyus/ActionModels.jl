@@ -28,7 +28,6 @@ for julia_file in glob("*/*.jl", julia_files_folder)
         generated_files_folder,
         execute = true,
         documenter = true,
-        #codefence = "```julia" => "```",
     )
 end
 
@@ -73,6 +72,7 @@ makedocs(;
             joinpath(".", "generated", "6_workflow_tools.md"),
             joinpath(".", "generated", "7_using_submodels.md"),
             joinpath(".", "markdowns", "debugging.md"),
+            joinpath(".", "markdowns", "full_API.md"),
         ],
         "Premade Models" => [
             joinpath(".", "generated", "rescorla_wagner.md"),
@@ -82,7 +82,6 @@ makedocs(;
             joinpath(".", "generated", "example_jget.md"),
             joinpath(".", "generated", "example_igt.md"),
         ],
-        "Full API Reference" => [joinpath(".", "markdowns", "full_API.md")],
     ],
 )
 

@@ -133,7 +133,7 @@ using StatsPlots
 #Fit the model to the data
 chns = sample_posterior!(model)
 #We can plot the estimated parameters
-plot(chns)
+plot(chns[[Symbol("learning_rate.β[1]"), Symbol("learning_rate.β[2]"), Symbol("action_noise.β[1]"), Symbol("action_noise.β[2]")]])
 
 # We can extract the estimated parameters for each participant, and summarize it as a dataframe for further analysis:
 #Extract the full distribution of parameters for each participant                   
