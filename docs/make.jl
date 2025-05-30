@@ -10,9 +10,8 @@ else
     project_dir = pwd()
 end
 julia_files_folder = joinpath(project_dir, "docs", "julia_files")
-markdown_files_folder = joinpath(project_dir, "docs", "src")
-generated_files_folder = joinpath(markdown_files_folder, "generated")
-theory_folder = joinpath(markdown_files_folder, "theory")
+src_folder = joinpath(project_dir, "docs", "src")
+generated_files_folder = joinpath(src_folder, "generated")
 
 
 ## GENERATE MARKDOWNS ##
@@ -36,7 +35,7 @@ end
 #Including the index file 
 Literate.markdown(
     joinpath(julia_files_folder, "index.jl"),
-    markdown_files_folder,
+    src_folder,
     execute = true,
     documenter = true,
 )
