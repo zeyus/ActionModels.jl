@@ -13,10 +13,12 @@ This plotting recipe visualizes the time course of a given state variable from a
 # Example
 ```jldoctest; setup = :(using ActionModels, StatsPlots; agent = init_agent(ActionModel(RescorlaWagner()), save_history=true); simulate!(agent, [1.0, 0.5, 0.2]))
 julia> plot(agent, :expected_value)
+Plot{Plots.GRBackend() n=1}
 ```
 For a multivariate state (e.g., a vector):
 ```jldoctest; setup = :(using ActionModels, StatsPlots; agent = init_agent(ActionModel(RescorlaWagner(type=:categorical, n_categories = 3)), save_history=true); simulate!(agent, [1,2,1]))
 julia> plot(agent, :expected_value, [1])
+Plot{Plots.GRBackend() n=1}
 ```
 """
 @recipe function f(
