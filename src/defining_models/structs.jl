@@ -7,6 +7,20 @@ abstract type AbstractAttribute end
 ## For creating parameters ##
 abstract type AbstractParameter <: AbstractAttribute end
 
+"""
+Parameter type for defining parameters in action models. Can be continuous or discrete.
+
+# Arguments
+- `value`: The default value of the parameter. Can be a single value or an array.
+- `discrete`: If true, parameter is treated as discrete (Int), otherwise as continuous (Float).
+
+# Example
+```julia
+learning_rate = Parameter(0.1)                  # continuous parameter
+use_info_gain = Parameter(1, discrete=true)     # discrete parameter
+weights = Parameter([0.0, 0.0])                 # multivariate parameter
+```
+"""
 struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     value::T
     type::Type{T}
@@ -31,6 +45,23 @@ struct Parameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     end
 end
 
+"""
+InitialStateParameter type for defining initial state parameters in action models. 
+Initial state parameters define the initial value of a state in the model.
+Can be continuous or discrete.
+
+# Arguments
+- `value`: The default value for the initial state parameter. Can be a single value or an array.
+- `state_name`: The symbol name of the state this parameter controls.
+- `discrete`: If true, value is treated as discrete (Int), otherwise as continuous (Float).
+
+# Example
+```julia
+initial_value = InitialStateParameter(0.0, :expected_value)             # continuous
+initial_count = InitialStateParameter(1, :counter, discrete=true)       # discrete
+initial_weights = InitialStateParameter([0.0, 0.0], :weights)           # multivariate
+```
+"""
 struct InitialStateParameter{T<:Union{Real,Array{<:Real}}} <: AbstractParameter
     state::Symbol
     value::T
