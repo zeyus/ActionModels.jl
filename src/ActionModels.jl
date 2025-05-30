@@ -29,7 +29,7 @@ import ForwardDiff
 ## For defining action models ##
 export ActionModel, Parameter, InitialStateParameter, State, Observation, Action
 export ModelAttributes,
-    load_parameters, load_states, load_actions, update_state!, RejectParameters
+    load_parameters, load_states, load_actions, update_state!, RejectParameters, AttributeError
 
 ## For simulation ##
 export init_agent
