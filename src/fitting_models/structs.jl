@@ -8,9 +8,9 @@ struct NoMissingActions <: AbstractMissingActions end
 struct SkipMissingActions <: AbstractMissingActions end
 struct InferMissingActions <: AbstractMissingActions end
 
-#Abstract type for population models
+
 abstract type AbstractPopulationModel end
-#Type for custom population models
+
 struct CustomPopulationModel <: AbstractPopulationModel end
 struct RegressionPopulationModel <: AbstractPopulationModel end
 struct IndependentPopulationModel <: AbstractPopulationModel end
@@ -18,16 +18,35 @@ struct SingleSessionPopulationModel <: AbstractPopulationModel end
 
 
 ## Types for the GLM population model ##
-"""
-Internal type for prepared regression priors
-"""
 Base.@kwdef mutable struct RegPrior
     β::Distribution
     σ::Union{Nothing,Vector{Distribution}}
 end
 
 """
-Input struct for setting regression priors
+RegressionPrior{Dβ,Dσ}
+
+Type for specifying priors for regression coefficients and error terms in regression population models.
+
+# Type Parameters
+- `Dβ`: Distribution type for β regression coefficients.
+- `Dσ`: Distribution type for σ random effect deviations.
+
+# Fields
+- `β`: Prior or vector of priors for regression coefficients (default: `TDist(3)`). If only one prior is given, it is used for all coefficients. If a vector is given, it should match the number of coefficients in the regression formula.
+- `σ`: Prior or vector of priors for error terms (default: truncated `TDist(3)` at 0). If only one prior is given, it is used for all random effects. If a vector is given, it should match the number of random effects in the regression formula.
+
+# Examples
+```jldoctest
+julia> RegressionPrior()
+RegressionPrior{TDist{Float64}, Truncated{TDist{Float64}, Continuous, Float64, Float64, Nothing}}(TDist{Float64}(ν=3.0), Truncated(TDist{Float64}(ν=3.0); lower=0.0))
+
+julia> RegressionPrior(β = TDist(4), σ = truncated(TDist(4), lower = 0))
+RegressionPrior{TDist{Float64}, Truncated{TDist{Float64}, Continuous, Float64, Float64, Nothing}}(TDist{Float64}(ν=4.0), Truncated(TDist{Float64}(ν=4.0); lower=0.0))
+
+julia> RegressionPrior(β = [TDist(4), TDist(2)], σ = truncated(TDist(4), lower = 0)) #For setting multiple coefficients separately
+RegressionPrior{TDist{Float64}, Truncated{TDist{Float64}, Continuous, Float64, Float64, Nothing}}(TDist{Float64}[TDist{Float64}(ν=4.0), TDist{Float64}(ν=2.0)], Truncated(TDist{Float64}(ν=4.0); lower=0.0))
+```
 """
 Base.@kwdef struct RegressionPrior{D1<:Distribution,D2<:Distribution}
     β::Union{D1,Vector{D1}} = TDist(3)
@@ -35,7 +54,26 @@ Base.@kwdef struct RegressionPrior{D1<:Distribution,D2<:Distribution}
 end
 
 """
-Input struct for specifying a regression
+Regression
+
+Type for specifying a regression model in a population model. Contains the formula, prior, and inverse link function.
+
+# Fields
+- `formula`: The regression formula (as a `FormulaTerm`).
+- `prior`: The prior for regression coefficients and error terms (as a `RegressionPrior`). Default is `RegressionPrior()`.
+- `inv_link`: The inverse link function (default: `identity`).
+
+# Examples
+```jldoctest
+julia> Regression(@formula(y ~ x))
+Regression(y ~ x, RegressionPrior{TDist{Float64}, Truncated{TDist{Float64}, Continuous, Float64, Float64, Nothing}}(TDist{Float64}(ν=3.0), Truncated(TDist{Float64}(ν=3.0); lower=0.0)), identity)
+
+julia> Regression(@formula(y ~ x + (1|ID)), exp) # With a random effect and a exponential inverse link function
+Regression(y ~ x + :(1 | ID), RegressionPrior{TDist{Float64}, Truncated{TDist{Float64}, Continuous, Float64, Float64, Nothing}}(TDist{Float64}(ν=3.0), Truncated(TDist{Float64}(ν=3.0); lower=0.0)), exp)
+
+julia> Regression(@formula(y ~ x), RegressionPrior(β = TDist(4), σ = truncated(TDist(4), lower = 0)), logistic) #With a custom prior and logistic inverse link function
+Regression(y ~ x, RegressionPrior{TDist{Float64}, Truncated{TDist{Float64}, Continuous, Float64, Float64, Nothing}}(TDist{Float64}(ν=4.0), Truncated(TDist{Float64}(ν=4.0); lower=0.0)), logistic)
+```
 """
 struct Regression
     formula::FormulaTerm
@@ -75,6 +113,22 @@ Base.@kwdef mutable struct ModelFitResult
     session_parameters::Union{Nothing,AbstractFittingResult} = nothing
 end
 
+"""
+ModelFit{T}
+
+Container for a fitted model, including the Turing model, population model type, data, and results (both posterior and prior).
+
+# Type Parameters
+- `T`: The population model type (subtype of `AbstractPopulationModel`).
+
+# Fields
+- `model`: The Turing model object.
+- `population_model_type`: The population model type.
+- `population_data`: The data used for fitting.
+- `info`: Metadata about the fit (as a `ModelFitInfo`).
+- `prior`: Prior fit results (optional).
+- `posterior`: Posterior fit results (optional).
+"""
 Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
     model::DynamicPPL.Model
     population_model_type::T
@@ -85,6 +139,20 @@ Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
 end
 
 ### Structs for containing outputted session parameters and state trajectories ###
+"""
+SessionParameters
+
+Container for session-level parameter estimates from model fitting.
+
+# Fields
+- `value`: NamedTuple for each parameter, containing a NamedTuple for each session. Within is an AxisArray of samples.
+- `modelfit`: The associated `ModelFit` object.
+- `estimated_parameter_names`: Tuple of estimated parameter names.
+- `session_ids`: Vector of session identifiers.
+- `parameter_types`: NamedTuple of parameter types.
+- `n_samples`: Number of posterior samples.
+- `n_chains`: Number of MCMC chains.
+"""
 struct SessionParameters <: AbstractFittingResult
     value::NamedTuple{names,<:Tuple{Vararg{NamedTuple}}} where {names}
     modelfit::ModelFit
@@ -98,6 +166,20 @@ struct SessionParameters <: AbstractFittingResult
     n_chains::Int
 end
 
+"""
+StateTrajectories
+
+Container for state trajectory estimates from model fitting.
+
+# Fields
+- `value`: NamedTuple for each state, containing a NamedTuple for each session. Within is an AxisArray of samples per timestep.
+- `modelfit`: The associated `ModelFit` object.
+- `state_names`: Vector of state names.
+- `session_ids`: Vector of session identifiers.
+- `state_types`: NamedTuple of state types.
+- `n_samples`: Number of posterior samples.
+- `n_chains`: Number of MCMC chains.
+"""
 struct StateTrajectories <: AbstractFittingResult
     value::NamedTuple{names,<:Tuple{Vararg{NamedTuple}}} where {names}
     modelfit::ModelFit

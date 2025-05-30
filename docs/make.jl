@@ -23,12 +23,7 @@ end
 #Create markdowns from julia files
 for julia_file in glob("*/*.jl", julia_files_folder)
 
-    Literate.markdown(
-        julia_file,
-        generated_files_folder,
-        execute = true,
-        documenter = true,
-    )
+    Literate.markdown(julia_file, generated_files_folder, execute = true, documenter = true)
 end
 
 #Including the index file 
@@ -45,7 +40,7 @@ Literate.markdown(joinpath(julia_files_folder, "README.jl"), project_dir, execut
 
 
 ## GENERATE AND DEPLOY DOCS ##
-DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
+DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels; attributes = ModelAttributes((learning_rate=ActionModels.Variable(0.1),), (expected_value=ActionModels.Variable(0.0),), (report=ActionModels.Variable(missing),), (expected_value=ActionModels.Variable(0.0),), ActionModels.NoSubModelAttributes())); recursive = true)
 
 #Create documentation
 makedocs(;
@@ -61,8 +56,10 @@ makedocs(;
     doctest = true,
     pages = [
         "Welcome to ActionModels" => [joinpath(".", "index.md")],
-        "Theory" => [joinpath(".", "markdowns", "theory.md"),
-                     joinpath(".", "markdowns", "references.md")],
+        "Theory" => [
+            joinpath(".", "markdowns", "theory.md"),
+            joinpath(".", "markdowns", "references.md"),
+        ],
         "User Guide" => [
             joinpath(".", "generated", "2_defining_models.md"),
             joinpath(".", "generated", "3_simulation.md"),

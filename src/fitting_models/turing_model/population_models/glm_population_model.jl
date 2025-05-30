@@ -190,14 +190,6 @@ end
     return zip(sampled_parameters...)
 end
 
-
-"""
-Generalized linear regression models following the equation:
-η = X⋅β
-with optionally:
-for each random effect: η += Zⱼ⋅rⱼ
-link function: link(η)
-"""
 @model function linear_model(
     X::Matrix{R1}, # model matrix for fixed effects
     ranef_info::Union{Nothing,T}; # model matrix for random effects

@@ -41,6 +41,7 @@ function initialize_variables(
         parameters,
     )
 end
+#If it is states
 function initialize_variables(
     states::NamedTuple{names,<:Tuple{Vararg{AbstractState}}},
     ::Type{TF} = Float64,
@@ -52,6 +53,7 @@ function initialize_variables(
         states,
     ) #TODO: only allow missing for states with missing initial values?
 end
+#Ii it is actions
 function initialize_variables(
     actions::NamedTuple{names,<:Tuple{Vararg{AbstractAction}}},
     ::Type{TF} = Float64,
@@ -124,6 +126,25 @@ function store_action!(
 end
 
 #Update a state with a new value - used within action model definition
+"""
+update_state!(model_attributes, state_name, state_value)
+
+Update the value of a state in the model attributes. This function is used within the action model definition to update the state values during the simulation or fitting process.
+
+# Arguments
+- `model_attributes`: The model attributes object.
+- `state_name`: The name of the state to update.
+- `state_value`: The new value for the state.
+
+```@meta
+
+````
+
+# Example
+```jldoctest
+julia> update_state!(attributes, :expected_value, 2.0)  # Update state expected_value to 2.0
+```
+"""
 function update_state!(
     model_attributes::ModelAttributes,
     state_name::Symbol,
@@ -133,12 +154,63 @@ function update_state!(
 end
 
 #Extracting parameters, states and actions from the model attributes - used within action model definition
+"""
+load_parameters(model_attributes)
+
+Load the parameters from the model attributes. This is used within the action model definition to extract the current parameter values.
+
+# Arguments
+- `model_attributes`: The model attributes object.
+
+# Returns
+A vector of parameter values.
+
+# Example
+```jldoctest
+julia> params = load_parameters(attributes)
+(learning_rate = 0.1,)
+```
+"""
 function load_parameters(model_attributes::ModelAttributes)
     return map(parameter -> parameter.value, model_attributes.parameters)
 end
+"""
+load_states(model_attributes)
+
+Load the states from the model attributes. This is used within the action model definition to extract the current state values.
+
+# Arguments
+- `model_attributes`: The model attributes object.
+
+# Returns
+A vector of state values.
+
+# Example
+```jldoctest
+julia> states = load_states(attributes)
+(expected_value = 0.0,)
+```
+"""
 function load_states(model_attributes::ModelAttributes)
     return map(state -> state.value, model_attributes.states)
 end
+"""
+load_actions(model_attributes)
+
+Load the actions from the model attributes. This is used within the action model definition to extract the current action values.
+
+# Arguments
+- `model_attributes`: The model attributes object.
+
+# Returns
+A vector of action values.
+
+# Example
+```jldoctest
+julia> actions = load_actions(attributes)
+(report = missing,)
+```
+"""
 function load_actions(model_attributes::ModelAttributes)
     return map(action -> action.value, model_attributes.actions)
 end

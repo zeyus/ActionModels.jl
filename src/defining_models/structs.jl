@@ -286,23 +286,8 @@ struct Action{T,TD} <: AbstractAction
         new{T,TD}(action_type, distribution_type)
     end
 end
-"""
-get_action_type(distribution_type)
 
-Return the Julia type corresponding to a given Distributions.jl distribution type for actions.
-
-# Examples
-```jldoctest
-julia> ActionModels.get_action_type(Normal)
-Float64
-
-julia> ActionModels.get_action_type(Bernoulli)
-Int64
-
-julia> ActionModels.get_action_type(MvNormal)
-Array{Float64}
-```
-"""
+## Function to get the action type based on the distribution type ##
 function get_action_type(
     action_dist_type::Type{T},
 ) where {T<:Distribution{Univariate,Continuous}}
@@ -476,17 +461,6 @@ end
 ## Abstract type for submodel attributes ##
 abstract type AbstractSubmodelAttributes end
 
-"""
-NoSubModelAttributes()
-
-Default internal submodel attributes type used when no submodel is specified in an ActionModel.
-
-# Examples
-```jldoctest
-julia> ActionModels.NoSubModelAttributes()
-ActionModels.NoSubModelAttributes()
-```
-"""
 struct NoSubModelAttributes <: AbstractSubmodelAttributes end
 
 """
@@ -545,20 +519,6 @@ mutable struct Variable{T}
     value::T
 end
 
-"""
-ParameterDependentState(parameter_name)
-
-Marker struct indicating a state whose initial value depends on a parameter.
-
-# Arguments
-- `parameter_name`: Symbol name of the parameter
-
-# Examples
-```jldoctest
-julia> ActionModels.ParameterDependentState(:learning_rate)
-ActionModels.ParameterDependentState(:learning_rate)
-```
-"""
 struct ParameterDependentState
     parameter_name::Symbol
 end
