@@ -30,7 +30,9 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
             include(filename)
         end
     end
+
     # Run the doctests
+    DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
     doctest(ActionModels)
 
     @testset "documentation tests" begin
