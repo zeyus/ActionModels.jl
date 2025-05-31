@@ -3,7 +3,6 @@
 *.jl.mem
 /docs/build/
 .DS_Store
-testing_script.jl
 settings.json
 Manifest.toml
 
@@ -11,3 +10,9 @@ Manifest.toml
 /docs/src/index.md
 /docs/build/
 /build
+
+testing_scripts/*
+
+docs/.samplingstate
+
+README.md

@@ -1,19 +1,6 @@
-### TODO:
-# Make check in full_model that returned agents_parameters is same length as inputs/actions
-# Benchmark the try-catch in full_model
-# Figure out helper function for extracting generated quantities (track_states true/false)
-# Fix typing in create_model and full_model to give concrete types
-# Make rename_chains also deal with missing actions
-# full workflow: model comparison (PSIS)
-# use arraydist for multiple actions 
-# consider using a submodel for the agent model
-# consider: make parameter recovery that uses a single model, so that pmap is unnecessary
-# append the generated quantities to the chain (can use or reconstruct from https://github.com/farr/MCMCChainsStorage.jl)
-
-
-using ActionModels, DataFrames
-using Test
-using Glob
+using ActionModels
+using Test, Documenter
+using Glob, Distributed
 
 #Get the root path
 ActionModels_path = dirname(dirname(pathof(ActionModels)))
@@ -22,12 +9,17 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
 
     test_path = ActionModels_path * "/test/"
 
+    @testset "Aqua.jl tests" begin
+        using Aqua
+        Aqua.test_all(ActionModels, unbound_args = false)
+    end
+
     @testset "quick tests" begin
         # Test the quick tests that are used as pre-commit tests
         include(test_path * "quicktests.jl")
     end
 
-    @testset "testsuite" begin
+    @testset "unit tests" begin
 
         # List the julia filenames in the testsuite
         filenames = glob("*.jl", test_path * "testsuite")
@@ -39,14 +31,20 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
         end
     end
 
-    @testset "Documentation" begin
-        documentation_path = ActionModels_path * "/docs/src/"
-        @testset "sourcefiles" begin
+    # Run the doctests
+    DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
+    doctest(ActionModels)
 
-            # List the julia filenames in the documentation source files folder
-            filenames = glob("*.jl", documentation_path * "/Julia_src_files")
+    @testset "documentation tests" begin
 
-            for filename in filenames
+        # Set up path for the documentation folder
+        documentation_path = joinpath(ActionModels_path, "docs", "julia_files")
+
+        # List the julia filenames in the documentation source files folder
+        filenames = [glob("*/*.jl", documentation_path); glob("*.jl", documentation_path)]
+
+        for filename in filenames
+            @testset "$(splitpath(filename)[end])" begin
                 include(filename)
             end
         end
