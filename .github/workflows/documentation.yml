@@ -12,6 +12,8 @@ on:
 
 jobs:
   build:
+    env:
+      JULIA_NUM_THREADS: 2
     # These permissions are needed to:
     # - Deploy the documentation: https://documenter.juliadocs.org/stable/man/hosting/#Permissions
     # - Delete old caches: https://github.com/julia-actions/cache#usage
