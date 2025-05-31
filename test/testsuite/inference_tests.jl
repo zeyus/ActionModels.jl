@@ -225,56 +225,71 @@ using StatsPlots
                 end
 
                 @testset "save/resume $(AD)" begin
-                    posterior_chains = sample_posterior!(
-                        model,
-                        resample = true,
-                        save_resume = SampleSaveResume(
-                            path = mktempdir(),
-                            save_every = Int64(n_samples / 2),
-                        ),
-                        n_samples = n_samples,
-                        n_chains = n_chains,
+                    #Prepare a specific directory
+                    save_resume = SampleSaveResume(
+                        path = mktempdir(),
+                        save_every = Int64(n_samples / 2),
                     )
-                end
 
-                @testset "multi-core save/resume $(AD)" begin
-                    using Distributed
+                    @testset "first run" begin
+                        posterior_chains = sample_posterior!(
+                            model,
+                            resample = true,
+                            save_resume = save_resume,
+                            n_samples = n_samples,
+                            n_chains = n_chains,
+                        )
+                    end
 
-                    addprocs(2)
+                    @testset "continuing run" begin
+                        posterior_chains = sample_posterior!(
+                            model,
+                            resample = true,
+                            save_resume = save_resume,
+                            n_samples = n_samples,
+                            n_chains = n_chains,
+                        )
 
-                    @everywhere using ActionModels
-                    @everywhere model = $model
+                    end
 
-                    posterior_chains = sample_posterior!(
-                        model,
-                        MCMCDistributed(),
-                        resample = true,
-                        save_resume = SampleSaveResume(
-                            path = mktempdir(),
-                            save_every = Int64(n_samples / 2),
-                        ),
-                        n_samples = n_samples,
-                        n_chains = n_chains,
-                    )
-                    rmprocs(workers())
-                end
+                    @testset "multi-core save/resume $(AD)" begin
+                        using Distributed
 
-                @testset "multi-thread save/resume $(AD)" begin
-                    posterior_chains = sample_posterior!(
-                        model,
-                        MCMCThreads(),
-                        resample = true,
-                        save_resume = SampleSaveResume(
-                            path = mktempdir(),
-                            save_every = Int64(n_samples / 2),
-                        ),
-                        n_samples = n_samples,
-                        n_chains = n_chains,
-                    )
+                        addprocs(2)
+
+                        @everywhere using ActionModels
+                        @everywhere model = $model
+
+                        posterior_chains = sample_posterior!(
+                            model,
+                            MCMCDistributed(),
+                            resample = true,
+                            save_resume = SampleSaveResume(
+                                path = mktempdir(),
+                                save_every = Int64(n_samples / 2),
+                            ),
+                            n_samples = n_samples,
+                            n_chains = n_chains,
+                        )
+                        rmprocs(workers())
+                    end
+
+                    @testset "multi-thread save/resume $(AD)" begin
+                        posterior_chains = sample_posterior!(
+                            model,
+                            MCMCThreads(),
+                            resample = true,
+                            save_resume = SampleSaveResume(
+                                path = mktempdir(),
+                                save_every = Int64(n_samples / 2),
+                            ),
+                            n_samples = n_samples,
+                            n_chains = n_chains,
+                        )
+                    end
                 end
             end
         end
-
 
 
 
