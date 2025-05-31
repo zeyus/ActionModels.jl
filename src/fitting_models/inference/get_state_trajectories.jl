@@ -1,3 +1,30 @@
+"""
+    get_state_trajectories!(modelfit::ModelFit, target_states::Union{Symbol,Vector{Symbol}}, prior_or_posterior::Symbol = :posterior)
+
+Extract posterior or prior samples of state trajectories for specified states from a fitted model.
+
+If the requested samples have not yet been drawn, this function will call `sample_posterior!` or `sample_prior!` as needed. Returns a `StateTrajectories` struct containing the samples for each session, state, and timestep.
+
+# Arguments
+- `modelfit::ModelFit`: The fitted model object.
+- `target_states::Union{Symbol,Vector{Symbol}}`: State or states to extract trajectories for (e.g., `:expected_value`).
+- `prior_or_posterior::Symbol = :posterior`: Whether to extract from the posterior (`:posterior`) or prior (`:prior`).
+
+# Returns
+- `StateTrajectories`: Struct containing samples for each session, state, and timestep.
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames, StatsPlots; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()); model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id); chns = sample_posterior!(model, sampler = HMC(0.8, 10),n_samples=100, n_chains=1, progress = false))
+julia> trajs = get_state_trajectories!(model, :expected_value);
+
+julia> trajs isa ActionModels.StateTrajectories
+true
+```
+
+# Notes
+- Use `prior_or_posterior = :prior` to extract prior samples instead of posterior.
+- The returned object can be summarized with `Turing.summarize`.
+"""
 function get_state_trajectories!(
     modelfit::ModelFit,
     target_states::Union{Symbol,Vector{Symbol}},

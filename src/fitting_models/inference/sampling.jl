@@ -21,21 +21,14 @@ This function runs MCMC sampling for the provided `ModelFit` object, storing the
 # Returns
 - `Chains`: The sampled posterior chains.
 
-# Examples
-```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4,], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
-
-julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
-
-julia> chns = sample_posterior!(model, n_samples = 100, n_chains = 1);
-
-julia> chns isa Chains
-true
-
-julia> chns = sample_posterior!(modelfit, MCMCSerial(); save_resume=SampleSaveResume(save_every = 50), n_samples = 100, n_chains = 1)
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames, StatsPlots; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()); model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id))
+julia> chns = sample_posterior!(model, sampler = HMC(0.8, 10), n_chains = 1, n_samples = 100, progress = false);
 
 julia> chns isa Chains
 true
 ```
+
 """
 function sample_posterior!(
     modelfit::ModelFit,
@@ -172,11 +165,8 @@ This function samples from the prior for the provided `ModelFit` object, storing
 - `Chains`: The sampled prior chains.
 
 # Example
-```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4,], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
-
-julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
-
-julia> chns = sample_prior!(model);
+```jldoctest; setup = :(using ActionModels, DataFrames, StatsPlots; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()); model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id))
+julia> chns = sample_prior!(model, progress = false);
 
 julia> chns isa Chains
 true
@@ -188,6 +178,7 @@ function sample_prior!(
     resample::Bool = false,
     n_samples::Integer = 1000,
     n_chains::Integer = 2,
+    sampler_kwargs...,
 )
 
     #If the prior has already been sampled
@@ -200,7 +191,7 @@ function sample_prior!(
     model = modelfit.model
 
     #Sample prior
-    chains = sample(model, Prior(), parallelization, n_samples, n_chains)
+    chains = sample(model, Prior(), parallelization, n_samples, n_chains; sampler_kwargs...)
 
     #Store the prior
     modelfit.prior = ModelFitResult(; chains = chains)

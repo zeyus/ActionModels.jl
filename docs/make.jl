@@ -51,7 +51,7 @@ makedocs(;
         prettyurls = get(ENV, "CI", "false") == "true",
         canonical = "https://ComputationalPsychiatry.github.io/ActionModels.jl",
         assets = String[],
-        size_threshold = 10_000_000, ##MAKE THIS SMALLER?
+        size_threshold = 10_000_000,
     ),
     doctest = true,
     pages = [

@@ -1,3 +1,30 @@
+"""
+    get_session_parameters!(modelfit::ModelFit, prior_or_posterior::Symbol = :posterior; verbose::Bool = true)
+
+Extract posterior or prior samples of session-level parameters from a fitted model.
+
+If the requested samples have not yet been drawn, this function will call `sample_posterior!` or `sample_prior!` as needed. Returns a `SessionParameters` struct containing the samples for each session and parameter.
+
+# Arguments
+- `modelfit::ModelFit`: The fitted model object.
+- `prior_or_posterior::Symbol = :posterior`: Whether to extract from the posterior (`:posterior`) or prior (`:prior`).
+- `verbose::Bool = true`: Whether to print warnings if sampling is triggered.
+
+# Returns
+- `SessionParameters`: Struct containing samples for each session and parameter.
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames, StatsPlots; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()); model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id); chns = sample_posterior!(model, sampler = HMC(0.8, 10),n_samples=100, n_chains=1, progress = false))
+julia> params = get_session_parameters!(model);
+
+julia> params isa ActionModels.SessionParameters
+true
+```
+
+# Notes
+- Use `prior_or_posterior = :prior` to extract prior samples instead of posterior.
+- The returned object can be summarized with `Turing.summarize`.
+"""
 function get_session_parameters!(
     modelfit::ModelFit,
     prior_or_posterior::Symbol = :posterior;

@@ -16,12 +16,7 @@ Each row corresponds to a session, and each column to a parameter (or parameter 
 - `DataFrame`: Table with one row per session and columns for each parameter (or parameter element).
 
 # Example
-```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4,], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
-
-julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
-
-julia> sample_posterior!(model, n_samples=100, n_chains=1);
-
+```jldoctest; setup = :(using ActionModels, DataFrames, StatsPlots; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()); model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id); chns = sample_posterior!(model, sampler = HMC(0.8, 10),n_samples=100, n_chains=1, progress = false))
 julia> df = summarize(get_session_parameters!(model), median);
 
 julia> df isa DataFrame
@@ -148,12 +143,7 @@ Each row corresponds to a session and timestep, and each column to a state varia
 - `DataFrame`: Table with one row per session and timestep, and columns for each state (or state element).
 
 # Example
-```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
-
-julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
-
-julia> sample_posterior!(model, n_samples=100, n_chains=1);
-
+```jldoctest; setup = :(using ActionModels, DataFrames, StatsPlots; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()); model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id); chns = sample_posterior!(model, sampler = HMC(0.8, 10),n_samples=100, n_chains=1, progress = false))
 julia> df = summarize(get_state_trajectories!(model, :expected_value), mean);
 
 julia> df isa DataFrame
