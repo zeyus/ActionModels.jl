@@ -1,6 +1,37 @@
 #######################################
 ##### SUMMARIZE SESSION PARAMETERS ####
 #######################################
+"""
+    Turing.summarize(session_parameters::SessionParameters, summary_function::Function=median)
+
+Summarize posterior samples of session-level parameters into a tidy `DataFrame`.
+
+Each row corresponds to a session, and each column to a parameter (or parameter element, for arrays). The summary statistic (e.g., `median`, `mean`) is applied to the posterior samples for each parameter and session.
+
+# Arguments
+- `session_parameters::SessionParameters`: Posterior samples of session-level parameters, as returned by model fitting.
+- `summary_function::Function=median`: Function to summarize the samples (e.g., `mean`, `median`, `std`).
+
+# Returns
+- `DataFrame`: Table with one row per session and columns for each parameter (or parameter element).
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4,], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
+
+julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
+
+julia> sample_posterior!(model, n_samples=100, n_chains=1);
+
+julia> df = summarize(get_session_parameters!(model), median);
+
+julia> df isa DataFrame
+true
+```
+
+# Notes
+- For array-valued parameters, columns are named with indices, e.g., `:expected_value[1]`.
+- Session identifiers are split into columns if composite.
+"""
 function Turing.summarize(
     session_parameters::SessionParameters,
     summary_function::Function = median;
@@ -102,6 +133,38 @@ end
 #######################################
 ##### SUMMARIZE STATE TRAJECTORIES ####
 #######################################
+"""
+    Turing.summarize(state_trajectories::StateTrajectories, summary_function::Function=median)
+
+Summarize posterior samples of state trajectories into a tidy `DataFrame`.
+
+Each row corresponds to a session and timestep, and each column to a state variable (or state element, for arrays). The summary statistic (e.g., `median`, `mean`) is applied to the posterior samples for each state, session, and timestep.
+
+# Arguments
+- `state_trajectories::StateTrajectories`: Posterior samples of state trajectories, as returned by model fitting.
+- `summary_function::Function=median`: Function to summarize the samples (e.g., `mean`, `median`, `std`).
+
+# Returns
+- `DataFrame`: Table with one row per session and timestep, and columns for each state (or state element).
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
+
+julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
+
+julia> sample_posterior!(model, n_samples=100, n_chains=1);
+
+julia> df = summarize(get_state_trajectories!(model, :expected_value), mean);
+
+julia> df isa DataFrame
+true
+```
+
+# Notes
+- For array-valued states, columns are named with indices, e.g., `:expected_value[1]`.
+- Session identifiers are split into columns if composite.
+- The column `timestep` indicates the time index (starting from 0).
+"""
 function Turing.summarize(
     state_trajectories::StateTrajectories,
     summary_function::Function = median,
