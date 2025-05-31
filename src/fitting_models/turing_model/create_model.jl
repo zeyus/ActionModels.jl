@@ -1,6 +1,42 @@
 ##########################################################################################################
 ### FUNCTION FOR CREATING A CONDITIONED TURING MODEL FROM AN AGENT, A DATAFRAME AND A POPULATION MODEL ###
 ##########################################################################################################
+"""
+    create_model(action_model::ActionModel, population_model::DynamicPPL.Model, data::DataFrame; observation_cols, action_cols, session_cols=Vector{Symbol}(), parameters_to_estimate, impute_missing_actions=false, check_parameter_rejections=false, population_model_type=CustomPopulationModel(), verbose=true)
+
+Create a `ModelFit` structure that can be used for sampling posterior and prior probability distributions. Consists of an action model, a population model, and a dataset.
+
+This function prepares the data, checks consistency with the action and population models, handles missing data, and returns a `ModelFit` object ready for sampling and inference.
+
+# Arguments
+- `action_model::ActionModel`: The action model to fit.
+- `population_model::DynamicPPL.Model`: The population model (e.g. a Turing model that generated parameters for each session).
+- `data::DataFrame`: The dataset containing observations, actions, and session/grouping columns.
+- `observation_cols`: Columns in `data` for observations. Can be a `NamedTuple`, `Vector{Symbol}`, or `Symbol`.
+- `action_cols`: Columns in `data` for actions. Can be a `NamedTuple`, `Vector{Symbol}`, or `Symbol`.
+- `session_cols`: Columns in `data` identifying sessions/groups (default: empty vector).
+- `parameters_to_estimate`: Tuple of parameter names to estimate.
+- `impute_missing_actions`: Whether to impute missing actions (default: `false`).
+- `check_parameter_rejections`: Whether to check for parameter rejections (default: `false`).
+- `population_model_type`: Type of population model (default: `CustomPopulationModel()`).
+- `verbose`: Whether to print warnings and info (default: `true`).
+
+# Returns
+- `ModelFit`: Struct containing the model, data, and metadata for fitting and inference.
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = @model function testmodel(population_args...) learning_rate ~ LogitNormal() end; population_model = population_model();)
+julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id, parameters_to_estimate = (:learning_rate,));
+
+julia> model isa ActionModels.ModelFit
+true
+```
+
+# Notes
+- The returned `ModelFit` object can be used with `sample_posterior!`, `sample_prior!`, and other inference utilities.
+- Handles missing actions according to the `impute_missing_actions` argument.
+- Checks that columns and types in `data` match the action model specification.
+"""
 function create_model(
     action_model::ActionModel,
     population_model::DynamicPPL.Model,

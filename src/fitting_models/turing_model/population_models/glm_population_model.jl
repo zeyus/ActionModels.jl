@@ -1,4 +1,3 @@
-
 ## API ##
 # TODO: (1.0) implement Regression input type
 # TODO: (1.0) fix the errors in glm_tests.jl
@@ -26,6 +25,43 @@
 ###################################
 ### REGRESSION POPULATION MODEL ###
 ###################################
+"""
+    create_model(action_model::ActionModel, regressions::Union{Regression,FormulaTerm,Vector}, data::DataFrame; observation_cols, action_cols, session_cols=Vector{Symbol}(), verbose=true, kwargs...)
+
+Create a hierarchical Turing model with a regression-based population model for parameter estimation.
+
+This function builds a model where one or more agent parameters are modeled as a function of covariates using (generalized) linear regression, optionally with random effects. Returns a `ModelFit` object ready for sampling and inference.
+
+# Arguments
+- `action_model::ActionModel`: The agent/action model to fit.
+- `regressions::Union{Regression, FormulaTerm, Vector}`: One or more regression specifications (as `Regression` objects or formulae).
+- `data::DataFrame`: The dataset containing observations, actions, covariates, and session/grouping columns.
+- `observation_cols`: Columns in `data` for observations. Can be a `NamedTuple`, `Vector{Symbol}`, or `Symbol`.
+- `action_cols`: Columns in `data` for actions. Can be a `NamedTuple`, `Vector{Symbol}`, or `Symbol`.
+- `session_cols`: Columns in `data` identifying sessions/groups (default: empty vector).
+- `verbose`: Whether to print warnings and info (default: `true`).
+- `kwargs...`: Additional keyword arguments passed to the underlying model constructor.
+
+# Returns
+- `ModelFit`: Struct containing the model, data, and metadata for fitting and inference.
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4], "action" => [0.1, 0.2, 0.3, 0.4], "group" => [1, 1, 2, 2]); action_model = ActionModel(RescorlaWagner()); regression = @formula(learning_rate ~ 1 + group))
+julia> create_model(action_model, regression, data; action_cols = :action, observation_cols = :observation, session_cols = :id)
+-- ModelFit object --
+Action model: rescorla_wagner_act_after_update
+Linear regression population model
+1 estimated action model parameters, 2 sessions
+Posterior not sampled
+Prior not sampled
+```
+
+# Notes
+- Supports both fixed and random effects (random effects via formula syntax, e.g., `learning_rate ~ 1 + (1|group)`).
+- Multiple regressions can be provided as a vector.
+- The returned `ModelFit` object can be used with `sample_posterior!`, `sample_prior!`, and other inference utilities.
+- Covariate columns must be present in `data`.
+"""
 function create_model(
     action_model::ActionModel,
     regressions::Union{F,Vector{F}},

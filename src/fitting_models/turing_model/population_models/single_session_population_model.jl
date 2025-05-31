@@ -1,6 +1,37 @@
 #############################################
 ### POPULATION MODEL FOR A SINGLE SESSION ###
 #############################################
+"""
+    create_model(action_model::ActionModel, prior::NamedTuple, observations::Vector, actions::Vector; verbose=true, kwargs...)
+
+Create a Turing model for a single session with user-supplied observations and actions.
+
+This function builds a model where all data belong to a single session, and parameters are sampled from the specified prior distributions. Returns a `ModelFit` object ready for sampling and inference.
+
+# Arguments
+- `action_model::ActionModel`: The agent/action model to fit.
+- `prior::NamedTuple`: Named tuple of prior distributions for each parameter (e.g., `(; learning_rate = LogitNormal())`).
+- `observations::Vector`: Vector of observations (or tuples of observations) for the session.
+- `actions::Vector`: Vector of actions (or tuples of actions) for the session.
+- `verbose`: Whether to print warnings and info (default: `true`).
+- `kwargs...`: Additional keyword arguments passed to the underlying model constructor.
+
+# Returns
+- `ModelFit`: Struct containing the model, data, and metadata for fitting and inference.
+
+# Example
+```jldoctest; setup = :(using ActionModels; obs = [0.1, 0.2, 0.3, 0.4]; acts = [0.1, 0.2, 0.3, 0.4]; action_model = ActionModel(RescorlaWagner()); prior = (; learning_rate = LogitNormal()))
+julia> model = create_model(action_model, prior, obs, acts); 
+
+julia> model isa ActionModels.ModelFit
+true
+```
+
+# Notes
+- Use this model for fitting a single session or subject.
+- The returned `ModelFit` object can be used with `sample_posterior!`, `sample_prior!`, and other inference utilities.
+- Handles both scalar and tuple-valued observations/actions.
+"""
 function create_model(
     action_model::ActionModel,
     prior::NamedTuple{prior_names,<:Tuple{Vararg{Distribution}}},
