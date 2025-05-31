@@ -1,5 +1,5 @@
 using ActionModels
-using Test
+using Test, Documenter
 using Glob, Distributed
 
 #Get the root path
@@ -30,10 +30,12 @@ ActionModels_path = dirname(dirname(pathof(ActionModels)))
             include(filename)
         end
     end
+    # Run the doctests
+    doctest(ActionModels)
 
     @testset "documentation tests" begin
 
-        #Set up path for the documentation folder
+        # Set up path for the documentation folder
         documentation_path = joinpath(ActionModels_path, "docs", "julia_files")
 
         # List the julia filenames in the documentation source files folder
