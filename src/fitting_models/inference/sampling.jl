@@ -1,15 +1,49 @@
+"""
+    sample_posterior!(modelfit::ModelFit, parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial(); verbose=true, resample=false, save_resume=nothing, init_params=:sample_prior, n_samples=1000, n_chains=2, adtype=AutoForwardDiff(), sampler=NUTS(; adtype=adtype), sampler_kwargs...)
+
+Sample from the posterior distribution of a fitted model using MCMC.
+
+This function runs MCMC sampling for the provided `ModelFit` object, storing the results in `modelfit.posterior`. It supports saving and resuming sampling, parallelization, various ways of initializing parameters for the sampling, and specifying detailed settings for the sampling. Returns the sampled chains.
+
+# Arguments
+- `modelfit::ModelFit`: The model structure to sample with.
+- `parallelization::AbstractMCMC.AbstractMCMCEnsemble`: Parallelization strategy (default: `MCMCSerial()`).
+- `verbose::Bool`: Whether to display warnings (default: `true`).
+- `resample::Bool`: Whether to force resampling even if results exist (default: `false`).
+- `save_resume::Union{SampleSaveResume,Nothing}`: Save/resume configuration (default: `nothing`).
+- `init_params::Union{Nothing,Symbol,Vector{Float64}}`: How to initialize the sampler (default: `:sample_prior`).
+- `n_samples::Integer`: Number of samples per chain (default: `1000`).
+- `n_chains::Integer`: Number of MCMC chains (default: `2`).
+- `adtype`: Automatic differentiation type (default: `AutoForwardDiff()`).
+- `sampler`: Sampler algorithm (default: `NUTS`).
+- `sampler_kwargs...`: Additional keyword arguments for the sampler.
+
+# Returns
+- `Chains`: The sampled posterior chains.
+
+# Examples
+```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4,], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
+
+julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
+
+julia> chns = sample_posterior!(model, n_samples = 100, n_chains = 1);
+
+julia> chns isa Chains
+true
+
+julia> chns = sample_posterior!(modelfit, MCMCSerial(); save_resume=SampleSaveResume(save_every = 50), n_samples = 100, n_chains = 1)
+
+julia> chns isa Chains
+true
+```
+"""
 function sample_posterior!(
     modelfit::ModelFit,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial();
-    #Whether to display warnings
     verbose::Bool = true,
-    #Whether to resample the posterior
     resample::Bool = false,
-    #Whether to use save_resume
     save_resume::Union{SampleSaveResume,Nothing} = nothing,
-    #Which way to choose initial parameters for the sampler
     init_params::Union{Nothing,Symbol,Vector{Float64}} = :sample_prior,
-    #Sampling configurations
     n_samples::Integer = 1000,
     n_chains::Integer = 2,
     adtype = AutoForwardDiff(),
@@ -120,6 +154,34 @@ function sample_posterior!(
 end
 
 
+"""
+    sample_prior!(modelfit::ModelFit, parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial(); resample=false, n_samples=1000, n_chains=2)
+
+Sample from the prior distribution of a fitted model using MCMC.
+
+This function samples from the prior for the provided `ModelFit` object, storing the results in `modelfit.prior`. Returns the sampled chains.
+
+# Arguments
+- `modelfit::ModelFit`: The model structure to sample with.
+- `parallelization::AbstractMCMC.AbstractMCMCEnsemble`: Parallelization strategy (default: `MCMCSerial()`).
+- `resample::Bool`: Whether to force resampling even if results exist (default: `false`).
+- `n_samples::Integer`: Number of samples per chain (default: `1000`).
+- `n_chains::Integer`: Number of MCMC chains (default: `2`).
+
+# Returns
+- `Chains`: The sampled prior chains.
+
+# Example
+```jldoctest; setup = :(using ActionModels, DataFrames; data = DataFrame("id" => ["S1", "S1", "S2", "S2"], "observation" => [0.1, 0.2, 0.3, 0.4,], "action" => [0.1, 0.2, 0.3, 0.4]); action_model = ActionModel(RescorlaWagner()); population_model = (; learning_rate = LogitNormal()))
+
+julia> model = create_model(action_model, population_model, data; action_cols = :action, observation_cols = :observation, session_cols = :id);
+
+julia> chns = sample_prior!(model);
+
+julia> chns isa Chains
+true
+```
+"""
 function sample_prior!(
     modelfit::ModelFit,
     parallelization::AbstractMCMC.AbstractMCMCEnsemble = MCMCSerial();

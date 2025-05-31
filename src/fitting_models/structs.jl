@@ -210,6 +210,27 @@ end
 
 
 ### Type for the save-resume functionality ###
+"""
+SampleSaveResume
+
+Configuration for saving and resuming MCMC sampling progress to disk.
+
+This struct is used to enable periodic saving of sampler state during long MCMC runs, allowing interrupted sampling to be resumed from the last save point.
+
+# Fields
+- `save_every::Int`: Number of iterations between saves (default: 100).
+- `path::String`: Directory path for saving sampler state (default: "./.samplingstate").
+- `chain_prefix::String`: Prefix for saved chain segment files (default: "ActionModels_chain_segment").
+
+# Examples
+```jldoctest
+julia> SampleSaveResume()
+SampleSaveResume(100, "./.samplingstate", "ActionModels_chain_segment")
+
+julia> SampleSaveResume(save_every=500, path="./.tmp", chain_prefix="my_chain")
+SampleSaveResume(500, "./.tmp", "my_chain")
+```
+"""
 Base.@kwdef struct SampleSaveResume
     save_every::Int = 100
     path::String = "./.samplingstate"
