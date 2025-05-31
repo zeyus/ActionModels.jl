@@ -26,7 +26,7 @@ end
 """
 RegressionPrior{Dβ,Dσ}
 
-Type for specifying priors for regression coefficients and error terms in regression population models.
+Type for specifying priors for regression coefficients and random effects in regression population models.
 
 # Type Parameters
 - `Dβ`: Distribution type for β regression coefficients.
@@ -34,7 +34,7 @@ Type for specifying priors for regression coefficients and error terms in regres
 
 # Fields
 - `β`: Prior or vector of priors for regression coefficients (default: `TDist(3)`). If only one prior is given, it is used for all coefficients. If a vector is given, it should match the number of coefficients in the regression formula.
-- `σ`: Prior or vector of priors for error terms (default: truncated `TDist(3)` at 0). If only one prior is given, it is used for all random effects. If a vector is given, it should match the number of random effects in the regression formula.
+- `σ`: Prior or vector of priors for random effect deviations (default: truncated `TDist(3)` at 0). If only one prior is given, it is used for all random effects. If a vector is given, it should match the number of random effects in the regression formula.
 
 # Examples
 ```jldoctest
@@ -103,11 +103,29 @@ end
 abstract type AbstractFittingResult end
 
 ### Structs for storing results of model fitting ###
+"""
+ModelFitInfo
+
+Container for metadata about a model fit, including session IDs and estimated parameter names.
+
+# Fields
+- `session_ids::Vector{String}`: List of session identifiers.
+- `estimated_parameter_names::Tuple{Vararg{Symbol}}`: Names of estimated parameters.
+"""
 Base.@kwdef struct ModelFitInfo
     session_ids::Vector{String}
     estimated_parameter_names::Tuple{Vararg{Symbol}}
 end
 
+"""
+ModelFitResult
+
+Container for the results of a model fit (either prior or posterior), including MCMC chains and (optionally) session-level parameters.
+
+# Fields
+- `chains::Chains`: MCMC chains from Turing.jl.
+- `session_parameters::Union{Nothing,AbstractFittingResult}`: Session-level parameter results (optional).
+"""
 Base.@kwdef mutable struct ModelFitResult
     chains::Chains
     session_parameters::Union{Nothing,AbstractFittingResult} = nothing
@@ -124,10 +142,10 @@ Container for a fitted model, including the Turing model, population model type,
 # Fields
 - `model`: The Turing model object.
 - `population_model_type`: The population model type.
-- `population_data`: The data used for fitting.
+- `population_data`: The data describing each session (i.e., after calling unique(data, session_cols), so no observations and actions).
 - `info`: Metadata about the fit (as a `ModelFitInfo`).
-- `prior`: Prior fit results (optional).
-- `posterior`: Posterior fit results (optional).
+- `prior`: Prior fit results (empty until `sample_posterior!` is called).
+- `posterior`: Posterior fit results (empty until `sample_prior!` is called).
 """
 Base.@kwdef mutable struct ModelFit{T<:AbstractPopulationModel}
     model::DynamicPPL.Model
