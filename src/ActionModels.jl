@@ -11,7 +11,7 @@ using DataFrames #For the input format to create_model
 using AxisArrays #For storing session parameters and state trajectories
 using StatsModels, MixedModels, LogExpFunctions #For the GLM population Model
 
-using JLD2 #For the save_resume functionality
+using JLD2, Suppressor #For the save_resume functionality
 using ProgressLogging #For progress bars
 
 

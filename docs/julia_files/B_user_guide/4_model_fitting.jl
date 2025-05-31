@@ -119,6 +119,7 @@ chns = sample_posterior!(
 # This is done with passing a `SampleSaveResume` object to the `save_resume` keyword argument.
 # The `save_every` keyword argument can be used to specify how often the chains should be saved to disk, and the path keyword argument specifies where the chains should be saved.
 # Chains are saved with a prefix (by default `ActionModels_chain_segment`) and a suffix that contains the chain and segment number.
+# NOTE: this feature is currently experimental, and may change in the future. USe with care.
 
 ActionModels_path = dirname(dirname(pathof(ActionModels))) #hide
 docs_path = joinpath(ActionModels_path, "docs") #hide

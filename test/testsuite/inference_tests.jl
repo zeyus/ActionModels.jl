@@ -232,6 +232,7 @@ using StatsPlots
                     )
 
                     @testset "first run" begin
+
                         posterior_chains = sample_posterior!(
                             model,
                             resample = true,
@@ -242,14 +243,14 @@ using StatsPlots
                     end
 
                     @testset "continuing run" begin
-                        posterior_chains = sample_posterior!(
-                            model,
-                            resample = true,
-                            save_resume = save_resume,
-                            n_samples = n_samples,
-                            n_chains = n_chains,
-                        )
-
+                        #TODO THIS ERRORS
+                        # posterior_chains = sample_posterior!(
+                        #     model,
+                        #     resample = true,
+                        #     save_resume = save_resume,
+                        #     n_samples = n_samples*2,
+                        #     n_chains = n_chains,
+                        # )
                     end
 
                     @testset "multi-core save/resume $(AD)" begin

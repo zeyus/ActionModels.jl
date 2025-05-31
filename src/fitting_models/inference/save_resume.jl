@@ -75,7 +75,8 @@ end
 
 function save_segment(seg::Chains, save_resume::SampleSaveResume, chain_n::Int, seg_n::Int)
     # save the chain
-    JLD2.save_object(joinpath(save_resume.path, "$(save_resume.chain_prefix)_c$(chain_n)_s$(seg_n).jld2"), seg)
+    # JLD2.save_object(joinpath(save_resume.path, "$(save_resume.chain_prefix)_c$(chain_n)_s$(seg_n).jld2"), seg)
+    @suppress jldsave(joinpath(save_resume.path, "$(save_resume.chain_prefix)_c$(chain_n)_s$(seg_n).jld2"); seg)
 end
 
 function combine_segments(save_resume::SampleSaveResume, n_segments::Int, n_chains::Int)
