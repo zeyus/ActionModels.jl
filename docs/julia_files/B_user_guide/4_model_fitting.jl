@@ -142,7 +142,7 @@ turing_model = model.model
 
 # If users want to sample from the model themselves, but still want to draw on the rest of the ActionModels API, they can set it in the ModelFit object themselves by creating an `ActionModels.ModelFitResult` object.
 # This should be passed to either the posterior or prior field of the `ModelFit` object, after which it will interface with the ActionModels API as normal.
-using Turing
+using ActionModels: Turing
 chns = sample(turing_model, NUTS(), 1000, progress = false);
 
 model.posterior = ActionModels.ModelFitResult(; chains = chns);

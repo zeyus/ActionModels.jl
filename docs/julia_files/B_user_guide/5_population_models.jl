@@ -166,7 +166,7 @@ show(parameter_df)
 # Here, we create a custom population model where the learning rate and action noise for each session are sampled from multivariate normal distributions and then transformed.
 
 #Load Turing
-using Turing
+using ActionModels: Turing
 
 #Get the number of sessions in the data
 n_sessions = nrow(unique(data, session_cols))
