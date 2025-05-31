@@ -11,8 +11,7 @@ using DataFrames #For the input format to create_model
 using AxisArrays #For storing session parameters and state trajectories
 using StatsModels, MixedModels, LogExpFunctions #For the GLM population Model
 
-using MCMCChainsStorage, HDF5 #For the save_resume functionality
-using MCMCChainsStorage: MCMCChains
+using JLD2 #For the save_resume functionality
 using ProgressLogging #For progress bars
 
 
