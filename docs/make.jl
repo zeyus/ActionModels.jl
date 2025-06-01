@@ -1,96 +1,87 @@
-# using ActionModels, Documenter, Literate
+using ActionModels
+using Documenter
+using Literate
+using Glob
 
-# ## Set paths ##
-# actionmodels_path = dirname(pathof(ActionModels))
-
-# juliafiles_path = actionmodels_path * "/docs/julia_files"
-# user_guides_path = juliafiles_path * "/user_guide"
-# tutorials_path = juliafiles_path * "/tutorials"
-
-# markdown_src_path = actionmodels_path * "/docs/src"
-# theory_path = markdown_src_path * "/theory"
-# generated_user_guide_path = markdown_src_path * "/generated/user_guide"
-# generated_tutorials_path = markdown_src_path * "/generated/tutorials"
-
-
-# #Remove old tutorial markdown files 
-# for filename in readdir(generated_user_guide_path)
-#     if endswith(filename, ".md")
-#         rm(generated_user_guide_path * "/" * filename)
-#     end
-# end
-# for filename in readdir(generated_tutorials_path)
-#     if endswith(filename, ".md")
-#         rm(generated_tutorials_path * "/" * filename)
-#     end
-# end
-# rm(markdown_src_path * "/" * "index.md")
-
-# #Generate index markdown file
-# Literate.markdown(juliafiles_path * "/" * "index.jl", markdown_src_path, documenter = true)
-
-# #Generate markdown files for user guide
-# for filename in readdir(user_guides_path)
-#     if endswith(filename, ".jl")
-#         Literate.markdown(
-#             user_guides_path * "/" * filename,
-#             generated_user_guide_path,
-#             documenter = true,
-#         )
-#     end
-# end
-
-# #Generate markdown files for tutorials
-# for filename in readdir(tutorials_path)
-#     if endswith(filename, ".jl")
-#         Literate.markdown(
-#             tutorials_path * "/" * filename,
-#             generated_tutorials_path,
-#             documenter = true,
-#         )
-#     end
-# end
+## SET FOLDER NAMES ##
+if haskey(ENV, "GITHUB_WORKSPACE")
+    project_dir = ENV["GITHUB_WORKSPACE"]
+else
+    project_dir = pwd()
+end
+julia_files_folder = joinpath(project_dir, "docs", "julia_files")
+src_folder = joinpath(project_dir, "docs", "src")
+generated_files_folder = joinpath(src_folder, "generated")
 
 
-# #Set documenter metadata
-# DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
+## GENERATE MARKDOWNS ##
+#Remove old markdowns
+for markdown_file in glob("*.md", generated_files_folder)
+    rm(markdown_file)
+end
 
-# #Create documentation
-# makedocs(;
-#     modules = [ActionModels],
-#     authors = "Peter Thestrup Waade ptw@cas.au.dk, Malte Lau, Anna Hedvig Møller Daugaard hedvig.2808@gmail.com, Jacopo Comoglio jacopo.comoglio@gmail.com, Luke Ring, Christoph Mathys chmathys@cas.au.dk
-#                   and contributors",
-#     repo = "https://github.com/ilabcode/ActionModels.jl/blob/{commit}{path}#{line}",
-#     sitename = "ActionModels.jl",
-#     format = Documenter.HTML(;
-#         prettyurls = get(ENV, "CI", "false") == "true",
-#         canonical = "https://ilabcode.github.io/ActionModels.jl",
-#         assets = String[],
-#     ),
-#     pages = [
-#         # "Introduction to Action Models" => [
-#     #         "generated_markdown_files/introduction.md",
-#     #         "generated_markdown_files/agent_and_actionmodel.md",
-#     #         "generated_markdown_files/fitting_vs_simulating.md",
-#     #     ]
-#     #     "Creating Your Model" => [
-#     #         "generated_markdown_files/creating_own_action_model.md",
-#     #         "generated_markdown_files/premade_agents_and_models.md",
-#     #     ]
-#     #     "Agent Based Simulation" => [
-#     #         "generated_markdown_files/simulation_with_an_agent.md",
-#     #         "generated_markdown_files/variations_of_util.md",
-#     #     ]
-#     #     "Fitting an Agent Model" => [
-#     #         "generated_markdown_files/fitting_an_agent_model_to_data.md",
-#     #         "generated_markdown_files/prior_predictive_sim.md",
-#     #     ]
-#     #     "Advanced Usage" => ["generated_markdown_files/custom_fit_model.md"]
-#     # ],
-# )
+#Create markdowns from julia files
+for julia_file in glob("*/*.jl", julia_files_folder)
 
-# deploydocs(;
-#     repo = "github.com/ilabcode/ActionModels.jl",
-#     devbranch = "main",
-#     push_preview = false,
-# )
+    Literate.markdown(julia_file, generated_files_folder, execute = true, documenter = true)
+end
+
+#Including the index file 
+Literate.markdown(
+    joinpath(julia_files_folder, "index.jl"),
+    src_folder,
+    execute = true,
+    documenter = true,
+)
+
+#And the README
+Literate.markdown(joinpath(julia_files_folder, "README.jl"), project_dir, execute = true)
+
+
+
+## GENERATE AND DEPLOY DOCS ##
+DocMeta.setdocmeta!(ActionModels, :DocTestSetup, :(using ActionModels); recursive = true)
+
+#Create documentation
+makedocs(;
+    modules = [ActionModels],
+    authors = "Peter Thestrup Waade ptw@cas.au.dk, Christoph Mathys chmathys@cas.au.dk and contributors",
+    sitename = "ActionModels.jl",
+    format = Documenter.HTML(;
+        prettyurls = get(ENV, "CI", "false") == "true",
+        canonical = "https://ComputationalPsychiatry.github.io/ActionModels.jl",
+        assets = String[],
+        size_threshold = 10_000_000,
+    ),
+    doctest = true,
+    pages = [
+        "Welcome to ActionModels" => [joinpath(".", "index.md")],
+        "Theory" => [
+            joinpath(".", "markdowns", "theory.md"),
+            joinpath(".", "markdowns", "references.md"),
+        ],
+        "User Guide" => [
+            joinpath(".", "generated", "2_defining_models.md"),
+            joinpath(".", "generated", "3_simulation.md"),
+            joinpath(".", "generated", "4_model_fitting.md"),
+            joinpath(".", "generated", "5_population_models.md"),
+            joinpath(".", "generated", "6_workflow_tools.md"),
+            joinpath(".", "generated", "7_using_submodels.md"),
+            joinpath(".", "markdowns", "debugging.md"),
+            joinpath(".", "markdowns", "full_API.md"),
+        ],
+        "Premade Models" => [
+            joinpath(".", "generated", "rescorla_wagner.md"),
+            joinpath(".", "generated", "pvl_delta.md"),
+        ],
+        "Tutorials" => [
+            joinpath(".", "generated", "example_jget.md"),
+            joinpath(".", "generated", "example_igt.md"),
+        ],
+    ],
+)
+
+deploydocs(;
+    repo = "github.com/ComputationalPsychiatry/ActionModels.jl",
+    devbranch = "main",
+)
