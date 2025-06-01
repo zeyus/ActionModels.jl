@@ -12,8 +12,6 @@ on:
 
 jobs:
   build:
-    env:
-      JULIA_NUM_THREADS: 2
     # These permissions are needed to:
     # - Deploy the documentation: https://documenter.juliadocs.org/stable/man/hosting/#Permissions
     # - Delete old caches: https://github.com/julia-actions/cache#usage
@@ -38,6 +36,7 @@ jobs:
       - name: Build and deploy
         run: julia --project=docs --code-coverage=user docs/make.jl
         env:
+          JULIA_NUM_THREADS: 2
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
       - uses: julia-actions/julia-processcoverage@v1
